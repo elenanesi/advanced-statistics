@@ -1,0 +1,17 @@
+# Python / Jupyter
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+
+# Optional: keep personal params local-only (uncomment if pushing to public GitHub)
+# exam_tasks/assignment_values.txt

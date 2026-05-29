@@ -1,0 +1,29 @@
+{
+  "learner": {
+    "name": "Elena",
+    "course": "DLMDSAS01",
+    "repo_goals": ["exam_workbook", "concept_mastery", "html_slides"]
+  },
+  "preferences": {
+    "preferred_modes": ["visual", "narrative", "computational"],
+    "avoid_modes": [],
+    "slide_aesthetic": "90s-videogame",
+    "session_length": "medium",
+    "notes": "Update ranks from session_log reactions; initial defaults until calibrated."
+  },
+  "strengths": [],
+  "weaknesses": [],
+  "misconceptions": [],
+  "concepts": {
+    "bernoulli-expectation": {
+      "mastery": "developing",
+      "last_assessed": "2026-05-29",
+      "notes": "Task 1 notebook started; distinction outcome vs E[X] may need reinforcement"
+    }
+  },
+  "calibration": {
+    "status": "not_started",
+    "sessions_completed": 0,
+    "recommended_next_probe": "continuous-survival-pdf"
+  }
+}

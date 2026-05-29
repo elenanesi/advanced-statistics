@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "buddies": {
+    "coin-sprite": {
+      "name": "Penny",
+      "role": "Bernoulli & discrete probability",
+      "sprite_style": "pixel-16",
+      "palette": ["#2e8b57", "#ffd700", "#1a1a2e"]
+    },
+    "owl-sprite": {
+      "name": "Hootsworth",
+      "role": "Continuous waiting times & survival",
+      "sprite_style": "pixel-16",
+      "palette": ["#6b4c9a", "#c9a227", "#1a1a2e"]
+    },
+    "router-sprite": {
+      "name": "Packet",
+      "role": "Gamma, sums, MLE",
+      "sprite_style": "pixel-16",
+      "palette": ["#00cec9", "#ff6b6b", "#1a1a2e"]
+    },
+    "hammer-sprite": {
+      "name": "Forge",
+      "role": "Hypothesis testing",
+      "sprite_style": "pixel-16",
+      "palette": ["#95a5a6", "#e74c3c", "#1a1a2e"]
+    },
+    "ridge-sprite": {
+      "name": "Ridge",
+      "role": "OLS & regularization",
+      "sprite_style": "pixel-16",
+      "palette": ["#3498db", "#9b59b6", "#1a1a2e"]
+    },
+    "prior-sprite": {
+      "name": "Bayes",
+      "role": "Bayesian updating",
+      "sprite_style": "pixel-16",
+      "palette": ["#f39c12", "#8e44ad", "#1a1a2e"]
+    }
+  },
+  "concepts": [
+    {
+      "id": "bernoulli-expectation",
+      "title": "Bernoulli trial & expectation",
+      "mastery": "developing",
+      "prerequisites": [],
+      "related_exam_tasks": [1],
+      "course_book": ["Unit 1 — 1.3"],
+      "buddy_id": "coin-sprite",
+      "slide_path": "slides/bernoulli-expectation/index.html",
+      "slide_status": "none"
+    },
+    {
+      "id": "continuous-survival-pdf",
+      "title": "Survival function → PDF",
+      "mastery": "novice",
+      "prerequisites": ["bernoulli-expectation"],
+      "related_exam_tasks": [2],
+      "course_book": ["Unit 3 — 3.3"],
+      "buddy_id": "owl-sprite",
+      "slide_path": "slides/continuous-survival-pdf/index.html",
+      "slide_status": "none"
+    },
+    {
+      "id": "gamma-sum-mle",
+      "title": "Sum of Gammas & MLE",
+      "mastery": "novice",
+      "prerequisites": ["continuous-survival-pdf"],
+      "related_exam_tasks": [3],
+      "course_book": ["Unit 3 — 3.3", "Unit 3 — 3.5", "Unit 6 — 6.1"],
+      "buddy_id": "router-sprite",
+      "slide_path": "slides/gamma-sum-mle/index.html",
+      "slide_status": "none"
+    },
+    {
+      "id": "hypothesis-test-mean",
+      "title": "Testing mean / variance claims",
+      "mastery": "novice",
+      "prerequisites": [],
+      "related_exam_tasks": [4],
+      "course_book": ["Unit 7 — 7.1", "Unit 7 — 7.2"],
+      "buddy_id": "hammer-sprite",
+      "slide_path": "slides/hypothesis-test-mean/index.html",
+      "slide_status": "none"
+    },
+    {
+      "id": "ols-ridge",
+      "title": "OLS & ridge regression",
+      "mastery": "novice",
+      "prerequisites": [],
+      "related_exam_tasks": [5],
+      "course_book": ["Unit 6 — 6.2", "Unit 6 — 6.4"],
+      "buddy_id": "ridge-sprite",
+      "slide_path": "slides/ols-ridge/index.html",
+      "slide_status": "none"
+    },
+    {
+      "id": "gamma-conjugate-bayes",
+      "title": "Gamma conjugate posterior",
+      "mastery": "novice",
+      "prerequisites": [],
+      "related_exam_tasks": [6],
+      "course_book": ["Unit 4 — 4.3"],
+      "buddy_id": "prior-sprite",
+      "slide_path": "slides/gamma-conjugate-bayes/index.html",
+      "slide_status": "none"
+    }
+  ]
+}
