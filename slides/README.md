@@ -54,17 +54,17 @@ Navigation: keyboard `←` `→` or on-screen chunky buttons.
 
 ---
 
-## Cutify skill integration
+## Retro cute slides skill
 
-Path: `~/.cursor/skills/cutify-that-tab/SKILL.md`
+Path: `~/.cursor/skills/retro-cute-slides/SKILL.md`
 
-| Technique | Use on slides |
-|-----------|-----------------|
-| A — emoji favicon | `index.html` `<link rel="icon">` for tab cuteness |
-| B — gradient blob | Decorative borders / mascot variant |
-| C — 16×16 pixel art | **Primary** for buddy sprites (inline SVG) |
+The combined skill covers the full 90s videogame visual spec (colors, typography,
+card styling, animations) **and** pixel-art authoring. It mandates **Technique C
+(16×16 pixel-art SVG)** as the only approach for buddy sprites, icons, and
+decorative elements — emoji favicons and gradient blobs are not used.
 
-Author sprites by hand in SVG `<rect>` — do not rely on external image hosts for core buddies.
+Author all sprites by hand in SVG `<rect>` with `shape-rendering="crispEdges"` —
+do not rely on external image hosts or raster assets for core buddies.
 
 ---
 

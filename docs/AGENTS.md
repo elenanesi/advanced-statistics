@@ -129,9 +129,11 @@ Update `learning/profile.json` when:
 - Copy from `slides/_template/`; follow [../slides/README.md](../slides/README.md).
 - Register concept in `learning/concepts.json` with `slide_path` and `related_exam_tasks`.
 
-### Cutify skill
+### Retro cute slides skill
 
-For mascots and pixel buddies, use the user’s **cutify-that-tab** skill (`~/.cursor/skills/cutify-that-tab/SKILL.md`): techniques A (emoji), B (gradient blob), C (16×16 pixel SVG). Slides use technique **C** for buddies and **B** for UI chrome where appropriate.
+For slide deck styling, buddy sprites, and pixel-art visuals, use the **retro-cute-slides** skill (`~/.cursor/skills/retro-cute-slides/SKILL.md`). It enforces Technique C (16×16 pixel-art SVG with `shape-rendering="crispEdges"`) as the only approach for mascots, icons, and decorative elements — never fall back to emoji or gradient blobs.
+
+**Scope:** slides and HTML teaching artifacts only. University paper (`.docx` workbook), notebooks, and exam prose must follow sober academic layout — do not apply retro styling to those.
 
 ---
 
