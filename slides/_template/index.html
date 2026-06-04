@@ -4,50 +4,144 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CONCEPT TITLE — Advanced Stats Quest</title>
-  <!-- Technique C pixel-art favicon: tiny star mascot -->
-  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="7" y="2" width="2" height="2" fill="%23ffd700"/><rect x="5" y="4" width="6" height="2" fill="%23ffd700"/><rect x="3" y="6" width="10" height="4" fill="%23ffd700"/><rect x="5" y="10" width="6" height="2" fill="%23ffd700"/><rect x="7" y="12" width="2" height="2" fill="%23ffd700"/><rect x="6" y="7" width="1" height="1" fill="%23333"/><rect x="9" y="7" width="1" height="1" fill="%23333"/><rect x="7" y="9" width="2" height="1" fill="%23333"/></svg>' />
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <!-- Technique C pixel-art favicon: mochi cat face -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="2" width="2" height="3" fill="%23c4919e"/><rect x="11" y="2" width="2" height="3" fill="%23c4919e"/><rect x="3" y="5" width="10" height="8" fill="%23f0dcc0"/><rect x="5" y="7" width="1" height="2" fill="%233a3040"/><rect x="10" y="7" width="1" height="2" fill="%233a3040"/><rect x="7" y="9" width="2" height="1" fill="%23c4919e"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #1a1a2e;
-      --card: #16213e;
-      --neon: #00ff88;
-      --pink: #ff6b9d;
-      --gold: #ffd700;
-      --text: #eaeaea;
-      --cyan: #00cec9;
+      --bg:     #f0ebe0;   /* warm parchment */
+      --card:   #fffef8;   /* near-white */
+      --accent: #1a5ca8;   /* deep sapphire — h1, checkpoints */
+      --rose:   #c42848;   /* vivid crimson — speech bubbles, callouts */
+      --honey:  #b86800;   /* deep amber — h2, formulas */
+      --text:   #1c1a30;   /* dark navy — body text */
+      --mist:   #6a5888;   /* muted plum — secondary, counters */
+      --teal:   #0d7a6e;   /* deep teal — positive signals */
+      --slate:  #3a4d7a;   /* slate blue — methodology callouts */
     }
     * { box-sizing: border-box; margin: 0; }
     body {
       min-height: 100vh;
-      font-family: "Press Start 2P", monospace;
-      font-size: 11px;
-      line-height: 1.8;
+      /* VT323 for body — readable CRT terminal font, retro without eyestrain */
+      font-family: "VT323", monospace;
+      font-size: 18px;
+      line-height: 1.5;
       color: var(--text);
       background: var(--bg);
-      background-image:
-        radial-gradient(2px 2px at 20px 30px, #fff, transparent),
-        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,.6), transparent),
-        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
-        radial-gradient(1px 1px at 150px 20px, rgba(255,255,255,.4), transparent),
-        radial-gradient(2px 2px at 170px 80px, #fff, transparent);
-      background-size: 200px 100px;
+      /* subtle dot-grid: retro feel, not distracting */
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
     }
-    .deck { max-width: 720px; margin: 0 auto; padding: 24px 16px 80px; }
+    .deck { max-width: 720px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    /* Side navigation — jump to any slide by title */
+    .side-nav {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 52px;
+      width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto;
+      z-index: 9;
+    }
+    .side-nav-title {
+      font-family: "Press Start 2P", monospace;
+      font-size: 8px;
+      color: var(--mist);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .side-nav-btn:hover {
+      background: rgba(26,92,168,.06);
+      border-color: #ccc4e0;
+    }
+    .side-nav-btn.active {
+      background: rgba(26,92,168,.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .side-nav-num {
+      flex-shrink: 0;
+      color: var(--mist);
+      font-size: 10px;
+      min-width: 1.2em;
+    }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9px;
+      color: var(--mist);
+      margin: 10px 0 4px;
+      padding-top: 10px;
+      border-top: 1px solid #d0c8e0;
+      letter-spacing: 1px;
+      line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-deep { padding-left: 14px; font-size: 10px; color: #5a5070; }
+    .side-nav-btn.is-deep .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-deep.active { color: var(--accent); font-style: normal; }
+    .badge-deep {
+      border: 2px solid var(--mist);
+      color: var(--mist);
+      font-size: 10px;
+      padding: 4px 8px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
     .slide {
       display: none;
       background: var(--card);
-      border: 4px solid #fff;
-      box-shadow: 6px 6px 0 #000;
+      border: 2px solid #ccc4e0;
+      box-shadow: 4px 4px 0 rgba(80,60,140,.18);
       padding: 24px;
       margin-bottom: 16px;
     }
     .slide.active { display: block; }
-    h1 { font-size: 14px; color: var(--neon); margin: 0 0 16px; }
-    h2 { font-size: 11px; color: var(--gold); margin: 20px 0 10px; }
+    /* Press Start 2P only for h1 — iconic pixel title, short text only */
+    h1 {
+      font-family: "Press Start 2P", monospace;
+      font-size: 13px;
+      color: var(--accent);
+      margin: 0 0 16px;
+      letter-spacing: .5px;
+    }
+    h2 {
+      font-family: "VT323", monospace;
+      font-size: 20px;
+      color: var(--honey);
+      font-weight: normal;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 18px 0 8px;
+    }
     p { margin: 8px 0; }
     ul, ol { margin: 8px 0; padding-left: 20px; }
-    li { margin: 4px 0; }
+    li { margin: 5px 0; }
 
     .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
     .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
@@ -57,89 +151,224 @@
     }
     .buddy-speech {
       flex: 1;
-      background: #0f0f23;
-      border: 3px solid var(--pink);
+      background: #fff8f2;
+      border: 2px solid var(--rose);
       padding: 12px;
       position: relative;
     }
     .buddy-speech::before {
       content: "";
       position: absolute;
-      left: -12px;
-      top: 16px;
-      border: 8px solid transparent;
-      border-right-color: var(--pink);
+      left: -11px;
+      top: 14px;
+      border: 7px solid transparent;
+      border-right-color: var(--rose);
     }
-    .buddy-speech strong { color: var(--pink); }
+    /* Use .speaker span for buddy name — color, not bold (VT323 has no bold weight) */
+    .buddy-speech .speaker { color: var(--rose); }
 
     .formula {
-      color: var(--gold);
-      font-size: 10px;
-      background: #0f0f23;
+      font-family: "VT323", monospace;
+      font-size: 17px;
+      color: var(--accent);
+      background: rgba(26,92,168,.06);
       padding: 12px;
-      border: 2px solid var(--gold);
+      border: 2px solid rgba(26,92,168,.3);
       margin: 12px 0;
     }
+    .formula em { color: var(--honey); font-style: normal; }
+
     details { margin-top: 16px; }
-    summary { cursor: pointer; color: var(--pink); }
+    summary { cursor: pointer; color: var(--rose); font-size: 17px; }
     details[open] summary { margin-bottom: 8px; }
 
-    .checkpoint { color: var(--neon); }
+    .checkpoint { color: var(--accent); }
     .checkpoint li::marker { content: "✦ "; }
 
-    nav {
+    nav.deck-controls {
       position: fixed;
       bottom: 0;
-      left: 0;
+      left: 212px;
       right: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 16px;
       padding: 12px;
-      background: rgba(26,26,46,.95);
-      border-top: 4px solid var(--gold);
+      background: rgba(240,235,224,.97);
+      border-top: 3px solid var(--honey);
       z-index: 10;
     }
-    #counter { font-family: inherit; font-size: 10px; color: var(--gold); }
+    #counter {
+      font-family: "Press Start 2P", monospace;
+      font-size: 9px;
+      color: var(--mist);
+    }
     button {
-      font-family: inherit;
-      font-size: 10px;
+      font-family: "Press Start 2P", monospace;
+      font-size: 9px;
       padding: 10px 16px;
-      background: var(--neon);
-      color: #000;
-      border: 3px solid #fff;
-      box-shadow: 3px 3px 0 #000;
+      background: var(--accent);
+      color: #fffef8;
+      border: 2px solid #0d3d7a;
+      box-shadow: 3px 3px 0 rgba(26,92,168,.25);
       cursor: pointer;
     }
-    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
   </style>
 </head>
 <body>
+  <aside class="side-nav" aria-label="Slide contents">
+    <p class="side-nav-title">CONTENTS</p>
+    <div id="side-nav-list" class="side-nav-list"></div>
+  </aside>
+
   <div class="deck" id="deck">
+
+  <!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  BUDDY SPRITE CATALOG — copy the one matching buddy_id     ║
+  ║  from learning/concepts.json into the <svg> below.          ║
+  ║  All are 16×16 viewBox, Technique C, shape-rendering=       ║
+  ║  "crispEdges". Display at width/height 64.                  ║
+  ╠══════════════════════════════════════════════════════════════╣
+  ║                                                              ║
+  ║  coin-sprite  → Penny the Cat (warm cream, dusty-rose ears) ║
+  ║  owl-sprite   → Hootsworth the Owl (plum body, big eyes)    ║
+  ║  router-sprite→ Packet the Bunny (mint, tall ears)          ║
+  ║  hammer-sprite→ Forge the Bear (warm grey, cream snout)     ║
+  ║  ridge-sprite → Ridge the Penguin (slate blue, white belly) ║
+  ║  prior-sprite → Bayes the Fox (amber, cream muzzle)         ║
+  ║                                                              ║
+  ╚══════════════════════════════════════════════════════════════╝
+
+  ─── coin-sprite: Penny the Cat ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="3"  y="2" width="2" height="3" fill="#c4919e"/>
+    <rect x="11" y="2" width="2" height="3" fill="#c4919e"/>
+    <rect x="4"  y="3" width="1" height="1" fill="#a87888"/>
+    <rect x="11" y="3" width="1" height="1" fill="#a87888"/>
+    <rect x="3"  y="5" width="10" height="8" fill="#f0dcc0"/>
+    <rect x="5"  y="7" width="1" height="2" fill="#3a3040"/>
+    <rect x="10" y="7" width="1" height="2" fill="#3a3040"/>
+    <rect x="7"  y="9" width="2" height="1" fill="#c4919e"/>
+    <rect x="4"  y="9" width="1" height="1" fill="#e8a8b0"/>
+    <rect x="11" y="9" width="1" height="1" fill="#e8a8b0"/>
+    <rect x="7"  y="10" width="1" height="1" fill="#5a4858"/>
+    <rect x="8"  y="10" width="1" height="1" fill="#5a4858"/>
+  </svg>
+
+  ─── owl-sprite: Hootsworth the Owl ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+    <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+    <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+    <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+    <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+    <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+    <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+    <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+    <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+    <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+    <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+  </svg>
+
+  ─── router-sprite: Packet the Bunny ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="4"  y="0" width="2" height="4" fill="#88c8c0"/>
+    <rect x="10" y="0" width="2" height="4" fill="#88c8c0"/>
+    <rect x="5"  y="1" width="1" height="2" fill="#d0a0a8"/>
+    <rect x="10" y="1" width="1" height="2" fill="#d0a0a8"/>
+    <rect x="3"  y="4" width="10" height="7" fill="#88c8c0"/>
+    <rect x="5"  y="6" width="1" height="2" fill="#3a3040"/>
+    <rect x="10" y="6" width="1" height="2" fill="#3a3040"/>
+    <rect x="7"  y="8" width="2" height="1" fill="#d0a0a8"/>
+    <rect x="4"  y="8" width="1" height="1" fill="#e8a8b0"/>
+    <rect x="11" y="8" width="1" height="1" fill="#e8a8b0"/>
+    <rect x="7"  y="9" width="2" height="1" fill="#508880"/>
+  </svg>
+
+  ─── hammer-sprite: Forge the Bear ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="2"  y="2" width="2" height="2" fill="#a09090"/>
+    <rect x="12" y="2" width="2" height="2" fill="#a09090"/>
+    <rect x="3"  y="3" width="1" height="1" fill="#c8a0a0"/>
+    <rect x="12" y="3" width="1" height="1" fill="#c8a0a0"/>
+    <rect x="3"  y="4" width="10" height="8" fill="#a09090"/>
+    <rect x="5"  y="7" width="6" height="4" fill="#d8c8b8"/>
+    <rect x="5"  y="6" width="1" height="2" fill="#3a3040"/>
+    <rect x="10" y="6" width="1" height="2" fill="#3a3040"/>
+    <rect x="7"  y="8" width="2" height="1" fill="#5a4848"/>
+    <rect x="7"  y="9" width="2" height="1" fill="#6a5858"/>
+  </svg>
+
+  ─── ridge-sprite: Ridge the Penguin ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="4"  y="2" width="8" height="4" fill="#485880"/>
+    <rect x="3"  y="6" width="10" height="6" fill="#485880"/>
+    <rect x="5"  y="4" width="6" height="3" fill="#e8e0d8"/>
+    <rect x="5"  y="7" width="6" height="4" fill="#e8e0d8"/>
+    <rect x="6"  y="4" width="1" height="1" fill="#3a3040"/>
+    <rect x="9"  y="4" width="1" height="1" fill="#3a3040"/>
+    <rect x="5"  y="5" width="1" height="1" fill="#c8a0a8"/>
+    <rect x="10" y="5" width="1" height="1" fill="#c8a0a8"/>
+    <rect x="7"  y="6" width="2" height="1" fill="#d4a060"/>
+    <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+    <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+  </svg>
+
+  ─── prior-sprite: Bayes the Fox ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="3"  y="1" width="2" height="3" fill="#c8804c"/>
+    <rect x="11" y="1" width="2" height="3" fill="#c8804c"/>
+    <rect x="4"  y="2" width="1" height="1" fill="#f0dcc0"/>
+    <rect x="11" y="2" width="1" height="1" fill="#f0dcc0"/>
+    <rect x="3"  y="4" width="10" height="7" fill="#c8804c"/>
+    <rect x="5"  y="7" width="6" height="3" fill="#f0dcc0"/>
+    <rect x="5"  y="6" width="1" height="1" fill="#3a3040"/>
+    <rect x="10" y="6" width="1" height="1" fill="#3a3040"/>
+    <rect x="7"  y="7" width="2" height="1" fill="#5a4040"/>
+    <rect x="7"  y="8" width="2" height="1" fill="#8a6050"/>
+    <rect x="4"  y="7" width="1" height="1" fill="#e0a088"/>
+    <rect x="11" y="7" width="1" height="1" fill="#e0a088"/>
+  </svg>
+
+  ═══════════════════════════════════════════════════════════════
+  -->
 
   <!-- Slide 0: Title -->
   <section class="slide active" data-slide="0">
     <h1>CONCEPT TITLE</h1>
     <div class="buddy-row">
-      <!-- Technique C pixel-art buddy — replace with concept's buddy sprite -->
-      <!-- Gold star mascot (placeholder — swap for Penny/Hootsworth/Packet/etc.) -->
+      <!-- Default: Penny the Cat — swap SVG contents for the concept's buddy -->
       <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
-        <!-- body -->
-        <rect x="5" y="2" width="6" height="2" fill="#ffd700"/>
-        <rect x="4" y="4" width="8" height="6" fill="#ffd700"/>
-        <rect x="5" y="10" width="6" height="3" fill="#ffd700"/>
-        <!-- eyes -->
-        <rect x="6" y="6" width="1" height="2" fill="#333"/>
-        <rect x="9" y="6" width="1" height="2" fill="#333"/>
+        <!-- ears — dusty rose with darker inner -->
+        <rect x="3"  y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="11" y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="4"  y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="11" y="3" width="1" height="1" fill="#a87888"/>
+        <!-- head — warm cream -->
+        <rect x="3"  y="5" width="10" height="8" fill="#f0dcc0"/>
+        <!-- eyes — kawaii tall -->
+        <rect x="5"  y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="7" width="1" height="2" fill="#3a3040"/>
+        <!-- nose -->
+        <rect x="7"  y="9" width="2" height="1" fill="#c4919e"/>
         <!-- blush -->
-        <rect x="5" y="8" width="1" height="1" fill="#fda4af"/>
-        <rect x="10" y="8" width="1" height="1" fill="#fda4af"/>
+        <rect x="4"  y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="9" width="1" height="1" fill="#e8a8b0"/>
         <!-- mouth -->
-        <rect x="7" y="9" width="2" height="1" fill="#333"/>
+        <rect x="7"  y="10" width="1" height="1" fill="#5a4858"/>
+        <rect x="8"  y="10" width="1" height="1" fill="#5a4858"/>
       </svg>
       <div class="buddy-speech">
-        <strong>Buddy:</strong> Hi! I'm your guide. Press → to start the quest!
+        <span class="speaker">Buddy:</span> Hi! I'm your guide. Press → to start the quest!
       </div>
     </div>
     <p>Advanced Statistics · DLMDSAS01</p>
@@ -157,8 +386,9 @@
     <div class="formula">E[X] = …</div>
   </section>
 
-  <!-- Slide 3: Mini example -->
-  <section class="slide" data-slide="3">
+  <!-- Slide 3: Mini example (deep dive — optional on first pass) -->
+  <section class="slide" data-slide="3" data-nav-tier="deep">
+    <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
     <h1>Mini example</h1>
     <p>Walk through tiny numbers.</p>
   </section>
@@ -183,18 +413,23 @@
   <section class="slide" data-slide="6">
     <h1>Quest complete</h1>
     <div class="buddy-row">
+      <!-- Same buddy as title slide — swap together -->
       <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
-        <rect x="5" y="2" width="6" height="2" fill="#ffd700"/>
-        <rect x="4" y="4" width="8" height="6" fill="#ffd700"/>
-        <rect x="5" y="10" width="6" height="3" fill="#ffd700"/>
-        <rect x="6" y="6" width="1" height="2" fill="#333"/>
-        <rect x="9" y="6" width="1" height="2" fill="#333"/>
-        <rect x="5" y="8" width="1" height="1" fill="#fda4af"/>
-        <rect x="10" y="8" width="1" height="1" fill="#fda4af"/>
-        <rect x="7" y="9" width="2" height="1" fill="#333"/>
+        <rect x="3"  y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="11" y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="4"  y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="11" y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="3"  y="5" width="10" height="8" fill="#f0dcc0"/>
+        <rect x="5"  y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="7"  y="9" width="2" height="1" fill="#c4919e"/>
+        <rect x="4"  y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="7"  y="10" width="1" height="1" fill="#5a4858"/>
+        <rect x="8"  y="10" width="1" height="1" fill="#5a4858"/>
       </svg>
       <div class="buddy-speech">
-        <strong>Buddy:</strong> You got this, adventurer! See you in the notebook!
+        <span class="speaker">Buddy:</span> You got this, adventurer! See you in the notebook!
       </div>
     </div>
     <ul class="checkpoint">
@@ -206,7 +441,7 @@
 
   </div>
 
-  <nav>
+  <nav class="deck-controls">
     <button type="button" id="prev">◀ PREV</button>
     <span id="counter">1 / 7</span>
     <button type="button" id="next">NEXT ▶</button>
@@ -214,12 +449,41 @@
 
   <script>
     const slides = [...document.querySelectorAll(".slide")];
+    const sideNavList = document.getElementById("side-nav-list");
+    const navButtons = [];
+
+    let deepHeaderAdded = false;
+    slides.forEach((slide, j) => {
+      const tier = slide.dataset.navTier || "core";
+      if (tier === "deep" && !deepHeaderAdded) {
+        const head = document.createElement("p");
+        head.className = "side-nav-section";
+        head.textContent = "DEEP DIVES — optional, revisit later";
+        sideNavList.appendChild(head);
+        deepHeaderAdded = true;
+      }
+      const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "side-nav-btn" + (tier === "deep" ? " is-deep" : "");
+      btn.innerHTML = `<span class="side-nav-num">${j + 1}</span><span class="side-nav-label">${label}</span>`;
+      btn.addEventListener("click", () => show(j));
+      sideNavList.appendChild(btn);
+      navButtons.push(btn);
+    });
+    const headCore = document.createElement("p");
+    headCore.className = "side-nav-section";
+    headCore.textContent = "360° PATH — start here";
+    sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
     let i = 0;
     const counter = document.getElementById("counter");
     function show(n) {
       i = Math.max(0, Math.min(n, slides.length - 1));
       slides.forEach((s, j) => s.classList.toggle("active", j === i));
+      navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
       counter.textContent = `${i + 1} / ${slides.length}`;
+      navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
     document.getElementById("prev").onclick = () => show(i - 1);
     document.getElementById("next").onclick = () => show(i + 1);

@@ -10,20 +10,21 @@ Slides are study companions (Goal 2), not exam submission files. They should fee
 
 Buddies are defined in `learning/concepts.json` → `buddies`. Each concept has a `buddy_id`.
 
-| Buddy | Concept areas |
-|-------|----------------|
-| Penny (`coin-sprite`) | Bernoulli, discrete PMF |
-| Hootsworth (`owl-sprite`) | Survival, PDF, waiting times |
-| Packet (`router-sprite`) | Gamma, Erlang, MLE |
-| Forge (`hammer-sprite`) | Hypothesis tests |
-| Ridge (`ridge-sprite`) | OLS / ridge |
-| Bayes (`prior-sprite`) | Conjugate priors |
+| Buddy | Animal | Concept areas |
+|-------|--------|----------------|
+| Penny (`coin-sprite`) | Cat — warm cream, dusty-rose ears | Bernoulli, discrete PMF |
+| Hootsworth (`owl-sprite`) | Owl — plum body, big 3×3 eye discs | Survival, PDF, waiting times |
+| Packet (`router-sprite`) | Bunny — mint, very tall ears | Gamma, Erlang, MLE |
+| Forge (`hammer-sprite`) | Bear — warm grey, cream snout | Hypothesis tests |
+| Ridge (`ridge-sprite`) | Penguin — slate blue, white belly | OLS / ridge |
+| Bayes (`prior-sprite`) | Fox — amber, cream muzzle | Conjugate priors |
 
 **Buddy rules:**
 
 - Buddy appears on **title** and **recap** slides (corner sprite or speech bubble).
 - Buddy dialogue is 1–2 short sentences per slide — encouraging, slightly cheesy 90s RPG tone.
-- Use **pixel SVG** (16×16 grid, `shape-rendering="crispEdges"`) — see cutify skill technique C.
+- Use **pixel SVG** (16×16 grid, `shape-rendering="crispEdges"`) — full SVG source for all 6 buddies is in `_template/index.html` as commented blocks.
+- See the retro-cute-slides skill for the complete buddy catalog and color specs.
 
 ---
 
@@ -32,9 +33,9 @@ Buddies are defined in `learning/concepts.json` → `buddies`. Each concept has 
 | Element | Guideline |
 |---------|-----------|
 | Font | `'Press Start 2P', monospace` from Google Fonts, or system `monospace` fallback |
-| Background | Dark `#1a1a2e` + CSS starfield or slow parallax gradient |
-| Accents | Neon `#00ff88`, `#ff6b9d`, `#ffd700` sparingly |
-| Cards | `border: 4px solid #fff`; `box-shadow: 4px 4px 0 #000` |
+| Background | Deep indigo `#1b1b2f` + warm-tinted CSS starfield (dimmer than pure white) |
+| Accents | Sage `#82c4a0`, dusty rose `#c4919e`, warm amber `#d4a76a` — all muted, no pure neons |
+| Cards | `border: 3px solid #9890a0`; `box-shadow: 5px 5px 0 #0a0a18` |
 | Motion | `@keyframes` blink caret, subtle float on buddy — **no** seizure-flash |
 | Math | KaTeX CDN optional; keep formulas few per slide |
 

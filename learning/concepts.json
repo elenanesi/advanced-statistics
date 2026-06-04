@@ -3,39 +3,45 @@
   "buddies": {
     "coin-sprite": {
       "name": "Penny",
+      "animal": "cat",
       "role": "Bernoulli & discrete probability",
       "sprite_style": "pixel-16",
-      "palette": ["#2e8b57", "#ffd700", "#1a1a2e"]
+      "palette": ["#f0dcc0", "#c4919e", "#a87888"]
     },
     "owl-sprite": {
       "name": "Hootsworth",
+      "animal": "owl",
       "role": "Continuous waiting times & survival",
       "sprite_style": "pixel-16",
-      "palette": ["#6b4c9a", "#c9a227", "#1a1a2e"]
+      "palette": ["#8870a0", "#c8a870", "#d4a060"]
     },
     "router-sprite": {
       "name": "Packet",
+      "animal": "bunny",
       "role": "Gamma, sums, MLE",
       "sprite_style": "pixel-16",
-      "palette": ["#00cec9", "#ff6b6b", "#1a1a2e"]
+      "palette": ["#88c8c0", "#d0a0a8", "#508880"]
     },
     "hammer-sprite": {
       "name": "Forge",
+      "animal": "bear",
       "role": "Hypothesis testing",
       "sprite_style": "pixel-16",
-      "palette": ["#95a5a6", "#e74c3c", "#1a1a2e"]
+      "palette": ["#a09090", "#d8c8b8", "#c8a0a0"]
     },
     "ridge-sprite": {
       "name": "Ridge",
+      "animal": "penguin",
       "role": "OLS & regularization",
       "sprite_style": "pixel-16",
-      "palette": ["#3498db", "#9b59b6", "#1a1a2e"]
+      "palette": ["#485880", "#e8e0d8", "#d4a060"]
     },
     "prior-sprite": {
       "name": "Bayes",
+      "animal": "fox",
       "role": "Bayesian updating",
       "sprite_style": "pixel-16",
-      "palette": ["#f39c12", "#8e44ad", "#1a1a2e"]
+      "palette": ["#c8804c", "#f0dcc0", "#5a4040"]
     }
   },
   "concepts": [

@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>When You Can't A/B Test — Advanced Stats Quest</title>
+  <!-- Favicon: Hootsworth the Owl (plum) -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="3" width="10" height="9" fill="%238870a0"/><rect x="4" y="4" width="3" height="3" fill="%23f0e8d8"/><rect x="9" y="4" width="3" height="3" fill="%23f0e8d8"/><rect x="5" y="5" width="1" height="1" fill="%233a3040"/><rect x="10" y="5" width="1" height="1" fill="%233a3040"/><rect x="7" y="7" width="2" height="1" fill="%23d4a060"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:     #f0ebe0;
+      --card:   #fffef8;
+      --accent: #1a5ca8;
+      --rose:   #c42848;
+      --honey:  #b86800;
+      --text:   #1c1a30;
+      --mist:   #6a5888;
+      --teal:   #0d7a6e;
+      --slate:  #3a4d7a;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 740px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    /* Side navigation — jump to any slide by title */
+    .side-nav {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 52px;
+      width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto;
+      z-index: 9;
+    }
+    .side-nav-title {
+      font-family: "Press Start 2P", monospace;
+      font-size: 8px;
+      color: var(--mist);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .side-nav-btn:hover {
+      background: rgba(26,92,168,.06);
+      border-color: #ccc4e0;
+    }
+    .side-nav-btn.active {
+      background: rgba(26,92,168,.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .side-nav-num {
+      flex-shrink: 0;
+      color: var(--mist);
+      font-size: 10px;
+      min-width: 1.2em;
+    }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9px;
+      color: var(--mist);
+      margin: 10px 0 4px;
+      padding-top: 10px;
+      border-top: 1px solid #d0c8e0;
+      letter-spacing: 1px;
+      line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-deep { padding-left: 14px; font-size: 10px; color: #5a5070; }
+    .side-nav-btn.is-deep .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-deep.active { color: var(--accent); font-style: normal; }
+    .badge-deep {
+      border-color: var(--mist);
+      color: var(--mist);
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    /* Dummy output charts */
+    .chart-row { display: flex; gap: 16px; flex-wrap: wrap; margin: 14px 0; }
+    .chart-panel {
+      flex: 1;
+      min-width: 260px;
+      border: 2px solid #ccc4e0;
+      background: #fff;
+      padding: 8px;
+    }
+    .chart-panel h3 {
+      font-size: 11px;
+      text-align: center;
+      margin: 0 0 6px;
+      color: var(--accent);
+    }
+    .chart-caption {
+      font-size: 11px;
+      color: var(--slate);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .chart-output {
+      font-size: 11px;
+      background: rgba(26,92,168,.05);
+      border: 1px dashed var(--accent);
+      padding: 8px;
+      margin-top: 8px;
+    }
+    .slide {
+      display: none;
+      background: var(--card);
+      border: 2px solid #ccc4e0;
+      box-shadow: 4px 4px 0 rgba(80,60,140,.18);
+      padding: 28px 28px 24px;
+      margin-bottom: 16px;
+    }
+    .slide.active { display: block; }
+    h1 {
+      font-family: "Press Start 2P", monospace;
+      font-size: 13px;
+      color: var(--accent);
+      margin: 0 0 18px;
+      letter-spacing: .5px;
+    }
+    h2 {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      color: var(--honey);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 18px 0 8px;
+    }
+    h3 {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: bold;
+      margin: 14px 0 6px;
+    }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 22px; }
+    li { margin: 5px 0; }
+
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 18px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-4px); }
+    }
+    .buddy-speech {
+      flex: 1;
+      background: #fff8f2;
+      border: 2px solid var(--rose);
+      padding: 12px;
+      position: relative;
+    }
+    .buddy-speech::before {
+      content: "";
+      position: absolute;
+      left: -11px; top: 14px;
+      border: 7px solid transparent;
+      border-right-color: var(--rose);
+    }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    .formula {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(26,92,168,.06);
+      padding: 14px;
+      border: 2px solid rgba(26,92,168,.3);
+      margin: 12px 0;
+    }
+    .formula em { color: var(--honey); font-style: normal; }
+    .callout-teal {
+      background: rgba(13,122,110,.07);
+      border: 2px solid var(--teal);
+      padding: 12px;
+      margin: 10px 0;
+      color: #075a50;
+    }
+    .callout-rose {
+      background: rgba(196,40,72,.06);
+      border: 2px solid var(--rose);
+      padding: 12px;
+      margin: 10px 0;
+      color: #8a1830;
+    }
+    .callout-honey {
+      background: rgba(184,104,0,.07);
+      border: 2px solid var(--honey);
+      padding: 12px;
+      margin: 10px 0;
+      color: #7a4400;
+    }
+    .callout-slate {
+      background: rgba(58,77,122,.07);
+      border: 2px solid var(--slate);
+      padding: 12px;
+      margin: 10px 0;
+      color: var(--slate);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 1px 7px;
+      font-size: 11px;
+      border: 2px solid;
+      margin: 2px 3px 2px 0;
+    }
+    .tag-green  { color: var(--teal);  border-color: var(--teal);  }
+    .tag-red    { color: var(--rose);  border-color: var(--rose);  }
+    .tag-amber  { color: var(--honey); border-color: var(--honey); }
+    .tag-slate  { color: var(--slate); border-color: var(--slate); }
+
+    .flow-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 14px 0; }
+    .flow-table th {
+      background: rgba(26,92,168,.08);
+      color: var(--accent);
+      padding: 8px 10px;
+      text-align: left;
+      border: 2px solid #ccc4e0;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .flow-table td {
+      padding: 7px 10px;
+      border: 2px solid #ccc4e0;
+      vertical-align: top;
+    }
+    .flow-table tr:nth-child(even) td { background: rgba(80,60,140,.04); }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 10px; }
+
+    /* Info-points: inline expandable definitions */
+    .info { display: inline; }
+    .info summary {
+      display: inline;
+      cursor: pointer;
+      color: var(--accent);
+      border-bottom: 1px dashed var(--accent);
+      font-size: inherit;
+      margin: 0;
+    }
+    .info[open] summary { margin-bottom: 0; }
+    .info .info-body {
+      display: block;
+      background: rgba(26,92,168,.06);
+      border-left: 3px solid var(--accent);
+      padding: 6px 10px;
+      margin: 4px 0 4px 12px;
+      font-size: 12px;
+      color: var(--slate);
+    }
+
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+    .checkpoint li { margin: 8px 0; }
+
+    .hr { border: 0; border-top: 2px solid #d0c8e0; margin: 14px 0; }
+
+    .badge {
+      display: inline-block;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 10px;
+      color: var(--mist);
+      border: 2px solid #ccc4e0;
+      padding: 1px 8px;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    /* Decision tree diagram */
+    .tree { margin: 14px 0; }
+    .tree-node {
+      display: inline-block;
+      padding: 6px 10px;
+      border: 2px solid;
+      font-size: 11px;
+      margin: 3px 0;
+    }
+    .tree-q   { border-color: var(--accent); color: var(--accent); background: rgba(26,92,168,.06); font-weight: bold; }
+    .tree-yes { border-color: var(--teal);   color: #075a50;       background: rgba(13,122,110,.07); }
+    .tree-no  { border-color: var(--rose);   color: #8a1830;       background: rgba(196,40,72,.06); }
+    .tree-method { border-color: var(--honey); color: #7a4400;     background: rgba(184,104,0,.07); }
+    .tree-arrow { color: var(--mist); font-size: 14px; margin: 0 4px; }
+    .tree-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+    .tree-indent { margin-left: 28px; }
+
+    nav.deck-controls {
+      position: fixed;
+      bottom: 0; left: 212px; right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      background: rgba(240,235,224,.97);
+      border-top: 3px solid var(--honey);
+      z-index: 10;
+    }
+    #counter {
+      font-family: "Press Start 2P", monospace;
+      font-size: 9px;
+      color: var(--mist);
+      min-width: 60px;
+      text-align: center;
+    }
+    button {
+      font-family: "Press Start 2P", monospace;
+      font-size: 9px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fffef8;
+      border: 2px solid #0d3d7a;
+      box-shadow: 3px 3px 0 rgba(26,92,168,.25);
+      cursor: pointer;
+    }
+    button:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+  </style>
+</head>
+<body>
+<aside class="side-nav" aria-label="Slide contents">
+  <p class="side-nav-title">CONTENTS</p>
+  <div id="side-nav-list" class="side-nav-list"></div>
+</aside>
+
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 0 — TITLE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide active" data-slide="0" data-nav-tier="core">
+  <span class="badge">CAUSAL INFERENCE · CONCEPT DECK</span>
+  <h1>WHEN YOU CAN'T A/B TEST</h1>
+  <div class="buddy-row">
+    <!-- Hootsworth the Owl — plum — wisdom / taxonomy -->
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+      <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+      <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+      <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+      <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> Not every question can be answered with an A/B test. When you can't randomize, you need the right quasi-experimental method. Let me show you the map.
+    </div>
+  </div>
+  <p><strong>360° path</strong> (main story — follow in order):</p>
+  <ul>
+    <li>Fundamental problem → A/B vs DiD → decision tree → control-group methods → ITS family → checklist</li>
+  </ul>
+  <p><strong>Deep dives</strong> (optional — skip on first pass, revisit when needed):</p>
+  <ul>
+    <li>Synthetic Control vs DiD (London example)</li>
+    <li>Regression vs BSTS charts · method comparison · FPR · bank walkthrough</li>
+  </ul>
+  <p class="chart-caption" style="margin-top:12px">Use the side nav: indented items are deep dives.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 1 — THE FUNDAMENTAL PROBLEM
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="1" data-nav-tier="core">
+  <h1>THE FUNDAMENTAL PROBLEM</h1>
+  <p>Every causal question boils down to one equation:</p>
+
+  <div class="formula">
+    <em>Causal Effect</em> = Y<sub>observed</sub>(with intervention)
+    − Y<sub>counterfactual</sub>(without intervention)
+  </div>
+
+  <p>The counterfactual <span style="color:var(--rose)">is never observed</span>. You only ever see the world <em>with</em> the intervention. The entire field of causal inference is about constructing the missing second term.</p>
+
+  <hr class="hr">
+  <h2>EVERY METHOD = A DIFFERENT CONSTRUCTION STRATEGY</h2>
+  <table class="flow-table">
+    <thead><tr><th>Strategy</th><th>How it builds the counterfactual</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>A/B test (RCT)</td>
+        <td>You <em>create</em> a control group by randomly splitting users. The control group's outcome <em>is</em> the counterfactual.</td>
+      </tr>
+      <tr>
+        <td>Difference-in-Differences (DiD)</td>
+        <td>You <em>find</em> an existing untreated group (e.g. a different region). Compare how both groups changed before vs. after — the double difference removes shared trends.</td>
+      </tr>
+      <tr>
+        <td>Synthetic Control (SCM)</td>
+        <td>You <em>mix</em> several untreated places into one fake "twin" that matched the treated place <em>before</em> the intervention. That twin is the counterfactual. <em>Deep dive:</em> slide <strong>SYNTHETIC CONTROL VS DID</strong> in Contents.</td>
+      </tr>
+      <tr>
+        <td>Interrupted Time Series (ITS)</td>
+        <td>No control group at all. You use <em>the treated unit's own history</em> to learn its normal pattern, then project that pattern forward. The gap between projection and reality = the causal effect.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-teal">
+    ► The method you pick depends entirely on what data structure you have — not on which Python library looks nicest.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 2 — A/B TEST VS DID: THE EASY CONFUSION
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="2" data-nav-tier="core">
+  <h1>A/B TEST VS DID</h1>
+  <p>Both compare a treated group to a control group, before and after. So what's the difference?</p>
+
+  <table class="flow-table">
+    <thead><tr><th></th><th>A/B Test (RCT)</th><th>Difference-in-Differences</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:bold">Control group</td>
+        <td>You <span style="color:var(--teal)">create</span> it by random assignment</td>
+        <td>You <span style="color:var(--honey)">find</span> an existing one (a region, a segment, a product line that wasn't treated)</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Why it works</td>
+        <td>Randomization guarantees groups are identical in expectation — no confounders, known or unknown</td>
+        <td>Assumes both groups would have followed the same trajectory without the intervention (parallel trends assumption)</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Risk</td>
+        <td>Low — only need sufficient sample size</td>
+        <td>If groups were already diverging before the intervention, the estimate is biased</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Example</td>
+        <td>Feature flag: 50% of app users see new checkout flow</td>
+        <td>New tax policy in one state; neighboring state as control</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-teal">
+    ► In one sentence: an A/B test <em>creates</em> its control group through randomization. DiD <em>borrows</em> an existing one and hopes the parallel-trends assumption holds.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 3 — DECISION TREE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="3" data-nav-tier="core">
+  <h1>THE DECISION TREE</h1>
+  <p>Two branching questions determine your method:</p>
+
+  <div class="tree">
+    <div class="tree-row">
+      <span class="tree-node tree-q">Can you randomize?</span>
+    </div>
+    <div class="tree-row tree-indent">
+      <span class="tree-arrow">├─</span>
+      <span class="tree-node tree-yes">YES →</span>
+      <span class="tree-node tree-method">A/B Test (RCT)</span>
+    </div>
+    <div class="tree-row tree-indent">
+      <span class="tree-arrow">└─</span>
+      <span class="tree-node tree-no">NO →</span>
+      <span class="tree-node tree-q">Do you have an untreated control group?</span>
+    </div>
+    <div class="tree-row" style="margin-left:56px">
+      <span class="tree-arrow">├─</span>
+      <span class="tree-node tree-yes">YES →</span>
+      <span class="tree-node tree-q">One donor tracks treated unit pre-trends?</span>
+    </div>
+    <div class="tree-row" style="margin-left:84px">
+      <span class="tree-arrow">├─</span>
+      <span class="tree-node tree-yes">YES →</span>
+      <span class="tree-node tree-method">Diff-in-Diff (use that donor)</span>
+    </div>
+    <div class="tree-row" style="margin-left:84px">
+      <span class="tree-arrow">└─</span>
+      <span class="tree-node tree-no">NO single fit →</span>
+      <span class="tree-node tree-method">Synthetic Control (blend donors)</span>
+    </div>
+    <div class="tree-row" style="margin-left:56px">
+      <span class="tree-arrow">└─</span>
+      <span class="tree-node tree-no">NO control group at all →</span>
+      <span class="tree-node tree-method">Interrupted Time Series (ITS) family</span>
+    </div>
+  </div>
+
+  <hr class="hr">
+  <div class="callout-slate">
+    ► The bank case: 100% rollout, no control group, no untreated region → bottom-right: <span style="color:var(--accent)">Interrupted Time Series family</span>. That's the only viable path.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 4 — METHODS THAT NEED A CONTROL GROUP
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="4" data-nav-tier="core">
+  <h1>WITH A CONTROL GROUP</h1>
+  <div class="buddy-row">
+    <!-- Ridge the Penguin — methodical comparison -->
+    <svg class="buddy-svg" width="56" height="56" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="4"  y="2" width="8" height="4" fill="#485880"/>
+      <rect x="3"  y="6" width="10" height="6" fill="#485880"/>
+      <rect x="5"  y="4" width="6" height="3" fill="#e8e0d8"/>
+      <rect x="5"  y="7" width="6" height="4" fill="#e8e0d8"/>
+      <rect x="6"  y="4" width="1" height="1" fill="#3a3040"/>
+      <rect x="9"  y="4" width="1" height="1" fill="#3a3040"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#c8a0a8"/>
+      <rect x="10" y="5" width="1" height="1" fill="#c8a0a8"/>
+      <rect x="7"  y="6" width="2" height="1" fill="#d4a060"/>
+      <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+      <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Ridge:</span> These methods are powerful — but they need something you don't always have: an untreated comparison group observed at the same time.
+    </div>
+  </div>
+
+  <h2>DIFFERENCE-IN-DIFFERENCES (DID)</h2>
+  <div class="formula">
+    <em>Effect</em> = (Treated<sub>after</sub> − Treated<sub>before</sub>)
+    − (Control<sub>after</sub> − Control<sub>before</sub>)
+  </div>
+  <ul>
+    <li><span style="color:var(--teal)">Requires:</span> One treated group + one control group, both observed before and after</li>
+    <li><span style="color:var(--teal)">Key assumption:</span> <details class="info"><summary>Parallel trends</summary><span class="info-body">Both groups were on the same trajectory before the intervention. If the control group was already growing faster or slower, DiD gives a biased result. Always plot pre-period trends for both groups to check.</span></details> — both groups would have moved identically without the intervention</li>
+    <li><span style="color:var(--rose)">Classic example:</span> New tax policy in State A, neighboring State B as control</li>
+    <li><span style="color:var(--rose)">Bank case:</span> <span class="tag tag-red">✘ NOT APPLICABLE</span> — no untreated customer group exists</li>
+  </ul>
+
+  <hr class="hr">
+  <h2>SYNTHETIC CONTROL METHOD (SCM)</h2>
+  <div class="callout-slate">
+    ► <strong>Worked example:</strong> London TV + Synthetic Control vs DiD — deep dive slide <em>SYNTHETIC CONTROL VS DID</em> in Contents.
+  </div>
+  <ul>
+    <li><span style="color:var(--teal)">Requires:</span> Multiple untreated <em>donor</em> units (e.g. 5 regions where the campaign didn't run)</li>
+    <li><span style="color:var(--teal)">How it works:</span> Learn weights so the donor mix tracks the treated region <em>before</em> the campaign. After launch, compare actual treated region vs. the mix — the gap is the estimated effect.</li>
+    <li><span style="color:var(--rose)">Classic example:</span> Ad campaign in London; Manchester, Bristol, Leeds, Edinburgh, Cardiff as donors (GeoLift)</li>
+    <li><span style="color:var(--rose)">Bank case:</span> <span class="tag tag-red">✘ NOT APPLICABLE</span> — all regions received the change simultaneously</li>
+  </ul>
+
+  <div class="callout-rose">
+    ► Both methods fail for the bank because the bank rolled out to everyone. No untreated group exists at any level — no customer segment, no branch, no geography was left unchanged.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5 — SYNTHETIC CONTROL VS DID (DEEP DIVE)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="5" data-nav-tier="deep">
+  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+  <h1>SYNTHETIC CONTROL VS DID</h1>
+
+  <p>A national retailer runs <strong>TV ads only in London</strong> for 2 weeks. How much extra revenue did London make because of TV?</p>
+
+  <h2>WHY NOT MANCHESTER ALONE? (DID PATH)</h2>
+  <p>Manchester didn't get TV — so it looks like a DiD control. But Manchester's daily revenue <em>shape</em> doesn't match London pre-TV (London flat, Manchester trending up). DiD with one bad twin → biased lift.</p>
+
+  <h2>BUILD SYNTHETIC LONDON (SCM PATH)</h2>
+  <p>Donor cities (no TV): Manchester, Bristol, Leeds, Edinburgh, Cardiff. Software picks weights so the mix tracks London <em>before</em> TV:</p>
+
+  <div class="formula">
+    Synthetic London (day t) =
+    0.35 × Manchester(t) + 0.25 × Bristol(t) + 0.20 × Leeds(t)
+    + 0.15 × Edinburgh(t) + 0.05 × Cardiff(t)
+    <br><span style="color:var(--mist); font-size:11px">(illustrative weights — not chosen by hand)</span>
+  </div>
+
+  <table class="flow-table">
+    <thead><tr><th>Period</th><th>Actual London</th><th>Synthetic London</th><th>Gap</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>90 days before TV</td>
+        <td>£980k / day</td>
+        <td>£978k / day</td>
+        <td>≈ £0 (good pre-fit)</td>
+      </tr>
+      <tr>
+        <td>Week 1 with TV</td>
+        <td>£1.20M / day</td>
+        <td>£1.05M / day</td>
+        <td><span style="color:var(--teal)">~£150k / day</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="flow-table">
+    <thead><tr><th></th><th>DiD with Manchester</th><th>Synthetic Control</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Control</td>
+        <td>One city</td>
+        <td>Weighted mix of many cities</td>
+      </tr>
+      <tr>
+        <td>When it works</td>
+        <td>Manchester &amp; London parallel pre-TV</td>
+        <td>No single city fits; blend does</td>
+      </tr>
+      <tr>
+        <td>Weights</td>
+        <td>N/A (100% Manchester)</td>
+        <td>Algorithm — you don't pick %</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-honey">
+    ► Synthetic Control invents "London without TV." DiD is simpler when <em>one</em> donor already behaves like London — use SCM when you need the blend.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 6 — DID OR SCM? COMMON QUESTIONS
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="6" data-nav-tier="deep">
+  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+  <h1>DID OR SCM?</h1>
+  <span class="badge">FAQ</span>
+
+  <h2>“WHO PICKS 35% MANCHESTER, 25% BRISTOL…?”</h2>
+  <p><strong>You don't.</strong> A Synthetic Control algorithm does — using only <em>pre-campaign</em> daily revenue for London and each donor city.</p>
+  <ul>
+    <li><span style="color:var(--teal)">Input:</span> Time series you already have (GA4, sales by region, etc.) — same dates, same metric.</li>
+    <li><span style="color:var(--teal)">Goal:</span> Find weights so <code>0.35×Manchester + 0.25×Bristol + …</code> hugs London's line <em>before</em> TV as closely as possible.</li>
+    <li><span style="color:var(--teal)">Rules:</span> Weights are ≥ 0 and usually sum to 100% (a convex blend, not magic numbers).</li>
+    <li><span style="color:var(--honey)">Tools:</span> Meta GeoLift, R <code>Synth</code>, Python — you run the fit; you don't spreadsheet the weights.</li>
+  </ul>
+  <div class="callout-teal">
+    ► Hard part isn't guessing weights — it's having <em>good donors</em> (untreated regions) and enough <em>pre-period history</em> so the blend can match London. If donors don't resemble London pre-TV, no method saves you.
+  </div>
+
+  <hr class="hr">
+  <h2>“IF MANCHESTER ALREADY BEHAVES LIKE LONDON — DO I NEED SCM?”</h2>
+  <p><strong>Usually no — use Difference-in-Differences (DiD) with Manchester as the one control.</strong></p>
+
+  <table class="flow-table">
+    <thead><tr><th>Situation</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Plot pre-TV: Manchester and London move in parallel</td>
+        <td><span class="tag tag-green">DiD</span> — Manchester is your control; simpler, easier to explain</td>
+      </tr>
+      <tr>
+        <td>No single city tracks London pre-TV, but a <em>mix</em> could</td>
+        <td><span class="tag tag-amber">Synthetic Control</span> — algorithm finds the mix</td>
+      </tr>
+      <tr>
+        <td>You average Bristol + Leeds + Manchester equally “because more controls”</td>
+        <td><span class="tag tag-red">Not SCM</span> — naive average ≠ optimal pre-fit; can bias DiD too</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <details>
+    <summary>Concrete: Manchester ≈ London pre-TV</summary>
+    <p>London gets TV; Manchester doesn't. For 90 days before TV, both rise ~2% per week. DiD subtracts Manchester's before→after change from London's — the shared trend cancels out. You do <em>not</em> need to blend five cities unless Manchester alone fails the parallel-trends check on the chart.</p>
+  </details>
+
+  <details>
+    <summary>Concrete: Manchester is not a good twin alone</summary>
+    <p>London flat pre-TV; Manchester trending up. DiD with only Manchester attributes Manchester's growth to “what London would have done” — overstates TV lift. Synthetic Control searches weights on Bristol, Leeds, Edinburgh… until the <em>blend</em> is flat like London. That's when SCM earns its complexity.</p>
+  </details>
+
+  <div class="callout-honey">
+    ► More donor cities ≠ automatically Synthetic Control. More donors = more options for SCM <em>if</em> you need a blend. One good parallel donor = stay with DiD.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 6 — THE ITS FAMILY
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="7" data-nav-tier="core">
+  <h1>INTERRUPTED TIME SERIES</h1>
+  <span class="badge">A FAMILY OF MODELS · NO CONTROL GROUP NEEDED</span>
+
+  <div class="callout-honey">
+    ► "Interrupted Time Series" (ITS) is not a single model — it's a <em>category</em> of approaches. They all share one idea: use the treated unit's own pre-intervention history as the counterfactual. The specific models below differ in <em>how</em> they learn the pattern and <em>how</em> they quantify uncertainty.
+  </div>
+
+  <p>"Causal Impact" (Google's tool) is one specific model within this family — the most powerful one, but not the only option.</p>
+
+  <table class="flow-table">
+    <thead><tr><th>Specific model</th><th>How it builds the counterfactual</th><th>Output</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span style="color:var(--slate)">Simple ITS regression</span></td>
+        <td>Fits a straight line to the pre-period, checks if the line's level or slope "breaks" at the intervention.</td>
+        <td>Point estimate + <details class="info"><summary>confidence interval</summary><span class="info-body">A range of values computed from the data — "we're 95% confident the true effect is between X and Y." Based on how much noise is in the data, not on prior beliefs.</span></details></td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--accent)">BSTS / CausalImpact</span></td>
+        <td>Bayesian structural time-series: learns the metric's level, weekly cycle, and how it correlates with other signals (covariates). Uses <details class="info"><summary>spike-and-slab priors</summary><span class="info-body">A technique that automatically decides which covariates are useful. Each covariate has a prior probability of being "in" (spike) or "out" (slab). The model learns which to include — like automatic feature selection, but Bayesian.</span></details> for variable selection.</td>
+        <td>Full <details class="info"><summary>posterior distribution</summary><span class="info-body">Instead of a single number, you get a probability distribution of all plausible effect sizes given the data. A Bayesian approach: the result is "the probability that the effect is between X and Y" — not "we're 95% confident."</span></details> + credible interval</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--honey)">CausalPy</span></td>
+        <td>Bayesian ITS regression via PyMC. Fits a flexible trend to the pre-period using linear or curved (spline) models.</td>
+        <td>Posterior distribution + credible interval</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--teal)">RDiT</span></td>
+        <td>Regression Discontinuity in Time: fits a curve in a narrow window around the intervention date. Doesn't need the full pre-period — only looks at data close to the cut-off.</td>
+        <td>Local treatment effect + confidence interval</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="hr">
+  <h2>SIMPLE ITS VS CAUSAL IMPACT (BSTS)</h2>
+  <table class="flow-table">
+    <thead><tr><th></th><th>Simple ITS regression</th><th>Causal Impact (BSTS)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:bold">Category</td>
+        <td>One specific regression template inside the ITS family</td>
+        <td>One specific Bayesian model inside the ITS family (Google's package name)</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Counterfactual</td>
+        <td>Usually one trend line + optional weekly dummies; breaks at intervention date</td>
+        <td>State-space model: local level + seasonality + many covariates; projects full predictive distribution</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Covariates</td>
+        <td>You add a few by hand (holiday flags, etc.)</td>
+        <td>Core feature — weather, trends, organic sessions; auto variable selection</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Uncertainty</td>
+        <td>One confidence interval on the break size</td>
+        <td>Daily credible bands + probability the effect is positive</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">When to prefer</td>
+        <td>Teaching, quick sanity check, very short series</td>
+        <td>Campaign measurement with rich daily data (your retail / bank-style cases)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="hr">
+  <h2>EFFECT INTENSITY OVER TIME — WHICH FLAVOR?</h2>
+  <p>If you want <em>how the lift evolves day by day</em> (spike then fade, ramp-up, etc.):</p>
+  <table class="flow-table">
+    <thead><tr><th>What you want</th><th>ITS flavor</th><th>In these decks?</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>One immediate jump + one post-slope (linear ramp up/down)</td>
+        <td><span style="color:var(--slate)">Segmented ITS regression</span> — level-change + slope-change coefficients</td>
+        <td><span class="tag tag-amber">Partially</span> (same as “Simple ITS” row above)</td>
+      </tr>
+      <tr>
+        <td>Daily effect each post-day + cumulative total</td>
+        <td><span style="color:var(--accent)">Causal Impact / BSTS</span> — pointwise impact α(t) each day</td>
+        <td><span class="tag tag-green">Yes</span> — Causal Impact deck, BSTS slide</td>
+      </tr>
+      <tr>
+        <td>Flexible curved path after intervention (splines)</td>
+        <td><span style="color:var(--honey)">CausalPy ITS</span></td>
+        <td><span class="tag tag-amber">Named</span> — not worked example yet</td>
+      </tr>
+      <tr>
+        <td>Effect right at the cutoff only (local)</td>
+        <td><span style="color:var(--teal)">RDiT</span> — not a full post-campaign curve</td>
+        <td><span class="tag tag-green">Yes</span> — both decks</td>
+      </tr>
+    </tbody>
+  </table>
+  <details>
+    <summary>Example: “intensity over time” with segmented ITS</summary>
+    <p>Revenue jumps +£50k on day 1 of the promo (level change), then grows an extra +£5k per day (slope change). You get two numbers — not a smooth daily curve.</p>
+  </details>
+  <details>
+    <summary>Example: same question with Causal Impact</summary>
+    <p>Day 1 lift +£80k, day 2 +£60k, day 3 +£40k… plus a cumulative band. The model draws a full counterfactual line through the post-period so you see the shape of the effect, not just one break parameter.</p>
+  </details>
+
+  <div class="callout-teal">
+    ► What unites them: pre-intervention data → projected counterfactual → gap = causal effect.<br>
+    What differentiates them: model complexity, how they handle uncertainty, and how much pre-data they need.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 7 — REGRESSION VS BSTS: MATH & DUMMY CHARTS
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="8" data-nav-tier="deep">
+  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+  <h1>REGRESSION VS BSTS</h1>
+  <span class="badge">MATH INTUITION · DUMMY OUTPUTS</span>
+
+  <h2>AT STAT / MATH LEVEL (PLAIN ENGLISH)</h2>
+  <table class="flow-table">
+    <thead><tr><th>Simple ITS regression</th><th>BSTS (Causal Impact)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>One equation: <code>Y = trend + seasonality + β₁×(after launch) + β₂×(days since launch)</code></td>
+        <td>Many latent pieces (level, slope, seasonality) that <em>update each day</em>, plus covariates — fitted together as a state-space model</td>
+      </tr>
+      <tr>
+        <td>Counterfactual = <strong>extend the pre-period straight line(s)</strong> past the launch date</td>
+        <td>Counterfactual = <strong>simulate the whole series</strong> forward from the learned state, day by day, with uncertainty at each step</td>
+      </tr>
+      <tr>
+        <td>Typically <strong>2–3 summary numbers</strong> (level jump? slope change?)</td>
+        <td><strong>Time series of daily impacts</strong> + cumulative total + probability intervals</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>WHAT YOU ACTUALLY GET OUT (DUMMY CHARTS)</h2>
+  <p>Same fake metric, same launch day (red line). Different outputs:</p>
+
+  <div class="chart-row">
+    <div class="chart-panel">
+      <h3>Simple ITS regression</h3>
+      <svg viewBox="0 0 280 100" width="100%" aria-hidden="true" style="display:block">
+        <!-- axes -->
+        <line x1="30" y1="85" x2="270" y2="85" stroke="#ccc4e0" stroke-width="1"/>
+        <line x1="30" y1="15" x2="30" y2="85" stroke="#ccc4e0" stroke-width="1"/>
+        <!-- pre actual -->
+        <polyline points="30,70 80,65 130,60" fill="none" stroke="#1c1a30" stroke-width="2"/>
+        <!-- post actual (higher) -->
+        <polyline points="130,60 150,48 200,42 270,38" fill="none" stroke="#1c1a30" stroke-width="2"/>
+        <!-- counterfactual: extend pre trend (dashed) -->
+        <polyline points="130,60 150,58 200,52 270,48" fill="none" stroke="#1a5ca8" stroke-width="2" stroke-dasharray="5,3"/>
+        <!-- intervention -->
+        <line x1="130" y1="12" x2="130" y2="88" stroke="#c42848" stroke-width="2"/>
+        <text x="132" y="22" font-size="8" fill="#c42848" font-family="Consolas,monospace">launch</text>
+        <!-- gap annotation -->
+        <line x1="200" y1="42" x2="200" y2="52" stroke="#0d7a6e" stroke-width="2"/>
+        <text x="205" y="40" font-size="8" fill="#0d7a6e" font-family="Consolas,monospace">gap</text>
+      </svg>
+      <div class="chart-output">
+        <strong>Output report:</strong><br>
+        • Level change at launch: <span style="color:var(--teal)">+12%</span> (95% CI 4%–20%)<br>
+        • Slope change after launch: <span style="color:var(--teal)">+0.2%/day</span><br>
+        <em>Two coefficients. One straight counterfactual.</em>
+      </div>
+      <p class="chart-caption">Assumes the post-launch world follows <strong>one new straight trend</strong> (jump + optional ramp).</p>
+    </div>
+
+    <div class="chart-panel">
+      <h3>BSTS / Causal Impact</h3>
+      <svg viewBox="0 0 280 100" width="100%" aria-hidden="true" style="display:block">
+        <line x1="30" y1="85" x2="270" y2="85" stroke="#ccc4e0" stroke-width="1"/>
+        <line x1="30" y1="15" x2="30" y2="85" stroke="#ccc4e0" stroke-width="1"/>
+        <!-- pre actual -->
+        <polyline points="30,70 80,65 130,60" fill="none" stroke="#1c1a30" stroke-width="2"/>
+        <!-- post actual -->
+        <polyline points="130,60 150,45 200,40 270,36" fill="none" stroke="#1c1a30" stroke-width="2"/>
+        <!-- counterfactual mean (dashed) -->
+        <polyline points="130,60 150,57 200,53 270,50" fill="none" stroke="#1a5ca8" stroke-width="2" stroke-dasharray="5,3"/>
+        <!-- credible band -->
+        <polygon points="130,60 150,54 200,48 270,44 270,56 200,58 150,60 130,60" fill="rgba(26,92,168,.15)" stroke="none"/>
+        <line x1="130" y1="12" x2="130" y2="88" stroke="#c42848" stroke-width="2"/>
+        <!-- daily impact bars (inset style below) -->
+        <rect x="145" y="72" width="8" height="10" fill="#0d7a6e" opacity=".7"/>
+        <rect x="158" y="74" width="8" height="8" fill="#0d7a6e" opacity=".7"/>
+        <rect x="171" y="76" width="8" height="6" fill="#0d7a6e" opacity=".7"/>
+        <text x="145" y="92" font-size="7" fill="#6a5888" font-family="Consolas,monospace">daily α(t)</text>
+      </svg>
+      <div class="chart-output">
+        <strong>Output report:</strong><br>
+        • Day 5 lift: +8% (credible band shown)<br>
+        • Cumulative 30-day lift: <span style="color:var(--teal)">+£2.1M</span> [£0.4M–£3.8M]<br>
+        • P(effect &gt; 0): <span style="color:var(--teal)">94%</span><br>
+        <em>Full curve + band. Different gap each day.</em>
+      </div>
+      <p class="chart-caption">Counterfactual can <strong>wiggle</strong> with seasonality &amp; covariates; gap varies by day.</p>
+    </div>
+  </div>
+
+  <div class="callout-honey">
+    ► Same causal question, different <em>shape</em> of answer: regression summarizes a break; BSTS draws the whole “what would have happened” movie and subtracts frame by frame.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 8 — METHOD COMPARISON
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="9" data-nav-tier="deep">
+  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+  <h1>METHOD COMPARISON</h1>
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="56" height="56" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+      <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+      <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> Each method makes different trade-offs. The right one depends on your data, your campaign length, and what your stakeholders need to see.
+    </div>
+  </div>
+
+  <table class="flow-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Simple ITS</th>
+        <th>BSTS</th>
+        <th>CausalPy</th>
+        <th>RDiT</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:bold">Min pre-period</td>
+        <td><details class="info"><summary>8+ points</summary><span class="info-body"><strong>8+ time periods</strong> of data before the intervention — e.g. 8 daily rows, 8 weekly rows, or 8 monthly rows. Rule of thumb from Interrupted Time Series (ITS) papers: at least 8 observations <em>before</em> and 8 <em>after</em> the break. Not 8 cities — <strong>8 timestamps</strong> on the same unit's timeline.</span></details></td>
+        <td>Pre-period length ≥ 3× intervention length (e.g. 4-week campaign → 12+ weeks pre)</td>
+        <td>Pre-period length ≥ 3× intervention length</td>
+        <td>~2× intervention length</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Covariates</td>
+        <td>Optional</td>
+        <td>Key strength</td>
+        <td>Optional</td>
+        <td>Not used</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Seasonality</td>
+        <td>Manual dummies</td>
+        <td>Built-in</td>
+        <td>Manual</td>
+        <td>Not modeled</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Uncertainty</td>
+        <td><details class="info"><summary>Frequentist CI</summary><span class="info-body">Confidence interval: "if we repeated this experiment many times, 95% of intervals would contain the true value." Based on data variability alone.</span></details></td>
+        <td><details class="info"><summary>Bayesian posterior</summary><span class="info-body">Credible interval: "there is a 95% probability the true effect falls in this range." Incorporates prior beliefs + data. More intuitive for stakeholders.</span></details></td>
+        <td>Bayesian posterior</td>
+        <td>Frequentist CI</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Short campaigns</td>
+        <td><span class="tag tag-red">Poor</span></td>
+        <td><span class="tag tag-amber">OK</span></td>
+        <td><span class="tag tag-amber">OK</span></td>
+        <td><span class="tag tag-green">Best</span></td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Implementation</td>
+        <td>statsmodels</td>
+        <td>tfcausalimpact</td>
+        <td>causalpy</td>
+        <td>causalpy / manual</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Built-in p-value trust?</td>
+        <td>Usually OK</td>
+        <td><span class="tag tag-red">Optimistic</span></td>
+        <td><span class="tag tag-red">Optimistic</span></td>
+        <td><span class="tag tag-red">Optimistic</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-rose">
+    ► <strong>Generic warning (any client, any sector):</strong> research + placebo tests show BSTS-class tools flag “significant” effects on data with <em>no real intervention</em> about 35–55% of the time if you trust the built-in p-value alone. That is a property of the <em>method</em>, not one project. See deep dive <em>WHAT “FPR” MEANS</em>.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 9 — WHAT FPR MEANS (GENERIC)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="10" data-nav-tier="deep">
+  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+  <h1>WHAT “FPR” MEANS</h1>
+  <span class="badge">GENERIC · ANY BSTS / CAUSAL IMPACT STUDY</span>
+
+  <h2>FALSE POSITIVE RATE (FPR)</h2>
+  <p><strong>FPR</strong> = how often a method cries “significant!” when nothing actually happened.</p>
+
+  <h3>The placebo thought experiment (no real campaign)</h3>
+  <ol>
+    <li>Take your real pre-launch history (no UX change yet, or pick a period you know is quiet).</li>
+    <li>Pretend the intervention started on a <em>random fake date</em> in that history.</li>
+    <li>Run the same Causal Impact / BSTS pipeline you would run for real.</li>
+    <li>Repeat 100× with different fake dates.</li>
+  </ol>
+
+  <div class="callout-honey">
+    ► If ~40 of 100 fake runs get p &lt; 0.05, the method’s p-values are <strong>too optimistic</strong> — about <strong>40% false positive rate</strong>. Published benchmarks for BSTS-class tools land around <strong>35–55%</strong> (generic literature + validation suites, not tied to one retailer).
+  </div>
+
+  <h2>WHAT WE ARE WARNING YOU ABOUT</h2>
+  <ul>
+    <li><span style="color:var(--teal)">Not:</span> “Your result is wrong.”</li>
+    <li><span style="color:var(--teal)">Not:</span> “Schuh / bank / retail is special.”</li>
+    <li><span style="color:var(--rose)">Yes:</span> “The <em>default p-value from the package</em> is unreliable on its own.”</li>
+    <li><span style="color:var(--rose)">Yes:</span> “You need a second check — usually a <strong>permutation test on the real launch date</strong>.”</li>
+  </ul>
+
+  <h3>Permutation on the <em>real</em> date (what to do instead)</h3>
+  <p>Same shuffle idea, but compare: is the effect at the <strong>true</strong> launch date larger than effects at fake dates? If yes → more believable. Report <strong>permutation p</strong>, not only model p.</p>
+
+  <details>
+    <summary>Why mention a retail case in the other deck then?</summary>
+    <p>Only as a <em>worked example</em> where model p=0.02 but permutation p=0.47 on a bad specification — it illustrates the generic trap (over-long pre-period), not a rule that applies to one brand only.</p>
+  </details>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 10 — THE BANK WALKTHROUGH
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="11" data-nav-tier="deep">
+  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+  <h1>BANK CASE: FULL WALKTHROUGH</h1>
+  <span class="badge">100% ROLLOUT · NO CONTROL GROUP</span>
+
+  <h2>THE SCENARIO</h2>
+  <p>A bank redesigns its online banking UX and rolls it out to all customers on the same day. No A/B test, no regional holdout. Goal: did the new UX increase engagement / product adoption?</p>
+
+  <hr class="hr">
+  <h2>WHY DID AND SCM ARE RULED OUT</h2>
+  <ul>
+    <li><span class="tag tag-red">DiD</span> — no untreated customer group for parallel-trends comparison</li>
+    <li><span class="tag tag-red">SCM</span> — no untreated branches or regions to use as donor units</li>
+  </ul>
+
+  <hr class="hr">
+  <h2>RECOMMENDED: BSTS + RDIT CROSS-VALIDATION</h2>
+
+  <h3>Step 1 — Data requirements</h3>
+  <ul>
+    <li>Daily metric: logins, sessions, product applications, transaction volume</li>
+    <li>Pre-period: at least 3× the expected observation window (e.g. observe for 30 days → 90+ days of pre-data)</li>
+    <li>Exogenous covariates: market index, competitor app downloads, interest rate announcements, weather, day-of-week / holiday flags</li>
+  </ul>
+
+  <h3>Step 2 — Pre-period selection</h3>
+  <ul>
+    <li>Choose a <em>homogeneous</em> window — same seasonal regime as the post-launch period</li>
+    <li>Mask or exclude known disruptions (system outages, regulatory changes, prior redesigns)</li>
+    <li>A clean 60-day pre-period beats a noisy 400-day one</li>
+  </ul>
+
+  <h3>Step 3 — Covariate safety audit</h3>
+  <ul>
+    <li>Compare each covariate's last-7-days-pre mean vs treatment-period mean</li>
+    <li>If a covariate changed &gt;10%, it may be absorbing the effect → flag as CAUTION</li>
+    <li>Exclude any metric downstream of the UX change (e.g. in-app clicks that the new design directly changed)</li>
+  </ul>
+
+  <hr class="hr">
+  <h2>THE UX CHANGE NEVER “ENDS” — SENSIBLE ANALYSIS</h2>
+  <p>The new UI stays live forever. Methods still need a <strong>defined evaluation window</strong> — you are measuring “impact as of day N”, not waiting for an off-switch.</p>
+
+  <table class="flow-table">
+    <thead><tr><th>Reporting choice</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="tag tag-green">Primary window</span> (pre-register)</td>
+        <td>e.g. first <strong>30 days</strong> after launch — “early adoption effect”</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-amber">Secondary window</span></td>
+        <td>days 31–90 — “stabilized effect” (novelty may fade)</td>
+      </tr>
+      <tr>
+        <td><span class="tag tag-slate">Monitoring read</span></td>
+        <td>extend post-period to <strong>latest data</strong> each month; same model, new end date — label as <em>updated estimate, not a new experiment</em></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ul>
+    <li><strong>BSTS:</strong> post-period = launch date → end of chosen window. Counterfactual projects through that window only. Wider bands further from launch are normal.</li>
+    <li><strong>Do not</strong> imply the effect “turns off” when the window ends — say: “estimated lift over the first 30 days post-launch.”</li>
+    <li><strong>Stakeholder line:</strong> “As of 90 days after go-live, engagement is X% above the modelled without-redesign path (95% interval …), with permutation p=…”</li>
+    <li>If the lift is a <strong>permanent level shift</strong>, segmented ITS / BSTS often show a step-up that <em>persists</em> — that matches an open-ended UX change well.</li>
+  </ul>
+
+  <div class="callout-teal">
+    ► Sensible default for the bank: <strong>BSTS + permutation</strong> on a pre-registered 30-day and 90-day read, refreshed monthly for monitoring, always stating the evaluation end date.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 11 — BANK WALKTHROUGH: OUTPUT & REPORTING
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="12" data-nav-tier="deep">
+  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+  <h1>BANK CASE: OUTPUT &amp; REPORTING</h1>
+
+  <h2>WHAT THE OUTPUT LOOKS LIKE</h2>
+  <div class="callout-slate">
+    <span style="color:var(--accent)">Counterfactual chart</span> — a time-series plot showing: (1) observed metric (solid line), (2) predicted counterfactual (dashed line), (3) credible interval band around the counterfactual. The gap between observed and counterfactual = estimated causal effect.
+  </div>
+  <div class="callout-slate">
+    <span style="color:var(--honey)">Cumulative effect</span> — total incremental units (logins, applications, transactions) over the observation window. Comes with a 95% credible interval: "the UX change generated between X and Y additional product applications."
+  </div>
+  <div class="callout-slate">
+    <span style="color:var(--teal)">Probability of positive effect</span> — Bayesian posterior probability that the true effect is &gt;0. More intuitive for stakeholders than a p-value. "There is a 96% probability that the redesign had a positive effect on engagement."
+  </div>
+
+  <hr class="hr">
+  <h2>WHAT TO REPORT TO STAKEHOLDERS</h2>
+  <ol>
+    <li><span style="color:var(--accent)">Effect size with uncertainty:</span> "+14% engagement, 95% CI [+4%, +24%]"</li>
+    <li><span style="color:var(--honey)">Multi-method agreement:</span> "BSTS estimates +14%, RDiT estimates +11% — both positive, direction consistent"</li>
+    <li><span style="color:var(--teal)">Permutation validation:</span> "Permutation p=0.04 — the effect is larger than 96% of random placebo dates"</li>
+    <li><span style="color:var(--rose)">Honest caveats:</span> "This is quasi-experimental, not a randomized trial. The estimate depends on the assumption that pre-period patterns would have continued."</li>
+  </ol>
+
+  <div class="callout-honey">
+    ► Lead with "probability of positive effect" for non-technical audiences. Keep p-values and CIs for the technical appendix. Always include caveats — it builds trust.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 12 — CHOOSING YOUR METHOD
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="13" data-nav-tier="core">
+  <h1>PRACTICAL CHECKLIST</h1>
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="56" height="56" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+      <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+      <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+      <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+      <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> Don't overthink it. Answer these four questions and the method picks itself.
+    </div>
+  </div>
+
+  <table class="flow-table">
+    <thead><tr><th>Question</th><th>If YES</th><th>If NO</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Can you randomize into treated / control?</td>
+        <td><span class="tag tag-green">A/B Test</span> — always preferred</td>
+        <td>Continue ↓</td>
+      </tr>
+      <tr>
+        <td>Do you have an untreated group (region, segment, store)?</td>
+        <td><span class="tag tag-green">DiD</span> or <span class="tag tag-green">Synthetic Control</span></td>
+        <td>Continue ↓</td>
+      </tr>
+      <tr>
+        <td>Is the campaign ≤ 2 weeks with a sharp start date?</td>
+        <td><span class="tag tag-amber">RDiT as lead</span> + BSTS as cross-check</td>
+        <td><span class="tag tag-amber">BSTS as lead</span> + RDiT as cross-check</td>
+      </tr>
+      <tr>
+        <td>Do you have ≥ 3× campaign length of clean pre-data?</td>
+        <td><span class="tag tag-green">Proceed</span> with chosen ITS method</td>
+        <td><span class="tag tag-red">Underpowered</span> — report MDE, not significance</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="hr">
+  <h2>ALWAYS, REGARDLESS OF METHOD</h2>
+  <ul>
+    <li>Run a covariate safety audit before including any covariate</li>
+    <li>Validate with permutation tests — model p-values alone are unreliable</li>
+    <li>Use at least two methods for cross-validation</li>
+    <li>Report uncertainty honestly: credible intervals, not just point estimates</li>
+    <li>Consider a specification curve: test all analytical choices, show the distribution</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 13 — QUEST COMPLETE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="14" data-nav-tier="core">
+  <h1>QUEST COMPLETE</h1>
+  <div class="buddy-row">
+    <!-- Hootsworth with sparkles -->
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+      <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+      <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+      <!-- smiling beak -->
+      <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="6"  y="8" width="4" height="1" fill="#d4a060"/>
+      <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+      <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+      <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+      <!-- sparkles -->
+      <rect x="1"  y="2" width="1" height="1" fill="#b86800"/>
+      <rect x="14" y="2" width="1" height="1" fill="#b86800"/>
+      <rect x="0"  y="6" width="1" height="1" fill="#1a5ca8"/>
+      <rect x="15" y="6" width="1" height="1" fill="#1a5ca8"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> Now you know the map. The method follows from the data structure — never the other way around. For the deep dive on BSTS mechanics, covariates, and permutation tests, head to the Causal Impact deck.
+    </div>
+  </div>
+
+  <ul class="checkpoint">
+    <li>Causal effect = observed minus counterfactual. Every method is a different way to build the counterfactual.</li>
+    <li>DiD needs a parallel control group. Synthetic Control needs multiple untreated units. Neither works for 100% rollouts.</li>
+    <li>When there's no control group, the Interrupted Time Series family is the only viable path: BSTS, CausalPy, RDiT, or simple ITS regression.</li>
+    <li>For the bank case (UX redesign, all customers): use BSTS + RDiT cross-validation with permutation testing.</li>
+    <li>Data requirements: daily metric, 3× campaign length of homogeneous pre-data, exogenous covariates.</li>
+    <li>Report to stakeholders: effect size with credible interval, multi-method convergence, permutation-validated significance, honest caveats.</li>
+  </ul>
+</section>
+
+</div><!-- /deck -->
+
+<nav class="deck-controls">
+  <button type="button" id="prev">◀ PREV</button>
+  <span id="counter">1 / 15</span>
+  <button type="button" id="next">NEXT ▶</button>
+</nav>
+
+<script>
+  const slides = [...document.querySelectorAll(".slide")];
+  const sideNavList = document.getElementById("side-nav-list");
+  const navButtons = [];
+
+  let deepHeaderAdded = false;
+  slides.forEach((slide, j) => {
+    const tier = slide.dataset.navTier || "core";
+    if (tier === "deep" && !deepHeaderAdded) {
+      const head = document.createElement("p");
+      head.className = "side-nav-section";
+      head.textContent = "DEEP DIVES — optional, revisit later";
+      sideNavList.appendChild(head);
+      deepHeaderAdded = true;
+    }
+    const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "side-nav-btn" + (tier === "deep" ? " is-deep" : "");
+    btn.innerHTML = `<span class="side-nav-num">${j + 1}</span><span class="side-nav-label">${label}</span>`;
+    btn.addEventListener("click", () => show(j));
+    sideNavList.appendChild(btn);
+    navButtons.push(btn);
+  });
+
+  const headCore = document.createElement("p");
+  headCore.className = "side-nav-section";
+  headCore.textContent = "360° PATH — start here";
+  sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
+  let i = 0;
+  const counter = document.getElementById("counter");
+  function show(n) {
+    i = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach((s, j) => s.classList.toggle("active", j === i));
+    navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+    counter.textContent = `${i + 1} / ${slides.length}`;
+    navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  document.getElementById("prev").onclick = () => show(i - 1);
+  document.getElementById("next").onclick = () => show(i + 1);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") show(i + 1);
+    if (e.key === "ArrowLeft")  show(i - 1);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Causal Impact — Advanced Stats Quest</title>
+  <!-- Favicon: Bayes the Fox (amber) -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="1" width="2" height="3" fill="%23c8804c"/><rect x="11" y="1" width="2" height="3" fill="%23c8804c"/><rect x="3" y="4" width="10" height="7" fill="%23c8804c"/><rect x="5" y="7" width="6" height="3" fill="%23f0dcc0"/><rect x="5" y="6" width="1" height="1" fill="%233a3040"/><rect x="10" y="6" width="1" height="1" fill="%233a3040"/><rect x="7" y="7" width="2" height="1" fill="%235a4040"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:     #f0ebe0;
+      --card:   #fffef8;
+      --accent: #1a5ca8;
+      --rose:   #c42848;
+      --honey:  #b86800;
+      --text:   #1c1a30;
+      --mist:   #6a5888;
+      --teal:   #0d7a6e;
+      --slate:  #3a4d7a;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 740px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    /* Side navigation — jump to any slide by title */
+    .side-nav {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 52px;
+      width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto;
+      z-index: 9;
+    }
+    .side-nav-title {
+      font-family: "Press Start 2P", monospace;
+      font-size: 8px;
+      color: var(--mist);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .side-nav-btn:hover {
+      background: rgba(26,92,168,.06);
+      border-color: #ccc4e0;
+    }
+    .side-nav-btn.active {
+      background: rgba(26,92,168,.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .side-nav-num {
+      flex-shrink: 0;
+      color: var(--mist);
+      font-size: 10px;
+      min-width: 1.2em;
+    }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .slide {
+      display: none;
+      background: var(--card);
+      border: 2px solid #ccc4e0;
+      box-shadow: 4px 4px 0 rgba(80,60,140,.18);
+      padding: 28px 28px 24px;
+      margin-bottom: 16px;
+    }
+    .slide.active { display: block; }
+    h1 {
+      font-family: "Press Start 2P", monospace;
+      font-size: 13px;
+      color: var(--accent);
+      margin: 0 0 18px;
+      letter-spacing: .5px;
+    }
+    h2 {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      color: var(--honey);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 18px 0 8px;
+    }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 22px; }
+    li { margin: 5px 0; }
+
+    /* Buddy row */
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 18px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-4px); }
+    }
+    .buddy-speech {
+      flex: 1;
+      background: #fff8f2;
+      border: 2px solid var(--rose);
+      padding: 12px;
+      position: relative;
+    }
+    .buddy-speech::before {
+      content: "";
+      position: absolute;
+      left: -11px; top: 14px;
+      border: 7px solid transparent;
+      border-right-color: var(--rose);
+    }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    /* Callout boxes */
+    .formula {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(26,92,168,.06);
+      padding: 14px;
+      border: 2px solid rgba(26,92,168,.3);
+      margin: 12px 0;
+    }
+    .formula em { color: var(--honey); font-style: normal; }
+    .callout-teal {
+      background: rgba(13,122,110,.07);
+      border: 2px solid var(--teal);
+      padding: 12px;
+      margin: 10px 0;
+      color: #075a50;
+    }
+    .callout-rose {
+      background: rgba(196,40,72,.06);
+      border: 2px solid var(--rose);
+      padding: 12px;
+      margin: 10px 0;
+      color: #8a1830;
+    }
+    .callout-honey {
+      background: rgba(184,104,0,.07);
+      border: 2px solid var(--honey);
+      padding: 12px;
+      margin: 10px 0;
+      color: #7a4400;
+    }
+    .callout-slate {
+      background: rgba(58,77,122,.07);
+      border: 2px solid var(--slate);
+      padding: 12px;
+      margin: 10px 0;
+      color: var(--slate);
+    }
+
+    /* Tag pills */
+    .tag {
+      display: inline-block;
+      padding: 1px 7px;
+      font-size: 11px;
+      border: 2px solid;
+      margin: 2px 3px 2px 0;
+    }
+    .tag-green  { color: var(--teal);  border-color: var(--teal);  }
+    .tag-red    { color: var(--rose);  border-color: var(--rose);  }
+    .tag-amber  { color: var(--honey); border-color: var(--honey); }
+    .tag-slate  { color: var(--slate); border-color: var(--slate); }
+
+    /* Decision / flow table */
+    .flow-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 14px 0; }
+    .flow-table th {
+      background: rgba(26,92,168,.08);
+      color: var(--accent);
+      padding: 8px 10px;
+      text-align: left;
+      border: 2px solid #ccc4e0;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .flow-table td {
+      padding: 7px 10px;
+      border: 2px solid #ccc4e0;
+      vertical-align: top;
+    }
+    .flow-table tr:nth-child(even) td { background: rgba(80,60,140,.04); }
+
+    /* Quiz */
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 10px; }
+
+    /* Checkpoints */
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+    .checkpoint li { margin: 8px 0; }
+
+    /* Divider */
+    .hr { border: 0; border-top: 2px solid #d0c8e0; margin: 14px 0; }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 10px;
+      color: var(--mist);
+      border: 2px solid #ccc4e0;
+      padding: 1px 8px;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    /* Nav bar */
+    nav.deck-controls {
+      position: fixed;
+      bottom: 0; left: 212px; right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      background: rgba(240,235,224,.97);
+      border-top: 3px solid var(--honey);
+      z-index: 10;
+    }
+    #counter {
+      font-family: "Press Start 2P", monospace;
+      font-size: 9px;
+      color: var(--mist);
+      min-width: 60px;
+      text-align: center;
+    }
+    button {
+      font-family: "Press Start 2P", monospace;
+      font-size: 9px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fffef8;
+      border: 2px solid #0d3d7a;
+      box-shadow: 3px 3px 0 rgba(26,92,168,.25);
+      cursor: pointer;
+    }
+    button:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+  </style>
+</head>
+<body>
+<aside class="side-nav" aria-label="Slide contents">
+  <p class="side-nav-title">CONTENTS</p>
+  <div id="side-nav-list" class="side-nav-list"></div>
+</aside>
+
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 0 — TITLE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide active" data-slide="0">
+  <span class="badge">CAUSAL INFERENCE · CONCEPT DECK</span>
+  <h1>CAUSAL IMPACT</h1>
+  <div class="buddy-row">
+    <!-- Bayes the Fox — amber (#c8804c) — Bayesian guide -->
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="2" height="3" fill="#c8804c"/>
+      <rect x="11" y="1" width="2" height="3" fill="#c8804c"/>
+      <rect x="4"  y="2" width="1" height="1" fill="#f0dcc0"/>
+      <rect x="11" y="2" width="1" height="1" fill="#f0dcc0"/>
+      <rect x="3"  y="4" width="10" height="7" fill="#c8804c"/>
+      <rect x="5"  y="7" width="6" height="3" fill="#f0dcc0"/>
+      <rect x="5"  y="6" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="6" width="1" height="1" fill="#3a3040"/>
+      <rect x="7"  y="7" width="2" height="1" fill="#5a4040"/>
+      <rect x="7"  y="8" width="2" height="1" fill="#8a6050"/>
+      <rect x="4"  y="7" width="1" height="1" fill="#e0a088"/>
+      <rect x="11" y="7" width="1" height="1" fill="#e0a088"/>
+      <!-- tiny hat for "professor" vibes -->
+      <rect x="5"  y="0" width="6" height="1" fill="#3a3040"/>
+      <rect x="6"  y="1" width="4" height="1" fill="#3a3040"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Bayes:</span> Revenue went up after the campaign. But <em>would it have gone up anyway?</em> That's the whole quest.
+    </div>
+  </div>
+  <p>This deck covers:</p>
+  <ul>
+    <li>What causal impact actually measures</li>
+    <li>Why A/B tests aren't always possible</li>
+    <li>How BSTS builds a Bayesian counterfactual</li>
+    <li>How to choose covariates safely</li>
+    <li>Multi-method validation &amp; permutation tests</li>
+    <li>Real case: a UK retailer's delivery promo, fully validated</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 1 — THE CORE QUESTION
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="1">
+  <h1>THE CORE QUESTION</h1>
+  <p>Any analyst can report a before/after number. The hard part is:</p>
+
+  <div class="formula">
+    <em>Causal Effect</em> = What actually happened
+    &nbsp;−&nbsp; <em>What would have happened anyway</em>
+  </div>
+
+  <p>The second term — <span style="color:var(--teal)">the counterfactual</span> — is never observed. You have to construct it.</p>
+
+  <hr class="hr">
+  <h2>WHY THIS IS HARD</h2>
+  <ul>
+    <li>Revenue in March is up 20% vs. February</li>
+    <li>But March is seasonally stronger every year</li>
+    <li>And Google ran a promo <em>and</em> it was payday weekend</li>
+    <li>Which part was really the campaign?</li>
+  </ul>
+
+  <hr class="hr">
+  <div class="callout-teal">
+    ► Naive before/after = "attribution theater". You need a model of the world without the intervention.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 2 — A/B TEST: GOLD STANDARD — AND ITS LIMITS
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="2">
+  <h1>THE A/B TEST IDEAL</h1>
+  <!-- Ridge the Penguin — slate blue — methodical/structured -->
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="56" height="56" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="4"  y="2" width="8" height="4" fill="#485880"/>
+      <rect x="3"  y="6" width="10" height="6" fill="#485880"/>
+      <rect x="5"  y="4" width="6" height="3" fill="#e8e0d8"/>
+      <rect x="5"  y="7" width="6" height="4" fill="#e8e0d8"/>
+      <rect x="6"  y="4" width="1" height="1" fill="#3a3040"/>
+      <rect x="9"  y="4" width="1" height="1" fill="#3a3040"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#c8a0a8"/>
+      <rect x="10" y="5" width="1" height="1" fill="#c8a0a8"/>
+      <rect x="7"  y="6" width="2" height="1" fill="#d4a060"/>
+      <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+      <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Ridge:</span> Randomised groups → identical in expectation → difference = pure causal effect. But you need two groups that can exist simultaneously.
+    </div>
+  </div>
+
+  <table class="flow-table">
+    <thead>
+      <tr><th>Situation</th><th>A/B Test?</th><th>Why</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Promo email to 50% of users</td>
+        <td><span class="tag tag-green">✔ YES</span></td>
+        <td>Two segments, same time</td>
+      </tr>
+      <tr>
+        <td>Price change on product page</td>
+        <td><span class="tag tag-amber">△ HARD</span></td>
+        <td>Network effects, price perception spillover</td>
+      </tr>
+      <tr>
+        <td>New website layout — all users</td>
+        <td><span class="tag tag-red">✘ NO</span></td>
+        <td>100% rollout — no control group exists</td>
+      </tr>
+      <tr>
+        <td>Bank changes its UX for all customers</td>
+        <td><span class="tag tag-red">✘ NO</span></td>
+        <td>No comparable segment without the change</td>
+      </tr>
+      <tr>
+        <td>TV/OOH campaign in all regions</td>
+        <td><span class="tag tag-red">✘ NO</span></td>
+        <td>No untreated region to compare</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-rose">
+    ► When A/B testing is impossible, you need to <em>construct</em> the missing control from historical patterns. That's what Causal Impact does.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 3 — REAL CASE: RETAIL DELIVERY PROMO
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="4">
+  <h1>REAL CASE: RETAIL PROMO</h1>
+  <span class="badge">ANONYMIZED · UK E-COMMERCE RETAILER</span>
+
+  <h2>THE INTERVENTION</h2>
+  <p>A UK online retailer ran a <span style="color:var(--accent)">4-day delivery discount promo</span>. Goal: measure whether it generated incremental revenue beyond what would have happened anyway.</p>
+
+  <h2>THE ANALYSIS PIPELINE</h2>
+  <table class="flow-table">
+    <thead><tr><th>Step</th><th>What happened</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Pre-period</td>
+        <td>51 days of post-Christmas data (homogeneous regime) — chosen over 787-day full history because shorter = less seasonal noise</td>
+      </tr>
+      <tr>
+        <td>Covariates</td>
+        <td>Day-of-week, holidays, weather, Google Trends, sale-period detection. Paid sessions flagged as <span style="color:var(--rose)">contaminated</span> (media spend responded to the promo) and excluded.</td>
+      </tr>
+      <tr>
+        <td>Methods</td>
+        <td>6 methods run: BSTS (VI + HMC), CausalPy, RDiT, Prophet, Conformal CIs. All agreed the effect was positive.</td>
+      </tr>
+      <tr>
+        <td>Validation</td>
+        <td>448-spec Specification Curve Analysis. 99.5% of model variants showed a positive effect (range: +154K to +408K).</td>
+      </tr>
+      <tr>
+        <td>Permutation test</td>
+        <td>perm-p = 0.005 — the real promo effect was larger than 99.5% of random placebo dates.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>KEY LESSONS LEARNED</h2>
+  <ul>
+    <li><span class="tag tag-red">LESSON 1</span> Including paid sessions as a covariate inflated model p from 0.04 to 0.19 — the covariate was absorbing the effect.</li>
+    <li>
+      <span class="tag tag-red">LESSON 2</span> <strong>Pre-period length can fake significance.</strong> Two runs of the same promo, same methods — only the pre-period changed:
+      <ul>
+        <li><span style="color:var(--rose)">787-day pre-period</span> (full history): model p = 0.020 looked “significant” — but <strong>perm-p = 0.47</strong> (almost half of random placebo promo dates looked just as good). Do not trust this run.</li>
+        <li><span style="color:var(--teal)">51-day clean pre-period</span> (post-Christmas only, one seasonal regime): <strong>perm-p = 0.005</strong> — the real effect beat 99.5% of placebo dates. Trust this run.</li>
+      </ul>
+      <div class="callout-honey" style="margin-top:10px">
+        ► Why the mismatch? A long pre-period mixes Black Friday, Christmas, summer lulls, and normal weeks. The model can fit that mash-up and emit a low <em>model</em> p-value — but so can many fake intervention dates. The permutation test (perm-p) asks: “If I pretend the promo started on random days, how often do I get a lift this big?” With 787 days, often (~47%). With 51 homogeneous days, almost never (0.5%).
+      </div>
+      <details style="margin-top:8px">
+        <summary>What are model p and perm-p?</summary>
+        <p><strong>Model p</strong> — p-value from the Bayesian Structural Time Series (BSTS) fit: “Is zero inside the credible interval for the cumulative effect?” Often too optimistic (miscalibrated).</p>
+        <p><strong>Perm-p</strong> — permutation test p-value: shuffle many fake treatment start dates on the same pre-period, re-run the analysis, count how often |placebo effect| ≥ |real effect|. Low perm-p = the real promo beat almost all noise dates.</p>
+        <p><em>Concrete rule:</em> If model p looks good but perm-p &gt; 0.20, treat the result as unvalidated — shorten or clean the pre-period until perm-p ≤ 0.10.</p>
+      </details>
+    </li>
+    <li><span class="tag tag-green">LESSON 3</span> Multi-method convergence: conservative estimate (RDiT) ~160K, primary (BSTS HMC) ~300K, upper (Prophet) ~355K. All positive, direction unanimous.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5 — BSTS: THE BAYESIAN COUNTERFACTUAL
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="5">
+  <h1>BSTS: BUILD THE COUNTERFACTUAL</h1>
+  <!-- Bayes the Fox — teaching the mechanism -->
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="56" height="56" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="2" height="3" fill="#c8804c"/>
+      <rect x="11" y="1" width="2" height="3" fill="#c8804c"/>
+      <rect x="4"  y="2" width="1" height="1" fill="#f0dcc0"/>
+      <rect x="11" y="2" width="1" height="1" fill="#f0dcc0"/>
+      <rect x="3"  y="4" width="10" height="7" fill="#c8804c"/>
+      <rect x="5"  y="7" width="6" height="3" fill="#f0dcc0"/>
+      <rect x="5"  y="6" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="6" width="1" height="1" fill="#3a3040"/>
+      <rect x="7"  y="7" width="2" height="1" fill="#5a4040"/>
+      <rect x="4"  y="7" width="1" height="1" fill="#e0a088"/>
+      <rect x="11" y="7" width="1" height="1" fill="#e0a088"/>
+      <rect x="5"  y="0" width="6" height="1" fill="#3a3040"/>
+      <rect x="6"  y="1" width="4" height="1" fill="#3a3040"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Bayes:</span> Learn the metric's normal behavior from the pre-period. Then ask: <em>what would it have been?</em> The gap is the causal effect.
+    </div>
+  </div>
+
+  <h2>THE THREE PHASES</h2>
+
+  <div class="callout-slate">
+    <span style="color:var(--accent)">① PRE-PERIOD</span> — Train a structural time-series model on historical data. Capture: local level, weekly seasonality, holiday effects, correlated signals (covariates).
+  </div>
+  <div class="callout-slate">
+    <span style="color:var(--honey)">② COUNTERFACTUAL</span> — Extend the model <em>forward through the intervention period</em> as if nothing happened. Produces a posterior predictive distribution (not just a line — full uncertainty).
+  </div>
+  <div class="callout-slate">
+    <span style="color:var(--rose)">③ CAUSAL EFFECT</span> — Observed minus counterfactual. Credible interval tells you if zero is plausible.
+  </div>
+
+  <div class="formula">
+    <em>α(t)</em> = y(t) − ŷ(t) &nbsp;← <em>daily</em> lift (intensity on day t)
+    <br>Cumulative: Σ α(t) over treatment window &nbsp;← total campaign lift
+  </div>
+  <div class="callout-slate">
+    ► This is how Causal Impact answers “effect over time”: not one slope-break like segmented ITS regression, but a <strong>pointwise impact for every post-intervention day</strong> (plus the cumulative sum). See causal-models deck · INTERRUPTED TIME SERIES for the full flavor map.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 6 — COVARIATES: ALLY & ENEMY
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="6">
+  <h1>COVARIATES: ALLY &amp; ENEMY</h1>
+  <p>Covariates help the model explain variance that isn't the campaign. They make the counterfactual sharper — <em>but only if they're safe.</em></p>
+
+  <h2>GOOD COVARIATES — INCLUDE</h2>
+  <ul>
+    <li><span class="tag tag-green">✔ SAFE</span> Seasonality signals: day-of-week, holidays, payday proximity</li>
+    <li><span class="tag tag-green">✔ SAFE</span> Exogenous demand: weather, Google Trends (category)</li>
+    <li><span class="tag tag-green">✔ SAFE</span> Unaffected channels: organic sessions (if promo didn't drive organic traffic)</li>
+    <li><span class="tag tag-green">✔ SAFE</span> Competitor signals / macro indicators</li>
+  </ul>
+
+  <hr class="hr">
+  <h2>CONTAMINATED COVARIATES — EXCLUDE</h2>
+  <div class="callout-rose">
+    A covariate that <em>itself changed</em> because of the intervention will absorb the causal effect — making a real effect look like zero.
+  </div>
+  <ul>
+    <li><span class="tag tag-red">✘ SKIP</span> Paid sessions — if media spend responded to the promo, paid traffic went up too</li>
+    <li><span class="tag tag-red">✘ SKIP</span> Email open rate — triggered by the campaign, not exogenous</li>
+    <li><span class="tag tag-red">✘ SKIP</span> Any metric downstream of the treatment</li>
+  </ul>
+
+  <div class="formula">
+    Contamination check: | covariate<sub>treatment</sub> − covariate<sub>last 7 days pre</sub> | &gt; 10%
+    → flag as <span style="color:var(--rose)">CAUTION / SKIP</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 7 — MULTI-METHOD VALIDATION
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="7">
+  <h1>NEVER TRUST ONE METHOD</h1>
+  <!-- Ridge the Penguin — methodical cross-checking -->
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="56" height="56" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="4"  y="2" width="8" height="4" fill="#485880"/>
+      <rect x="3"  y="6" width="10" height="6" fill="#485880"/>
+      <rect x="5"  y="4" width="6" height="3" fill="#e8e0d8"/>
+      <rect x="5"  y="7" width="6" height="4" fill="#e8e0d8"/>
+      <rect x="6"  y="4" width="1" height="1" fill="#3a3040"/>
+      <rect x="9"  y="4" width="1" height="1" fill="#3a3040"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#c8a0a8"/>
+      <rect x="10" y="5" width="1" height="1" fill="#c8a0a8"/>
+      <rect x="7"  y="6" width="2" height="1" fill="#d4a060"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Ridge:</span> Every method has assumptions. If they all agree → convergent validity. If they disagree → investigate <em>why</em> before reporting anything.
+    </div>
+  </div>
+
+  <table class="flow-table">
+    <thead>
+      <tr><th>Method</th><th>What it tests</th><th>Best for</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span style="color:var(--accent)">BSTS / tfcausalimpact</span></td>
+        <td>Bayesian posterior counterfactual (VI or HMC)</td>
+        <td>Long campaigns, rich covariates</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--honey)">CausalPy (ITS)</span></td>
+        <td>Bayesian interrupted time-series regression</td>
+        <td>Structural breaks, medium series</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--teal)">RDiT</span></td>
+        <td>Regression Discontinuity in Time</td>
+        <td>Short campaigns (≤2 weeks), sharp cut-off</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--rose)">Prophet</span></td>
+        <td>Additive seasonality cross-validation</td>
+        <td>Seasonal model sanity check</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-honey">
+    ► If BSTS says +22%, RDiT says +18%, and CausalPy says +19% → direction and magnitude agree. Report with confidence. If one says −5%, that's a signal to investigate assumptions, not to average.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 8 — PERMUTATION TESTS
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="8">
+  <h1>PERMUTATION TESTS</h1>
+  <span class="badge">DON'T TRUST THE MODEL P-VALUE</span>
+
+  <h2>THE PROBLEM WITH BSTS P-VALUES (GENERIC)</h2>
+  <div class="callout-rose">
+    <strong>False Positive Rate (FPR)</strong> — generic property of BSTS-class tools, not one client: on <em>placebo</em> runs (fake intervention dates, no real campaign), built-in p-values still say “significant” about <span style="color:var(--rose)">35–55%</span> of the time. So model p=0.02 does <em>not</em> by itself prove the effect is real.
+  </div>
+  <details>
+    <summary>What is a placebo run?</summary>
+    <p>Keep your data. Pick a random day in the pre-period and pretend that was launch day. Run Causal Impact. If “significant” results appear often when nothing happened, the toolbox is miscalibrated — you need the permutation check on the <strong>real</strong> launch date below.</p>
+  </details>
+
+  <h2>THE PERMUTATION TEST LOGIC</h2>
+  <ul>
+    <li>Take your pre-period data</li>
+    <li>Assign <em>random fake</em> treatment dates (many times)</li>
+    <li>Run the same analysis on each shuffle</li>
+    <li>Ask: how often does the random date produce an effect <em>as large as</em> the real one?</li>
+  </ul>
+
+  <div class="formula">
+    Permutation p = (# shuffles with |effect| ≥ |real effect| + 1) / (N shuffles + 1)
+  </div>
+
+  <h2>THE VERDICT THRESHOLD</h2>
+  <ul>
+    <li><span class="tag tag-green">perm-p ≤ 0.10</span> → validated result, report with confidence</li>
+    <li><span class="tag tag-amber">perm-p 0.10–0.20</span> → directional signal, uncertain significance</li>
+    <li><span class="tag tag-red">perm-p &gt; 0.20</span> → not statistically distinguishable from noise</li>
+  </ul>
+
+  <div class="callout-teal">
+    ► <strong>Worked example (illustrates the generic trap):</strong> one retail spec had model p=0.020 but permutation p=0.47 with an over-long pre-period; a cleaner short pre-period gave perm-p=0.009. Same method, different data choices — not “retail is different.”
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 9 — WATCH OUT: TOP PITFALLS
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="9">
+  <h1>WATCH OUT!</h1>
+  <!-- Hootsworth the Owl — plum — wisdom / caution -->
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="56" height="56" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+      <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+      <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+      <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+      <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> I've seen analysts report p=0.02 with a perm-p of 0.47. The model <em>looked</em> significant. It wasn't. Here's what trips people up.
+    </div>
+  </div>
+
+  <ul>
+    <li><span class="tag tag-red">TRAP 1</span> <strong>Contaminated covariate</strong> — including paid_sessions when media spend responded to the promo. Effect gets absorbed → p inflates to 0.18.</li>
+    <li style="margin-top:10px"><span class="tag tag-red">TRAP 2</span> <strong>Pre-period too long</strong> — including multiple Black Fridays, Christmas peaks. Seasonal noise swamps the signal. Homogeneous pre-period beats long pre-period.</li>
+    <li style="margin-top:10px"><span class="tag tag-red">TRAP 3</span> <strong>Model p ≠ permutation p</strong> — BSTS VI is miscalibrated. Always run permutation tests before reporting significance.</li>
+    <li style="margin-top:10px"><span class="tag tag-red">TRAP 4</span> <strong>Mask zero-injection bug</strong> — masking a period then re-running data prep can silently fill masked days with y=0 + interpolated covariates. Verify your masked data has no rows, not rows of zeros.</li>
+    <li style="margin-top:10px"><span class="tag tag-red">TRAP 5</span> <strong>Cherry-picking specs</strong> — reporting only the pre-period mode with lowest p-value. Show the full specification curve across all analytical choices.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 10 — DECISION GUIDE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="10">
+  <h1>WHICH METHOD? DECISION GUIDE</h1>
+
+  <table class="flow-table">
+    <thead>
+      <tr><th>Situation</th><th>Recommended approach</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Randomised groups possible, same time period</td>
+        <td><span class="tag tag-green">A/B Test</span> — gold standard, use it</td>
+      </tr>
+      <tr>
+        <td>100% rollout, no control group, &gt;3 months pre-data</td>
+        <td><span class="tag tag-green">BSTS + permutation</span> tfcausalimpact or CausalPy ITS</td>
+      </tr>
+      <tr>
+        <td>Short campaign ≤2 weeks, sharp start date</td>
+        <td><span class="tag tag-amber">RDiT</span> — local bandwidth, less pre-period needed</td>
+      </tr>
+      <tr>
+        <td>Geo-level data, some regions treated / some not</td>
+        <td><span class="tag tag-slate">Synthetic Control / GeoLift</span></td>
+      </tr>
+      <tr>
+        <td>100% rollout, single time series (no holdout)</td>
+        <td><span class="tag tag-green">BSTS + RDiT</span> both, cross-validate. Add permutation test.</td>
+      </tr>
+      <tr>
+        <td>Less than 3× campaign length in pre-data</td>
+        <td><span class="tag tag-red">Underpowered</span> — report MDE, do not claim causal significance</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="hr">
+  <h2>MINIMUM REQUIREMENTS FOR BSTS</h2>
+  <ul>
+    <li>Pre-period ≥ 3× campaign length (e.g. 15-day promo → 45+ days pre)</li>
+    <li>Homogeneous pre-period — same seasonal regime as treatment window</li>
+    <li>At least one exogenous covariate for variance reduction</li>
+    <li>Permutation test run &amp; reported alongside model p-value</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 11 — QUEST COMPLETE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="11">
+  <h1>QUEST COMPLETE</h1>
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="2" height="3" fill="#c8804c"/>
+      <rect x="11" y="1" width="2" height="3" fill="#c8804c"/>
+      <rect x="4"  y="2" width="1" height="1" fill="#f0dcc0"/>
+      <rect x="11" y="2" width="1" height="1" fill="#f0dcc0"/>
+      <rect x="3"  y="4" width="10" height="7" fill="#c8804c"/>
+      <rect x="5"  y="7" width="6" height="3" fill="#f0dcc0"/>
+      <rect x="5"  y="6" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="6" width="1" height="1" fill="#3a3040"/>
+      <!-- smiling mouth -->
+      <rect x="6"  y="8" width="1" height="1" fill="#5a4040"/>
+      <rect x="9"  y="8" width="1" height="1" fill="#5a4040"/>
+      <rect x="7"  y="9" width="2" height="1" fill="#5a4040"/>
+      <rect x="4"  y="7" width="1" height="1" fill="#e0a088"/>
+      <rect x="11" y="7" width="1" height="1" fill="#e0a088"/>
+      <rect x="5"  y="0" width="6" height="1" fill="#3a3040"/>
+      <rect x="6"  y="1" width="4" height="1" fill="#3a3040"/>
+      <!-- star sparkles -->
+      <rect x="1"  y="2" width="1" height="1" fill="#d4a76a"/>
+      <rect x="14" y="2" width="1" height="1" fill="#d4a76a"/>
+      <rect x="0"  y="5" width="1" height="1" fill="#82c4a0"/>
+      <rect x="15" y="5" width="1" height="1" fill="#82c4a0"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Bayes:</span> You've got this! Remember — the counterfactual is never observed. Build it carefully, validate it honestly, report the uncertainty. See you in the notebook!
+    </div>
+  </div>
+
+  <ul class="checkpoint">
+    <li>Causal effect = observed minus counterfactual. The counterfactual must be <em>modelled</em>, not assumed.</li>
+    <li>When A/B tests are impossible (100% rollouts, no control group), BSTS + RDiT construct the counterfactual from the pre-period time series.</li>
+    <li>Covariates sharpen the model — but contaminated covariates absorb the effect. Run the safety audit.</li>
+    <li>Model p-values are miscalibrated (35–55% FPR). Always validate with permutation tests. Report permutation p, not model p.</li>
+    <li>Never rely on a single method. Cross-validate with BSTS, RDiT, CausalPy, Prophet. Convergence = confidence.</li>
+    <li>Specification Curve Analysis: test all analytical choices, report the full distribution — not the cherry-picked winner.</li>
+  </ul>
+</section>
+
+</div><!-- /deck -->
+
+<nav class="deck-controls">
+  <button type="button" id="prev">◀ PREV</button>
+  <span id="counter">1 / 12</span>
+  <button type="button" id="next">NEXT ▶</button>
+</nav>
+
+<script>
+  const slides = [...document.querySelectorAll(".slide")];
+  const sideNavList = document.getElementById("side-nav-list");
+  const navButtons = [];
+
+  slides.forEach((slide, j) => {
+    const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "side-nav-btn";
+    btn.innerHTML = `<span class="side-nav-num">${j + 1}</span><span class="side-nav-label">${label}</span>`;
+    btn.addEventListener("click", () => show(j));
+    sideNavList.appendChild(btn);
+    navButtons.push(btn);
+  });
+
+  let i = 0;
+  const counter = document.getElementById("counter");
+  function show(n) {
+    i = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach((s, j) => s.classList.toggle("active", j === i));
+    navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+    counter.textContent = `${i + 1} / ${slides.length}`;
+    navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  document.getElementById("prev").onclick = () => show(i - 1);
+  document.getElementById("next").onclick = () => show(i + 1);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") show(i + 1);
+    if (e.key === "ArrowLeft")  show(i - 1);
+  });
+</script>
+</body>
+</html>
