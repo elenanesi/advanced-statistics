@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>When You Can't A/B Test — Advanced Stats Quest</title>
+  <title>Causal Inference — Advanced Stats Quest</title>
   <!-- Favicon: Hootsworth the Owl (plum) -->
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="3" width="10" height="9" fill="%238870a0"/><rect x="4" y="4" width="3" height="3" fill="%23f0e8d8"/><rect x="9" y="4" width="3" height="3" fill="%23f0e8d8"/><rect x="5" y="5" width="1" height="1" fill="%233a3040"/><rect x="10" y="5" width="1" height="1" fill="%233a3040"/><rect x="7" y="7" width="2" height="1" fill="%23d4a060"/></svg>' />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
@@ -32,7 +32,7 @@
     }
     .deck { max-width: 740px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
 
-    /* Side navigation — jump to any slide by title */
+    /* Side navigation */
     .side-nav {
       position: fixed;
       left: 0;
@@ -100,17 +100,21 @@
       line-height: 1.4;
     }
     .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
-    .side-nav-btn.is-deep { padding-left: 14px; font-size: 10px; color: #5a5070; }
-    .side-nav-btn.is-deep .side-nav-label { font-style: italic; }
-    .side-nav-btn.is-deep.active { color: var(--accent); font-style: normal; }
-    .badge-deep {
-      border-color: var(--mist);
-      color: var(--mist);
+
+    /* Sub-chapter nav items (e.g. 4.1, 5.2) */
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+
+    .badge-sub {
+      border-color: var(--slate);
+      color: var(--slate);
       margin-bottom: 12px;
       display: inline-block;
     }
 
-    /* Dummy output charts */
+    /* Chart output */
     .chart-row { display: flex; gap: 16px; flex-wrap: wrap; margin: 14px 0; }
     .chart-panel {
       flex: 1;
@@ -120,6 +124,7 @@
       padding: 8px;
     }
     .chart-panel h3 {
+      font-family: Consolas, "Courier New", monospace;
       font-size: 11px;
       text-align: center;
       margin: 0 0 6px;
@@ -309,7 +314,7 @@
       letter-spacing: 1px;
     }
 
-    /* Decision tree diagram */
+    /* Decision tree */
     .tree { margin: 14px 0; }
     .tree-node {
       display: inline-block;
@@ -322,7 +327,7 @@
     .tree-yes { border-color: var(--teal);   color: #075a50;       background: rgba(13,122,110,.07); }
     .tree-no  { border-color: var(--rose);   color: #8a1830;       background: rgba(196,40,72,.06); }
     .tree-method { border-color: var(--honey); color: #7a4400;     background: rgba(184,104,0,.07); }
-    .tree-arrow { color: var(--mist); font-size: 14px; margin: 0 4px; }
+    .tree-arrow { color: var(--mist); font-size: 14px; margin: 0 4px; } /* arrow glyph — not body text */
     .tree-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
     .tree-indent { margin-left: 28px; }
 
@@ -367,11 +372,11 @@
 <div class="deck" id="deck">
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 0 — TITLE
+     SLIDE 0 — TITLE: WHAT IS CAUSAL INFERENCE?
      ═══════════════════════════════════════════════════════════ -->
 <section class="slide active" data-slide="0" data-nav-tier="core">
   <span class="badge">CAUSAL INFERENCE · CONCEPT DECK</span>
-  <h1>WHEN YOU CAN'T A/B TEST</h1>
+  <h1>CAUSAL INFERENCE</h1>
   <div class="buddy-row">
     <!-- Hootsworth the Owl — plum — wisdom / taxonomy -->
     <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
@@ -389,19 +394,47 @@
       <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
     </svg>
     <div class="buddy-speech">
-      <span class="speaker">Hootsworth:</span> Not every question can be answered with an A/B test. When you can't randomize, you need the right quasi-experimental method. Let me show you the map.
+      <span class="speaker">Hootsworth:</span> Numbers tell you <em>what</em> happened. Causal inference tells you <em>why</em>. Every time you ask "did this change actually make a difference?" — that is a causal question. This deck gives you the rigorous toolkit to answer it.
     </div>
   </div>
-  <p><strong>360° path</strong> (main story — follow in order):</p>
+
+  <h2>WHAT IS CAUSAL INFERENCE?</h2>
+  <p>Causal inference is the branch of statistics dedicated to answering one type of question: <span style="color:var(--accent)">"Did X actually cause Y — or did they just happen at the same time?"</span></p>
+  <p>Seeing two things move together (<span style="color:var(--mist)">correlation</span>) is not the same as knowing one caused the other (<span style="color:var(--teal)">causation</span>). Ice cream sales and drowning deaths both rise in summer — not because ice cream is dangerous, but because hot weather drives both. Causal inference finds the real driver.</p>
+  <p>The core challenge: <strong>you can never observe the same unit in two states at once.</strong> You can't show the same customer both the old and new website simultaneously. The missing "what would have happened without the change?" is called the <span style="color:var(--rose)">counterfactual</span>. Every method in this deck is a different strategy for constructing it.</p>
+
+  <hr class="hr">
+  <h2>WHERE IT SHOWS UP</h2>
+  <table class="flow-table">
+    <thead><tr><th>Domain</th><th>Causal question</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span style="color:var(--accent)">Digital / e-commerce</span></td>
+        <td>Did the website redesign increase checkout conversions — or would sales have grown anyway due to seasonal demand? Did the free delivery promo drive revenue, or were customers already planning to buy?</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--teal)">Healthcare</span></td>
+        <td>Does this drug reduce hospital readmissions — or do healthier patients happen to choose it? (If doctors prescribe it to lower-risk patients, a naive comparison will flatter the drug.)</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--honey)">Public policy</span></td>
+        <td>Did raising the minimum wage cause unemployment to rise — or were those regions already economically struggling before the law passed?</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="hr">
+  <h2>HOW TO USE THIS DECK</h2>
+  <p><strong>360° path</strong> (main story — follow in order, slides 1–7):</p>
   <ul>
-    <li>Fundamental problem → A/B vs DiD → decision tree → control-group methods → ITS family → checklist</li>
+    <li>Fundamental problem → Decision tree → With a control group → Interrupted Time Series → Checklist → Quest complete</li>
   </ul>
-  <p><strong>Deep dives</strong> (optional — skip on first pass, revisit when needed):</p>
+  <p><strong>Sub-chapters</strong> (optional detail — skip on first pass):</p>
   <ul>
-    <li>Synthetic Control vs DiD (London example)</li>
-    <li>Regression vs BSTS charts · method comparison · FPR · bank walkthrough</li>
+    <li><span style="color:var(--slate)">4.1–4.3</span> under With a Control Group: A/B test vs DiD · Synthetic Control vs DiD · DiD or SCM?</li>
+    <li><span style="color:var(--slate)">5.1–5.6</span> under Interrupted Time Series: Two paradigms · ITS regression variants · Method comparison · False positive rate · Bank walkthrough · Bank output</li>
   </ul>
-  <p class="chart-caption" style="margin-top:12px">Use the side nav: indented items are deep dives.</p>
+  <p class="chart-caption" style="margin-top:12px">Use the side nav: indented items are sub-chapters (e.g. 4.1, 5.2).</p>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -424,8 +457,8 @@
     <thead><tr><th>Strategy</th><th>How it builds the counterfactual</th></tr></thead>
     <tbody>
       <tr>
-        <td>A/B test (RCT)</td>
-        <td>You <em>create</em> a control group by randomly splitting users. The control group's outcome <em>is</em> the counterfactual.</td>
+        <td>Randomized Controlled Trial (A/B test)</td>
+        <td>You <em>create</em> a control group by randomly splitting users. The control group's outcome <em>is</em> the counterfactual. Randomization ensures the two groups are identical in expectation — so any difference after the change is causal.</td>
       </tr>
       <tr>
         <td>Difference-in-Differences (DiD)</td>
@@ -433,7 +466,7 @@
       </tr>
       <tr>
         <td>Synthetic Control (SCM)</td>
-        <td>You <em>mix</em> several untreated places into one fake "twin" that matched the treated place <em>before</em> the intervention. That twin is the counterfactual. <em>Deep dive:</em> slide <strong>SYNTHETIC CONTROL VS DID</strong> in Contents.</td>
+        <td>You <em>mix</em> several untreated places into one fake "twin" that matched the treated place <em>before</em> the intervention. That twin is the counterfactual.</td>
       </tr>
       <tr>
         <td>Interrupted Time Series (ITS)</td>
@@ -448,47 +481,9 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 2 — A/B TEST VS DID: THE EASY CONFUSION
+     SLIDE 2 — DECISION TREE
      ═══════════════════════════════════════════════════════════ -->
 <section class="slide" data-slide="2" data-nav-tier="core">
-  <h1>A/B TEST VS DID</h1>
-  <p>Both compare a treated group to a control group, before and after. So what's the difference?</p>
-
-  <table class="flow-table">
-    <thead><tr><th></th><th>A/B Test (RCT)</th><th>Difference-in-Differences</th></tr></thead>
-    <tbody>
-      <tr>
-        <td style="font-weight:bold">Control group</td>
-        <td>You <span style="color:var(--teal)">create</span> it by random assignment</td>
-        <td>You <span style="color:var(--honey)">find</span> an existing one (a region, a segment, a product line that wasn't treated)</td>
-      </tr>
-      <tr>
-        <td style="font-weight:bold">Why it works</td>
-        <td>Randomization guarantees groups are identical in expectation — no confounders, known or unknown</td>
-        <td>Assumes both groups would have followed the same trajectory without the intervention (parallel trends assumption)</td>
-      </tr>
-      <tr>
-        <td style="font-weight:bold">Risk</td>
-        <td>Low — only need sufficient sample size</td>
-        <td>If groups were already diverging before the intervention, the estimate is biased</td>
-      </tr>
-      <tr>
-        <td style="font-weight:bold">Example</td>
-        <td>Feature flag: 50% of app users see new checkout flow</td>
-        <td>New tax policy in one state; neighboring state as control</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div class="callout-teal">
-    ► In one sentence: an A/B test <em>creates</em> its control group through randomization. DiD <em>borrows</em> an existing one and hopes the parallel-trends assumption holds.
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════
-     SLIDE 3 — DECISION TREE
-     ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="3" data-nav-tier="core">
   <h1>THE DECISION TREE</h1>
   <p>Two branching questions determine your method:</p>
 
@@ -499,7 +494,7 @@
     <div class="tree-row tree-indent">
       <span class="tree-arrow">├─</span>
       <span class="tree-node tree-yes">YES →</span>
-      <span class="tree-node tree-method">A/B Test (RCT)</span>
+      <span class="tree-node tree-method">Randomized Controlled Trial (A/B Test)</span>
     </div>
     <div class="tree-row tree-indent">
       <span class="tree-arrow">└─</span>
@@ -530,14 +525,14 @@
 
   <hr class="hr">
   <div class="callout-slate">
-    ► The bank case: 100% rollout, no control group, no untreated region → bottom-right: <span style="color:var(--accent)">Interrupted Time Series family</span>. That's the only viable path.
+    ► Example: a website releases a website change with a 100% rollout, no control group, no untreated region → bottom-right: <span style="color:var(--accent)">Interrupted Time Series family</span>. That's the only viable path.
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 4 — METHODS THAT NEED A CONTROL GROUP
+     SLIDE 3 — METHODS THAT NEED A CONTROL GROUP
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="4" data-nav-tier="core">
+<section class="slide" data-slide="3" data-nav-tier="core">
   <h1>WITH A CONTROL GROUP</h1>
   <div class="buddy-row">
     <!-- Ridge the Penguin — methodical comparison -->
@@ -556,7 +551,7 @@
       <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
     </svg>
     <div class="buddy-speech">
-      <span class="speaker">Ridge:</span> These methods are powerful — but they need something you don't always have: an untreated comparison group observed at the same time.
+      <span class="speaker">Ridge:</span> These methods are powerful — but they need something you don't always have: an untreated comparison group observed at the same time. See the sub-chapters below for how each method works and how they differ.
     </div>
   </div>
 
@@ -569,31 +564,73 @@
     <li><span style="color:var(--teal)">Requires:</span> One treated group + one control group, both observed before and after</li>
     <li><span style="color:var(--teal)">Key assumption:</span> <details class="info"><summary>Parallel trends</summary><span class="info-body">Both groups were on the same trajectory before the intervention. If the control group was already growing faster or slower, DiD gives a biased result. Always plot pre-period trends for both groups to check.</span></details> — both groups would have moved identically without the intervention</li>
     <li><span style="color:var(--rose)">Classic example:</span> New tax policy in State A, neighboring State B as control</li>
-    <li><span style="color:var(--rose)">Bank case:</span> <span class="tag tag-red">✘ NOT APPLICABLE</span> — no untreated customer group exists</li>
+    <li><span style="color:var(--rose)">100% rollout case:</span> <span class="tag tag-red">✘ NOT APPLICABLE</span> — no untreated customer group exists</li>
   </ul>
 
   <hr class="hr">
   <h2>SYNTHETIC CONTROL METHOD (SCM)</h2>
   <div class="callout-slate">
-    ► <strong>Worked example:</strong> London TV + Synthetic Control vs DiD — deep dive slide <em>SYNTHETIC CONTROL VS DID</em> in Contents.
+    ► <strong>Worked example:</strong> London TV + Synthetic Control vs DiD — sub-chapter <em>SYNTHETIC CONTROL VS DID</em> in the side nav below.
   </div>
   <ul>
     <li><span style="color:var(--teal)">Requires:</span> Multiple untreated <em>donor</em> units (e.g. 5 regions where the campaign didn't run)</li>
     <li><span style="color:var(--teal)">How it works:</span> Learn weights so the donor mix tracks the treated region <em>before</em> the campaign. After launch, compare actual treated region vs. the mix — the gap is the estimated effect.</li>
     <li><span style="color:var(--rose)">Classic example:</span> Ad campaign in London; Manchester, Bristol, Leeds, Edinburgh, Cardiff as donors (GeoLift)</li>
-    <li><span style="color:var(--rose)">Bank case:</span> <span class="tag tag-red">✘ NOT APPLICABLE</span> — all regions received the change simultaneously</li>
+    <li><span style="color:var(--rose)">100% rollout case:</span> <span class="tag tag-red">✘ NOT APPLICABLE</span> — all regions received the change simultaneously</li>
   </ul>
 
   <div class="callout-rose">
-    ► Both methods fail for the bank because the bank rolled out to everyone. No untreated group exists at any level — no customer segment, no branch, no geography was left unchanged.
+    ► Both methods fail for the 100% rollout case because the business rolled out to everyone. No untreated group exists at any level — no customer segment, no branch, no geography was left unchanged.
+  </div>
+  <div class="callout-slate" style="margin-top:14px">
+    ► For more detail on DiD vs A/B tests and DiD vs Synthetic Control, use the sub-chapters in the side nav (just below this slide).
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 5 — SYNTHETIC CONTROL VS DID (DEEP DIVE)
+     SLIDE 4 — A/B TEST VS DID (sub-chapter of WITH A CONTROL GROUP)
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="5" data-nav-tier="deep">
-  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+<section class="slide" data-slide="4" data-nav-tier="sub-control">
+  <span class="badge badge-sub">SUB-CHAPTER · WITH A CONTROL GROUP</span>
+  <h1>A/B TEST VS DID</h1>
+  <p>Both compare a treated group to a control group, before and after. So what's the difference?</p>
+
+  <table class="flow-table">
+    <thead><tr><th></th><th>Randomized Controlled Trial (A/B Test)</th><th>Difference-in-Differences (DiD)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:bold">Control group</td>
+        <td>You <span style="color:var(--teal)">create</span> it by randomly assigning users to treatment and control before the change goes live</td>
+        <td>You <span style="color:var(--honey)">find</span> an existing one — a region, a customer segment, or a product line that was not treated</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Why it works</td>
+        <td>Randomization guarantees groups are identical in expectation — no confounders, known or unknown. This is the gold standard.</td>
+        <td>Assumes both groups would have followed the same trajectory without the intervention (<em>parallel trends assumption</em>). This cannot be verified — only made plausible.</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Main risk</td>
+        <td>Low — the main risk is insufficient sample size, not bias</td>
+        <td>If the groups were already diverging before the intervention, the estimate is biased. Pre-period trend plots are essential.</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Example</td>
+        <td>Feature flag: 50% of app users see the new checkout flow; 50% see the old one. Both groups are observed simultaneously.</td>
+        <td>New tax policy in one state; neighboring state as control. The neighboring state was never randomized — it just happened not to be treated.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-teal">
+    ► In one sentence: an A/B test <em>creates</em> its control group through randomization. DiD <em>borrows</em> an existing one and relies on the parallel-trends assumption holding true.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5 — SYNTHETIC CONTROL VS DID (sub-chapter of WITH A CONTROL GROUP)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="5" data-nav-tier="sub-control">
+  <span class="badge badge-sub">SUB-CHAPTER · WITH A CONTROL GROUP</span>
   <h1>SYNTHETIC CONTROL VS DID</h1>
 
   <p>A national retailer runs <strong>TV ads only in London</strong> for 2 weeks. How much extra revenue did London make because of TV?</p>
@@ -656,14 +693,14 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 6 — DID OR SCM? COMMON QUESTIONS
+     SLIDE 6 — DID OR SCM? COMMON QUESTIONS (sub-chapter of WITH A CONTROL GROUP)
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="6" data-nav-tier="deep">
-  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+<section class="slide" data-slide="6" data-nav-tier="sub-control">
+  <span class="badge badge-sub">SUB-CHAPTER · WITH A CONTROL GROUP</span>
   <h1>DID OR SCM?</h1>
   <span class="badge">FAQ</span>
 
-  <h2>“WHO PICKS 35% MANCHESTER, 25% BRISTOL…?”</h2>
+  <h2>"WHO PICKS 35% MANCHESTER, 25% BRISTOL…?"</h2>
   <p><strong>You don't.</strong> A Synthetic Control algorithm does — using only <em>pre-campaign</em> daily revenue for London and each donor city.</p>
   <ul>
     <li><span style="color:var(--teal)">Input:</span> Time series you already have (GA4, sales by region, etc.) — same dates, same metric.</li>
@@ -676,7 +713,7 @@
   </div>
 
   <hr class="hr">
-  <h2>“IF MANCHESTER ALREADY BEHAVES LIKE LONDON — DO I NEED SCM?”</h2>
+  <h2>"IF MANCHESTER ALREADY BEHAVES LIKE LONDON — DO I NEED SCM?"</h2>
   <p><strong>Usually no — use Difference-in-Differences (DiD) with Manchester as the one control.</strong></p>
 
   <table class="flow-table">
@@ -691,7 +728,7 @@
         <td><span class="tag tag-amber">Synthetic Control</span> — algorithm finds the mix</td>
       </tr>
       <tr>
-        <td>You average Bristol + Leeds + Manchester equally “because more controls”</td>
+        <td>You average Bristol + Leeds + Manchester equally "because more controls"</td>
         <td><span class="tag tag-red">Not SCM</span> — naive average ≠ optimal pre-fit; can bias DiD too</td>
       </tr>
     </tbody>
@@ -704,7 +741,7 @@
 
   <details>
     <summary>Concrete: Manchester is not a good twin alone</summary>
-    <p>London flat pre-TV; Manchester trending up. DiD with only Manchester attributes Manchester's growth to “what London would have done” — overstates TV lift. Synthetic Control searches weights on Bristol, Leeds, Edinburgh… until the <em>blend</em> is flat like London. That's when SCM earns its complexity.</p>
+    <p>London flat pre-TV; Manchester trending up. DiD with only Manchester attributes Manchester's growth to "what London would have done" — overstates TV lift. Synthetic Control searches weights on Bristol, Leeds, Edinburgh… until the <em>blend</em> is flat like London. That's when SCM earns its complexity.</p>
   </details>
 
   <div class="callout-honey">
@@ -713,7 +750,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 6 — THE ITS FAMILY
+     SLIDE 7 — THE ITS FAMILY
      ═══════════════════════════════════════════════════════════ -->
 <section class="slide" data-slide="7" data-nav-tier="core">
   <h1>INTERRUPTED TIME SERIES</h1>
@@ -730,12 +767,12 @@
     <tbody>
       <tr>
         <td><span style="color:var(--slate)">Simple ITS regression</span></td>
-        <td>Fits a straight line to the pre-period, checks if the line's level or slope "breaks" at the intervention.</td>
-        <td>Point estimate + <details class="info"><summary>confidence interval</summary><span class="info-body">A range of values computed from the data — "we're 95% confident the true effect is between X and Y." Based on how much noise is in the data, not on prior beliefs.</span></details></td>
+        <td>Fits a straight line to the pre-period; measures two break parameters at T₀: <strong>β₂</strong> = immediate level jump and <strong>β₃</strong> = change in slope (= change in growth rate after the intervention).</td>
+        <td>β₂ + β₃ point estimates, each with its own <details class="info"><summary>confidence interval</summary><span class="info-body">A range of values computed from the data — "we're 95% confident the true effect is between X and Y." Based on how much noise is in the data, not on prior beliefs.</span></details></td>
       </tr>
       <tr>
         <td><span style="color:var(--accent)">BSTS / CausalImpact</span></td>
-        <td>Bayesian structural time-series: learns the metric's level, weekly cycle, and how it correlates with other signals (covariates). Uses <details class="info"><summary>spike-and-slab priors</summary><span class="info-body">A technique that automatically decides which covariates are useful. Each covariate has a prior probability of being "in" (spike) or "out" (slab). The model learns which to include — like automatic feature selection, but Bayesian.</span></details> for variable selection.</td>
+        <td>Bayesian Structural Time Series (BSTS): learns the metric's level, weekly cycle, and how it correlates with other signals (covariates). Uses <details class="info"><summary>spike-and-slab priors</summary><span class="info-body">A technique that automatically decides which covariates are useful. Each covariate has a prior probability of being "in" (spike) or "out" (slab). The model learns which to include — like automatic feature selection, but Bayesian.</span></details> for variable selection.</td>
         <td>Full <details class="info"><summary>posterior distribution</summary><span class="info-body">Instead of a single number, you get a probability distribution of all plausible effect sizes given the data. A Bayesian approach: the result is "the probability that the effect is between X and Y" — not "we're 95% confident."</span></details> + credible interval</td>
       </tr>
       <tr>
@@ -745,115 +782,74 @@
       </tr>
       <tr>
         <td><span style="color:var(--teal)">RDiT</span></td>
-        <td>Regression Discontinuity in Time: fits a curve in a narrow window around the intervention date. Doesn't need the full pre-period — only looks at data close to the cut-off.</td>
+        <td>Regression Discontinuity in Time (RDiT): fits a curve in a narrow window around the intervention date. Doesn't need the full pre-period — only looks at data close to the cut-off.</td>
         <td>Local treatment effect + confidence interval</td>
       </tr>
     </tbody>
   </table>
 
-  <hr class="hr">
-  <h2>SIMPLE ITS VS CAUSAL IMPACT (BSTS)</h2>
-  <table class="flow-table">
-    <thead><tr><th></th><th>Simple ITS regression</th><th>Causal Impact (BSTS)</th></tr></thead>
-    <tbody>
-      <tr>
-        <td style="font-weight:bold">Category</td>
-        <td>One specific regression template inside the ITS family</td>
-        <td>One specific Bayesian model inside the ITS family (Google's package name)</td>
-      </tr>
-      <tr>
-        <td style="font-weight:bold">Counterfactual</td>
-        <td>Usually one trend line + optional weekly dummies; breaks at intervention date</td>
-        <td>State-space model: local level + seasonality + many covariates; projects full predictive distribution</td>
-      </tr>
-      <tr>
-        <td style="font-weight:bold">Covariates</td>
-        <td>You add a few by hand (holiday flags, etc.)</td>
-        <td>Core feature — weather, trends, organic sessions; auto variable selection</td>
-      </tr>
-      <tr>
-        <td style="font-weight:bold">Uncertainty</td>
-        <td>One confidence interval on the break size</td>
-        <td>Daily credible bands + probability the effect is positive</td>
-      </tr>
-      <tr>
-        <td style="font-weight:bold">When to prefer</td>
-        <td>Teaching, quick sanity check, very short series</td>
-        <td>Campaign measurement with rich daily data (your retail / bank-style cases)</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <hr class="hr">
-  <h2>EFFECT INTENSITY OVER TIME — WHICH FLAVOR?</h2>
-  <p>If you want <em>how the lift evolves day by day</em> (spike then fade, ramp-up, etc.):</p>
-  <table class="flow-table">
-    <thead><tr><th>What you want</th><th>ITS flavor</th><th>In these decks?</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>One immediate jump + one post-slope (linear ramp up/down)</td>
-        <td><span style="color:var(--slate)">Segmented ITS regression</span> — level-change + slope-change coefficients</td>
-        <td><span class="tag tag-amber">Partially</span> (same as “Simple ITS” row above)</td>
-      </tr>
-      <tr>
-        <td>Daily effect each post-day + cumulative total</td>
-        <td><span style="color:var(--accent)">Causal Impact / BSTS</span> — pointwise impact α(t) each day</td>
-        <td><span class="tag tag-green">Yes</span> — Causal Impact deck, BSTS slide</td>
-      </tr>
-      <tr>
-        <td>Flexible curved path after intervention (splines)</td>
-        <td><span style="color:var(--honey)">CausalPy ITS</span></td>
-        <td><span class="tag tag-amber">Named</span> — not worked example yet</td>
-      </tr>
-      <tr>
-        <td>Effect right at the cutoff only (local)</td>
-        <td><span style="color:var(--teal)">RDiT</span> — not a full post-campaign curve</td>
-        <td><span class="tag tag-green">Yes</span> — both decks</td>
-      </tr>
-    </tbody>
-  </table>
-  <details>
-    <summary>Example: “intensity over time” with segmented ITS</summary>
-    <p>Revenue jumps +£50k on day 1 of the promo (level change), then grows an extra +£5k per day (slope change). You get two numbers — not a smooth daily curve.</p>
-  </details>
-  <details>
-    <summary>Example: same question with Causal Impact</summary>
-    <p>Day 1 lift +£80k, day 2 +£60k, day 3 +£40k… plus a cumulative band. The model draws a full counterfactual line through the post-period so you see the shape of the effect, not just one break parameter.</p>
-  </details>
-
   <div class="callout-teal">
     ► What unites them: pre-intervention data → projected counterfactual → gap = causal effect.<br>
-    What differentiates them: model complexity, how they handle uncertainty, and how much pre-data they need.
+    What differentiates them: <em>what</em> the model directly estimates, how it handles uncertainty, and how much pre-data it needs. Sub-chapters below unpack each difference.
+  </div>
+  <div class="callout-slate" style="margin-top:14px">
+    ► Sub-chapters <span style="color:var(--slate)">5.1–5.6</span> in the side nav: Two paradigms · ITS regression variants · Method comparison · False positive rate · Bank walkthrough · Bank output (optional detail — skip on first pass).
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 7 — REGRESSION VS BSTS: MATH & DUMMY CHARTS
+     SLIDE 8 — TWO PARADIGMS: REGRESSION ITS vs BAYESIAN COUNTERFACTUAL
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="8" data-nav-tier="deep">
-  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
-  <h1>REGRESSION VS BSTS</h1>
-  <span class="badge">MATH INTUITION · DUMMY OUTPUTS</span>
+<section class="slide" data-slide="8" data-nav-tier="sub-its">
+  <span class="badge badge-sub">SUB-CHAPTER · INTERRUPTED TIME SERIES</span>
+  <h1>TWO PARADIGMS</h1>
+  <span class="badge">REGRESSION ITS vs BAYESIAN COUNTERFACTUAL</span>
 
-  <h2>AT STAT / MATH LEVEL (PLAIN ENGLISH)</h2>
+  <p>Both paradigms split the series at intervention date T₀ and compare "after" to "what would have happened." The difference is in <em>what the model directly outputs</em>.</p>
+
+  <h2>SIDE-BY-SIDE COMPARISON</h2>
   <table class="flow-table">
-    <thead><tr><th>Simple ITS regression</th><th>BSTS (Causal Impact)</th></tr></thead>
+    <thead><tr><th></th><th>Segmented Regression ITS</th><th>Counterfactual ITS (BSTS)</th></tr></thead>
     <tbody>
       <tr>
-        <td>One equation: <code>Y = trend + seasonality + β₁×(after launch) + β₂×(days since launch)</code></td>
-        <td>Many latent pieces (level, slope, seasonality) that <em>update each day</em>, plus covariates — fitted together as a state-space model</td>
+        <td style="font-weight:bold">Category</td>
+        <td>One specific regression template inside the ITS family<br><small style="color:var(--mist)">OLS, or CausalPy Bayesian version</small></td>
+        <td>One specific Bayesian model inside the ITS family<br><small style="color:var(--mist)">Google's tfcausalimpact package</small></td>
       </tr>
       <tr>
-        <td>Counterfactual = <strong>extend the pre-period straight line(s)</strong> past the launch date</td>
-        <td>Counterfactual = <strong>simulate the whole series</strong> forward from the learned state, day by day, with uncertainty at each step</td>
+        <td style="font-weight:bold">Formula / model</td>
+        <td><code>Y = β₀ + β₁t + β₂D + β₃(t−T₀)D</code><br><small style="color:var(--mist)">D=0 before T₀, D=1 after</small></td>
+        <td>State-space model: local level + seasonality + covariates → projects counterfactual ŷ(t) forward day by day</td>
       </tr>
       <tr>
-        <td>Typically <strong>2–3 summary numbers</strong> (level jump? slope change?)</td>
-        <td><strong>Time series of daily impacts</strong> + cumulative total + probability intervals</td>
+        <td style="font-weight:bold">Counterfactual</td>
+        <td>Pre-period trend line extended straight through the post-period</td>
+        <td>Full daily predictive distribution (wiggly, not straight) — absorbs seasonality and covariates</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">What it estimates</td>
+        <td><strong>β₂</strong> = immediate level jump at T₀<br><strong>β₃</strong> = change in growth rate (new slope − old slope)</td>
+        <td><strong>α(t)</strong> = y(t) − ŷ(t) per day (pointwise lift)<br><strong>Σα(t)</strong> = cumulative total lift over the window</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Covariates</td>
+        <td>You add a few by hand (holiday flags, etc.)</td>
+        <td>Core feature — weather, trends, organic sessions; auto variable selection via spike-and-slab priors</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">Uncertainty</td>
+        <td>Separate CI on β₂ and β₃ — not one interval on "the effect"</td>
+        <td>Daily credible bands + P(effect &gt; 0)</td>
+      </tr>
+      <tr>
+        <td style="font-weight:bold">When to prefer</td>
+        <td>Permanent structural changes (UX redesign, policy shift) where "did the growth rate change?" is the key question</td>
+        <td>Bounded campaigns (promos, short interventions) where total £ lift or daily pattern is the key output</td>
       </tr>
     </tbody>
   </table>
 
+  <hr class="hr">
   <h2>WHAT YOU ACTUALLY GET OUT (DUMMY CHARTS)</h2>
   <p>Same fake metric, same launch day (red line). Different outputs:</p>
 
@@ -861,26 +857,20 @@
     <div class="chart-panel">
       <h3>Simple ITS regression</h3>
       <svg viewBox="0 0 280 100" width="100%" aria-hidden="true" style="display:block">
-        <!-- axes -->
         <line x1="30" y1="85" x2="270" y2="85" stroke="#ccc4e0" stroke-width="1"/>
         <line x1="30" y1="15" x2="30" y2="85" stroke="#ccc4e0" stroke-width="1"/>
-        <!-- pre actual -->
         <polyline points="30,70 80,65 130,60" fill="none" stroke="#1c1a30" stroke-width="2"/>
-        <!-- post actual (higher) -->
         <polyline points="130,60 150,48 200,42 270,38" fill="none" stroke="#1c1a30" stroke-width="2"/>
-        <!-- counterfactual: extend pre trend (dashed) -->
         <polyline points="130,60 150,58 200,52 270,48" fill="none" stroke="#1a5ca8" stroke-width="2" stroke-dasharray="5,3"/>
-        <!-- intervention -->
         <line x1="130" y1="12" x2="130" y2="88" stroke="#c42848" stroke-width="2"/>
-        <text x="132" y="22" font-size="8" fill="#c42848" font-family="Consolas,monospace">launch</text>
-        <!-- gap annotation -->
+        <text x="132" y="22" font-size="8" fill="#c42848" font-family="monospace">launch</text>
         <line x1="200" y1="42" x2="200" y2="52" stroke="#0d7a6e" stroke-width="2"/>
-        <text x="205" y="40" font-size="8" fill="#0d7a6e" font-family="Consolas,monospace">gap</text>
+        <text x="205" y="40" font-size="8" fill="#0d7a6e" font-family="monospace">gap</text>
       </svg>
       <div class="chart-output">
         <strong>Output report:</strong><br>
-        • Level change at launch: <span style="color:var(--teal)">+12%</span> (95% CI 4%–20%)<br>
-        • Slope change after launch: <span style="color:var(--teal)">+0.2%/day</span><br>
+        • Level change (β₂): <span style="color:var(--teal)">+12%</span> (95% CI 4%–20%)<br>
+        • Slope change (β₃): <span style="color:var(--teal)">+0.2%/day</span><br>
         <em>Two coefficients. One straight counterfactual.</em>
       </div>
       <p class="chart-caption">Assumes the post-launch world follows <strong>one new straight trend</strong> (jump + optional ramp).</p>
@@ -891,20 +881,15 @@
       <svg viewBox="0 0 280 100" width="100%" aria-hidden="true" style="display:block">
         <line x1="30" y1="85" x2="270" y2="85" stroke="#ccc4e0" stroke-width="1"/>
         <line x1="30" y1="15" x2="30" y2="85" stroke="#ccc4e0" stroke-width="1"/>
-        <!-- pre actual -->
         <polyline points="30,70 80,65 130,60" fill="none" stroke="#1c1a30" stroke-width="2"/>
-        <!-- post actual -->
         <polyline points="130,60 150,45 200,40 270,36" fill="none" stroke="#1c1a30" stroke-width="2"/>
-        <!-- counterfactual mean (dashed) -->
         <polyline points="130,60 150,57 200,53 270,50" fill="none" stroke="#1a5ca8" stroke-width="2" stroke-dasharray="5,3"/>
-        <!-- credible band -->
         <polygon points="130,60 150,54 200,48 270,44 270,56 200,58 150,60 130,60" fill="rgba(26,92,168,.15)" stroke="none"/>
         <line x1="130" y1="12" x2="130" y2="88" stroke="#c42848" stroke-width="2"/>
-        <!-- daily impact bars (inset style below) -->
         <rect x="145" y="72" width="8" height="10" fill="#0d7a6e" opacity=".7"/>
         <rect x="158" y="74" width="8" height="8" fill="#0d7a6e" opacity=".7"/>
         <rect x="171" y="76" width="8" height="6" fill="#0d7a6e" opacity=".7"/>
-        <text x="145" y="92" font-size="7" fill="#6a5888" font-family="Consolas,monospace">daily α(t)</text>
+        <text x="145" y="92" font-size="7" fill="#6a5888" font-family="monospace">daily α(t)</text>
       </svg>
       <div class="chart-output">
         <strong>Output report:</strong><br>
@@ -917,16 +902,120 @@
     </div>
   </div>
 
-  <div class="callout-honey">
-    ► Same causal question, different <em>shape</em> of answer: regression summarizes a break; BSTS draws the whole “what would have happened” movie and subtracts frame by frame.
+  <hr class="hr">
+  <h2>SHOULD I PICK ONE OR RUN BOTH?</h2>
+  <p>They answer different questions — running both is not redundant, but the value depends on the intervention:</p>
+  <table class="flow-table">
+    <thead><tr><th>Intervention type</th><th>Primary method</th><th>Add the other?</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Temporary / bounded (promo, campaign)</td>
+        <td><span style="color:var(--accent)">BSTS</span> → cumulative Σα(t)</td>
+        <td>Regression ITS β₃ ≈ 0 and noisy — adds little. Skip or note it's expected flat.</td>
+      </tr>
+      <tr>
+        <td>Permanent / structural (UX redesign, pricing change)</td>
+        <td><span style="color:var(--honey)">Regression ITS</span> → β₂ + β₃</td>
+        <td>Running BSTS adds convergent validity. But BSTS cumulative keeps growing indefinitely — interpret as "total so far as of day N", not a final number.</td>
+      </tr>
+      <tr>
+        <td>Unsure whether temporary or permanent</td>
+        <td>Run both</td>
+        <td>Plot BSTS daily α(t): if it stabilises → permanent (regression interpretation); if it decays to zero → temporary (BSTS cumulative is the metric).</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout-honey" style="margin-top:10px">
+    ► When you run both, don't average the numbers — they measure different things with different time horizons. Convergence means they agree on <em>direction</em>, not that the same number comes out.
   </div>
+
+  <hr class="hr">
+  <h2>EFFECT INTENSITY OVER TIME — WHICH FLAVOR?</h2>
+  <p>If you want <em>how the lift evolves day by day</em> (spike then fade, ramp-up, etc.):</p>
+  <table class="flow-table">
+    <thead><tr><th>What you want</th><th>ITS flavor</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Level jump at T₀ + permanent change in growth rate</td>
+        <td><span style="color:var(--slate)">Segmented ITS regression</span> → β₂ + β₃. Best for permanent interventions.</td>
+      </tr>
+      <tr>
+        <td>Daily effect each post-day + cumulative total</td>
+        <td><span style="color:var(--accent)">BSTS / CausalImpact</span> → pointwise α(t) each day + Σα(t). Best for bounded campaigns.</td>
+      </tr>
+      <tr>
+        <td>Flexible curved path after intervention (splines)</td>
+        <td><span style="color:var(--honey)">CausalPy ITS</span> — Bayesian regression with spline terms.</td>
+      </tr>
+      <tr>
+        <td>Effect right at the cutoff only (local)</td>
+        <td><span style="color:var(--teal)">RDiT</span> — local polynomial, not a full post-campaign curve.</td>
+      </tr>
+    </tbody>
+  </table>
+  <details>
+    <summary>Concrete example — same promo, both paradigms</summary>
+    <p><strong>Regression ITS:</strong> Revenue jumps +£50k on day 1 of the promo (β₂ = level change), then grows an extra +£5k per day (β₃ = slope change). You get two numbers — not a smooth daily curve.</p>
+    <p><strong>BSTS:</strong> Day 1 lift +£80k, day 2 +£60k, day 3 +£40k… plus a cumulative band. The model draws a full counterfactual line through the post-period so you see the shape of the effect, not just one break parameter.</p>
+  </details>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 8 — METHOD COMPARISON
+     SLIDE 9 — ITS REGRESSION VARIANTS
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="9" data-nav-tier="deep">
-  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+<section class="slide" data-slide="9" data-nav-tier="sub-its">
+  <span class="badge badge-sub">SUB-CHAPTER · INTERRUPTED TIME SERIES</span>
+  <h1>ITS REGRESSION VARIANTS</h1>
+  <span class="badge">BEYOND THE SIMPLE MODEL</span>
+
+  <p>The "simple" segmented regression <code>Y = β₀ + β₁t + β₂D + β₃(t−T₀)D</code> is the baseline of the regression ITS paradigm. It assumes linear trend, no autocorrelation, and one breakpoint. Real-world data rarely cooperates — these variants address that.</p>
+
+  <table class="flow-table">
+    <thead><tr><th>Variant</th><th>What it adds to the simple model</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span style="color:var(--rose)">Autoregressive ITS</span><br><small style="color:var(--mist)">ARIMA-ITS</small></td>
+        <td>Adds lagged Y terms: Y(t−1), Y(t−2)… alongside the D/slope terms</td>
+        <td>Almost always — business metrics are autocorrelated (today's revenue predicts tomorrow's). Ignoring this inflates false positive rates because standard errors are too narrow.</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--teal)">Controlled ITS</span><br><small style="color:var(--mist)">ITS + comparison series</small></td>
+        <td>Models the <em>gap</em> between the treated series and a concurrent non-treated comparison series — subtracts shared trends before fitting the break</td>
+        <td>Strongest non-experimental ITS design (hybrid of ITS + DiD). Use when a comparable unaffected series exists (e.g. a product category not in the promo, or an untreated region).</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--honey)">Nonlinear trend ITS</span></td>
+        <td>Replaces β₁t with polynomial or natural spline terms</td>
+        <td>Pre-period trend visibly curves (common in growing e-commerce series). A straight line would misproject the counterfactual.</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--accent)">Multiple breakpoint ITS</span></td>
+        <td>Adds a second (or third) D/slope-change pair — one for each intervention on the same series</td>
+        <td>Sequential changes: site launch → redesign → feature drop. Each gets its own β₂/β₃.</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--mist)">Hierarchical ITS</span><br><small style="color:var(--mist)">Panel / multi-level</small></td>
+        <td>Many units (stores, regions, product categories) each with their own β₂/β₃, sharing a common prior (Bayesian) or random effects (frequentist)</td>
+        <td>Panel data — many units observed over time. Shares strength across units so small-sample units get better estimates.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-teal">
+    ► <strong>Where does BSTS fit?</strong> BSTS handles autocorrelation and nonlinear trend <em>automatically</em> via its state-space components. That is a practical reason it often outperforms plain regression ITS on messy daily data — you don't need to bolt on ARIMA or spline extensions by hand. But regression ITS is more transparent: you see β₂ and β₃ directly. Choose based on what you need: interpretability (regression) vs flexibility (BSTS).
+  </div>
+
+  <details>
+    <summary>CausalPy — where does it fit?</summary>
+    <p>CausalPy implements the <em>regression ITS</em> formula (<code>Y = β₀ + β₁t + β₂D + β₃(t−T₀)D</code>) but estimates it with a Bayesian engine (PyMC). You get β₂ and β₃ as full posterior distributions (credible intervals) instead of point estimates + frequentist CIs — same paradigm as regression, richer uncertainty. It also supports spline terms for nonlinear trends.</p>
+  </details>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 10 — METHOD COMPARISON
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="10" data-nav-tier="sub-its">
+  <span class="badge badge-sub">SUB-CHAPTER · INTERRUPTED TIME SERIES</span>
   <h1>METHOD COMPARISON</h1>
   <div class="buddy-row">
     <svg class="buddy-svg" width="56" height="56" viewBox="0 0 16 16"
@@ -959,7 +1048,7 @@
     <tbody>
       <tr>
         <td style="font-weight:bold">Min pre-period</td>
-        <td><details class="info"><summary>8+ points</summary><span class="info-body"><strong>8+ time periods</strong> of data before the intervention — e.g. 8 daily rows, 8 weekly rows, or 8 monthly rows. Rule of thumb from Interrupted Time Series (ITS) papers: at least 8 observations <em>before</em> and 8 <em>after</em> the break. Not 8 cities — <strong>8 timestamps</strong> on the same unit's timeline.</span></details></td>
+        <td><details class="info"><summary>8+ points</summary><span class="info-body"><strong>8+ time periods</strong> of data before the intervention — e.g. 8 daily rows, 8 weekly rows, or 8 monthly rows. Rule of thumb from ITS papers: at least 8 observations <em>before</em> and 8 <em>after</em> the break. Not 8 cities — <strong>8 timestamps</strong> on the same unit's timeline.</span></details></td>
         <td>Pre-period length ≥ 3× intervention length (e.g. 4-week campaign → 12+ weeks pre)</td>
         <td>Pre-period length ≥ 3× intervention length</td>
         <td>~2× intervention length</td>
@@ -1010,20 +1099,20 @@
   </table>
 
   <div class="callout-rose">
-    ► <strong>Generic warning (any client, any sector):</strong> research + placebo tests show BSTS-class tools flag “significant” effects on data with <em>no real intervention</em> about 35–55% of the time if you trust the built-in p-value alone. That is a property of the <em>method</em>, not one project. See deep dive <em>WHAT “FPR” MEANS</em>.
+    ► <strong>Generic warning (any client, any sector):</strong> research + placebo tests show BSTS-class tools flag "significant" effects on data with <em>no real intervention</em> about 35–55% of the time if you trust the built-in p-value alone. That is a property of the <em>method</em>, not one project. See sub-chapter <em>WHAT "FPR" MEANS</em> (5.4).
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 9 — WHAT FPR MEANS (GENERIC)
+     SLIDE 11 — WHAT FPR MEANS (GENERIC)
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="10" data-nav-tier="deep">
-  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
-  <h1>WHAT “FPR” MEANS</h1>
+<section class="slide" data-slide="11" data-nav-tier="sub-its">
+  <span class="badge badge-sub">SUB-CHAPTER · INTERRUPTED TIME SERIES</span>
+  <h1>WHAT "FPR" MEANS</h1>
   <span class="badge">GENERIC · ANY BSTS / CAUSAL IMPACT STUDY</span>
 
   <h2>FALSE POSITIVE RATE (FPR)</h2>
-  <p><strong>FPR</strong> = how often a method cries “significant!” when nothing actually happened.</p>
+  <p><strong>False Positive Rate (FPR)</strong> = how often a method cries "significant!" when nothing actually happened.</p>
 
   <h3>The placebo thought experiment (no real campaign)</h3>
   <ol>
@@ -1034,15 +1123,15 @@
   </ol>
 
   <div class="callout-honey">
-    ► If ~40 of 100 fake runs get p &lt; 0.05, the method’s p-values are <strong>too optimistic</strong> — about <strong>40% false positive rate</strong>. Published benchmarks for BSTS-class tools land around <strong>35–55%</strong> (generic literature + validation suites, not tied to one retailer).
+    ► If ~40 of 100 fake runs get p &lt; 0.05, the method's p-values are <strong>too optimistic</strong> — about <strong>40% false positive rate</strong>. Published benchmarks for BSTS-class tools land around <strong>35–55%</strong> (generic literature + validation suites, not tied to one retailer).
   </div>
 
   <h2>WHAT WE ARE WARNING YOU ABOUT</h2>
   <ul>
-    <li><span style="color:var(--teal)">Not:</span> “Your result is wrong.”</li>
-    <li><span style="color:var(--teal)">Not:</span> “Schuh / bank / retail is special.”</li>
-    <li><span style="color:var(--rose)">Yes:</span> “The <em>default p-value from the package</em> is unreliable on its own.”</li>
-    <li><span style="color:var(--rose)">Yes:</span> “You need a second check — usually a <strong>permutation test on the real launch date</strong>.”</li>
+    <li><span style="color:var(--teal)">Not:</span> "Your result is wrong."</li>
+    <li><span style="color:var(--teal)">Not:</span> "Shop x / bank y / retail z is special."</li>
+    <li><span style="color:var(--rose)">Yes:</span> "The <em>default p-value from the package</em> is unreliable on its own."</li>
+    <li><span style="color:var(--rose)">Yes:</span> "You need a second check — usually a <strong>permutation test on the real launch date</strong>."</li>
   </ul>
 
   <h3>Permutation on the <em>real</em> date (what to do instead)</h3>
@@ -1055,10 +1144,10 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 10 — THE BANK WALKTHROUGH
+     SLIDE 12 — THE BANK WALKTHROUGH
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="11" data-nav-tier="deep">
-  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+<section class="slide" data-slide="12" data-nav-tier="sub-its">
+  <span class="badge badge-sub">SUB-CHAPTER · INTERRUPTED TIME SERIES</span>
   <h1>BANK CASE: FULL WALKTHROUGH</h1>
   <span class="badge">100% ROLLOUT · NO CONTROL GROUP</span>
 
@@ -1097,19 +1186,19 @@
   </ul>
 
   <hr class="hr">
-  <h2>THE UX CHANGE NEVER “ENDS” — SENSIBLE ANALYSIS</h2>
-  <p>The new UI stays live forever. Methods still need a <strong>defined evaluation window</strong> — you are measuring “impact as of day N”, not waiting for an off-switch.</p>
+  <h2>THE UX CHANGE NEVER "ENDS" — SENSIBLE ANALYSIS</h2>
+  <p>The new UI stays live forever. Methods still need a <strong>defined evaluation window</strong> — you are measuring "impact as of day N", not waiting for an off-switch.</p>
 
   <table class="flow-table">
     <thead><tr><th>Reporting choice</th><th>What it means</th></tr></thead>
     <tbody>
       <tr>
         <td><span class="tag tag-green">Primary window</span> (pre-register)</td>
-        <td>e.g. first <strong>30 days</strong> after launch — “early adoption effect”</td>
+        <td>e.g. first <strong>30 days</strong> after launch — "early adoption effect"</td>
       </tr>
       <tr>
         <td><span class="tag tag-amber">Secondary window</span></td>
-        <td>days 31–90 — “stabilized effect” (novelty may fade)</td>
+        <td>days 31–90 — "stabilized effect" (novelty may fade)</td>
       </tr>
       <tr>
         <td><span class="tag tag-slate">Monitoring read</span></td>
@@ -1120,8 +1209,8 @@
 
   <ul>
     <li><strong>BSTS:</strong> post-period = launch date → end of chosen window. Counterfactual projects through that window only. Wider bands further from launch are normal.</li>
-    <li><strong>Do not</strong> imply the effect “turns off” when the window ends — say: “estimated lift over the first 30 days post-launch.”</li>
-    <li><strong>Stakeholder line:</strong> “As of 90 days after go-live, engagement is X% above the modelled without-redesign path (95% interval …), with permutation p=…”</li>
+    <li><strong>Do not</strong> imply the effect "turns off" when the window ends — say: "estimated lift over the first 30 days post-launch."</li>
+    <li><strong>Stakeholder line:</strong> "As of 90 days after go-live, engagement is X% above the modelled without-redesign path (95% interval …), with permutation p=…"</li>
     <li>If the lift is a <strong>permanent level shift</strong>, segmented ITS / BSTS often show a step-up that <em>persists</em> — that matches an open-ended UX change well.</li>
   </ul>
 
@@ -1131,10 +1220,10 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 11 — BANK WALKTHROUGH: OUTPUT & REPORTING
+     SLIDE 13 — BANK WALKTHROUGH: OUTPUT & REPORTING
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="12" data-nav-tier="deep">
-  <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+<section class="slide" data-slide="13" data-nav-tier="sub-its">
+  <span class="badge badge-sub">SUB-CHAPTER · INTERRUPTED TIME SERIES</span>
   <h1>BANK CASE: OUTPUT &amp; REPORTING</h1>
 
   <h2>WHAT THE OUTPUT LOOKS LIKE</h2>
@@ -1163,9 +1252,9 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 12 — CHOOSING YOUR METHOD
+     SLIDE 14 — PRACTICAL CHECKLIST
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="13" data-nav-tier="core">
+<section class="slide" data-slide="14" data-nav-tier="core">
   <h1>PRACTICAL CHECKLIST</h1>
   <div class="buddy-row">
     <svg class="buddy-svg" width="56" height="56" viewBox="0 0 16 16"
@@ -1192,7 +1281,7 @@
     <tbody>
       <tr>
         <td>Can you randomize into treated / control?</td>
-        <td><span class="tag tag-green">A/B Test</span> — always preferred</td>
+        <td><span class="tag tag-green">A/B Test (RCT)</span> — always preferred</td>
         <td>Continue ↓</td>
       </tr>
       <tr>
@@ -1225,12 +1314,11 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 13 — QUEST COMPLETE
+     SLIDE 15 — QUEST COMPLETE
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="14" data-nav-tier="core">
+<section class="slide" data-slide="15" data-nav-tier="core">
   <h1>QUEST COMPLETE</h1>
   <div class="buddy-row">
-    <!-- Hootsworth with sparkles -->
     <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
          shape-rendering="crispEdges" aria-hidden="true">
       <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
@@ -1240,7 +1328,6 @@
       <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
       <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
       <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
-      <!-- smiling beak -->
       <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
       <rect x="6"  y="8" width="4" height="1" fill="#d4a060"/>
       <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
@@ -1253,16 +1340,16 @@
       <rect x="15" y="6" width="1" height="1" fill="#1a5ca8"/>
     </svg>
     <div class="buddy-speech">
-      <span class="speaker">Hootsworth:</span> Now you know the map. The method follows from the data structure — never the other way around. For the deep dive on BSTS mechanics, covariates, and permutation tests, head to the Causal Impact deck.
+      <span class="speaker">Hootsworth:</span> Now you know the map. The method follows from the data structure — never the other way around. For hands-on BSTS mechanics, covariates, and permutation tests, head to the Causal Impact deck.
     </div>
   </div>
 
   <ul class="checkpoint">
+    <li>Causal inference answers "did X cause Y?" — not just "did X and Y move together?" The missing counterfactual ("what would have happened without the intervention?") is the core challenge.</li>
     <li>Causal effect = observed minus counterfactual. Every method is a different way to build the counterfactual.</li>
-    <li>DiD needs a parallel control group. Synthetic Control needs multiple untreated units. Neither works for 100% rollouts.</li>
-    <li>When there's no control group, the Interrupted Time Series family is the only viable path: BSTS, CausalPy, RDiT, or simple ITS regression.</li>
+    <li>Randomized Controlled Trials (A/B tests) create a control group. DiD borrows an existing one. Synthetic Control blends multiple donors. Neither requires the ITS family.</li>
+    <li>When there's no control group, the Interrupted Time Series (ITS) family is the only viable path: BSTS, CausalPy, RDiT, or simple ITS regression.</li>
     <li>For the bank case (UX redesign, all customers): use BSTS + RDiT cross-validation with permutation testing.</li>
-    <li>Data requirements: daily metric, 3× campaign length of homogeneous pre-data, exogenous covariates.</li>
     <li>Report to stakeholders: effect size with credible interval, multi-method convergence, permutation-validated significance, honest caveats.</li>
   </ul>
 </section>
@@ -1271,7 +1358,7 @@
 
 <nav class="deck-controls">
   <button type="button" id="prev">◀ PREV</button>
-  <span id="counter">1 / 15</span>
+  <span id="counter">1 / 16</span>
   <button type="button" id="next">NEXT ▶</button>
 </nav>
 
@@ -1280,21 +1367,48 @@
   const sideNavList = document.getElementById("side-nav-list");
   const navButtons = [];
 
-  let deepHeaderAdded = false;
+  let mainNum = 0;
+  let subParentNum = 0;
+  let subIndex = 0;
+  let subControlHeaderAdded = false;
+  let subItsHeaderAdded = false;
+
   slides.forEach((slide, j) => {
     const tier = slide.dataset.navTier || "core";
-    if (tier === "deep" && !deepHeaderAdded) {
-      const head = document.createElement("p");
-      head.className = "side-nav-section";
-      head.textContent = "DEEP DIVES — optional, revisit later";
-      sideNavList.appendChild(head);
-      deepHeaderAdded = true;
+    let displayNum;
+
+    if (tier === "core") {
+      mainNum++;
+      subParentNum = mainNum;
+      subIndex = 0;
+      displayNum = String(mainNum);
+    } else if (tier === "sub-control" || tier === "sub-its") {
+      if (tier === "sub-control" && !subControlHeaderAdded) {
+        const head = document.createElement("p");
+        head.className = "side-nav-section";
+        head.textContent = "╰ WITH A CONTROL GROUP";
+        sideNavList.appendChild(head);
+        subControlHeaderAdded = true;
+      }
+      if (tier === "sub-its" && !subItsHeaderAdded) {
+        const head = document.createElement("p");
+        head.className = "side-nav-section";
+        head.textContent = "╰ INTERRUPTED TIME SERIES";
+        sideNavList.appendChild(head);
+        subItsHeaderAdded = true;
+      }
+      subIndex++;
+      displayNum = `${subParentNum}.${subIndex}`;
+    } else {
+      displayNum = String(j + 1);
     }
+
     const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "side-nav-btn" + (tier === "deep" ? " is-deep" : "");
-    btn.innerHTML = `<span class="side-nav-num">${j + 1}</span><span class="side-nav-label">${label}</span>`;
+    const isSub = tier === "sub-control" || tier === "sub-its";
+    btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+    btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
     btn.addEventListener("click", () => show(j));
     sideNavList.appendChild(btn);
     navButtons.push(btn);

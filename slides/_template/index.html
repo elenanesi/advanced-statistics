@@ -6,7 +6,7 @@
   <title>CONCEPT TITLE — Advanced Stats Quest</title>
   <!-- Technique C pixel-art favicon: mochi cat face -->
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="2" width="2" height="3" fill="%23c4919e"/><rect x="11" y="2" width="2" height="3" fill="%23c4919e"/><rect x="3" y="5" width="10" height="8" fill="%23f0dcc0"/><rect x="5" y="7" width="1" height="2" fill="%233a3040"/><rect x="10" y="7" width="1" height="2" fill="%233a3040"/><rect x="7" y="9" width="2" height="1" fill="%23c4919e"/></svg>' />
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg:     #f0ebe0;   /* warm parchment */
@@ -22,10 +22,10 @@
     * { box-sizing: border-box; margin: 0; }
     body {
       min-height: 100vh;
-      /* VT323 for body — readable CRT terminal font, retro without eyestrain */
-      font-family: "VT323", monospace;
-      font-size: 18px;
-      line-height: 1.5;
+      /* Consolas for body — matches slides/causal-impact/index.html */
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
       color: var(--text);
       background: var(--bg);
       /* subtle dot-grid: retro feel, not distracting */
@@ -102,12 +102,13 @@
       line-height: 1.4;
     }
     .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
-    .side-nav-btn.is-deep { padding-left: 14px; font-size: 10px; color: #5a5070; }
-    .side-nav-btn.is-deep .side-nav-label { font-style: italic; }
-    .side-nav-btn.is-deep.active { color: var(--accent); font-style: normal; }
-    .badge-deep {
-      border: 2px solid var(--mist);
-      color: var(--mist);
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+    .badge-sub {
+      border: 2px solid var(--slate);
+      color: var(--slate);
       font-size: 10px;
       padding: 4px 8px;
       margin-bottom: 12px;
@@ -131,10 +132,10 @@
       letter-spacing: .5px;
     }
     h2 {
-      font-family: "VT323", monospace;
-      font-size: 20px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
       color: var(--honey);
-      font-weight: normal;
+      font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 2px;
       margin: 18px 0 8px;
@@ -164,12 +165,11 @@
       border: 7px solid transparent;
       border-right-color: var(--rose);
     }
-    /* Use .speaker span for buddy name — color, not bold (VT323 has no bold weight) */
-    .buddy-speech .speaker { color: var(--rose); }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
 
     .formula {
-      font-family: "VT323", monospace;
-      font-size: 17px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
       color: var(--accent);
       background: rgba(26,92,168,.06);
       padding: 12px;
@@ -179,7 +179,7 @@
     .formula em { color: var(--honey); font-style: normal; }
 
     details { margin-top: 16px; }
-    summary { cursor: pointer; color: var(--rose); font-size: 17px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
     details[open] summary { margin-bottom: 8px; }
 
     .checkpoint { color: var(--accent); }
@@ -386,9 +386,9 @@
     <div class="formula">E[X] = …</div>
   </section>
 
-  <!-- Slide 3: Mini example (deep dive — optional on first pass) -->
-  <section class="slide" data-slide="3" data-nav-tier="deep">
-    <span class="badge badge-deep">DEEP DIVE · OPTIONAL</span>
+  <!-- Slide 3: Mini example (sub-chapter — optional on first pass) -->
+  <section class="slide" data-slide="3" data-nav-tier="sub" data-nav-section="╰ DETAILS">
+    <span class="badge badge-sub">SUB-CHAPTER</span>
     <h1>Mini example</h1>
     <p>Walk through tiny numbers.</p>
   </section>
@@ -452,21 +452,45 @@
     const sideNavList = document.getElementById("side-nav-list");
     const navButtons = [];
 
-    let deepHeaderAdded = false;
+    let mainNum = 0;
+    let subParentNum = 0;
+    let subIndex = 0;
+    const sectionHeadersAdded = new Set();
+    const sectionDefaults = {
+      "sub-control": "╰ WITH A CONTROL GROUP",
+      "sub-its": "╰ INTERRUPTED TIME SERIES",
+    };
+
     slides.forEach((slide, j) => {
       const tier = slide.dataset.navTier || "core";
-      if (tier === "deep" && !deepHeaderAdded) {
-        const head = document.createElement("p");
-        head.className = "side-nav-section";
-        head.textContent = "DEEP DIVES — optional, revisit later";
-        sideNavList.appendChild(head);
-        deepHeaderAdded = true;
+      let displayNum;
+
+      if (tier === "core") {
+        mainNum++;
+        subParentNum = mainNum;
+        subIndex = 0;
+        displayNum = String(mainNum);
+      } else if (tier.startsWith("sub")) {
+        const sectionLabel = slide.dataset.navSection || sectionDefaults[tier] || "╰ DETAILS";
+        if (!sectionHeadersAdded.has(sectionLabel)) {
+          const head = document.createElement("p");
+          head.className = "side-nav-section";
+          head.textContent = sectionLabel;
+          sideNavList.appendChild(head);
+          sectionHeadersAdded.add(sectionLabel);
+        }
+        subIndex++;
+        displayNum = `${subParentNum}.${subIndex}`;
+      } else {
+        displayNum = String(j + 1);
       }
+
       const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "side-nav-btn" + (tier === "deep" ? " is-deep" : "");
-      btn.innerHTML = `<span class="side-nav-num">${j + 1}</span><span class="side-nav-label">${label}</span>`;
+      const isSub = tier.startsWith("sub");
+      btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+      btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
       btn.addEventListener("click", () => show(j));
       sideNavList.appendChild(btn);
       navButtons.push(btn);

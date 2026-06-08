@@ -89,6 +89,27 @@
     .side-nav-btn.active .side-nav-num { color: var(--accent); }
     .side-nav-label { flex: 1; }
     .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9px;
+      color: var(--mist);
+      margin: 10px 0 4px;
+      padding-top: 10px;
+      border-top: 1px solid #d0c8e0;
+      letter-spacing: 1px;
+      line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+    .badge-sub {
+      border-color: var(--slate);
+      color: var(--slate);
+      margin-bottom: 12px;
+      display: inline-block;
+    }
     .slide {
       display: none;
       background: var(--card);
@@ -284,7 +305,7 @@
 <!-- ═══════════════════════════════════════════════════════════
      SLIDE 0 — TITLE
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide active" data-slide="0">
+<section class="slide active" data-slide="0" data-nav-tier="core">
   <span class="badge">CAUSAL INFERENCE · CONCEPT DECK</span>
   <h1>CAUSAL IMPACT</h1>
   <div class="buddy-row">
@@ -311,21 +332,24 @@
       <span class="speaker">Bayes:</span> Revenue went up after the campaign. But <em>would it have gone up anyway?</em> That's the whole quest.
     </div>
   </div>
-  <p>This deck covers:</p>
+
+  <h2>HOW TO USE THIS DECK</h2>
+  <p><strong>360° path</strong> (main story — follow in order, slides 1–10):</p>
   <ul>
-    <li>What causal impact actually measures</li>
-    <li>Why A/B tests aren't always possible</li>
-    <li>How BSTS builds a Bayesian counterfactual</li>
-    <li>How to choose covariates safely</li>
-    <li>Multi-method validation &amp; permutation tests</li>
-    <li>Real case: a UK retailer's delivery promo, fully validated</li>
+    <li>Core question → A/B test limits → BSTS mechanism → Covariates → Multi-method validation → Permutation tests → Pitfalls → Decision guide → Quest complete</li>
   </ul>
+  <p><strong>Sub-chapters</strong> (optional detail — skip on first pass):</p>
+  <ul>
+    <li><span style="color:var(--slate)">6.1–6.3</span> under Never Trust One Method: Regression ITS vs BSTS · Choose or run both? · ITS variants</li>
+    <li><span style="color:var(--slate)">8.1</span> under Watch Out: Real case — UK retailer's delivery promo, fully validated</li>
+  </ul>
+  <p class="chart-caption" style="margin-top:12px;font-size:11px;color:var(--slate)">Use the side nav: indented items are sub-chapters (e.g. 5.1, 5.2).</p>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
      SLIDE 1 — THE CORE QUESTION
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="1">
+<section class="slide" data-slide="1" data-nav-tier="core">
   <h1>THE CORE QUESTION</h1>
   <p>Any analyst can report a before/after number. The hard part is:</p>
 
@@ -354,7 +378,7 @@
 <!-- ═══════════════════════════════════════════════════════════
      SLIDE 2 — A/B TEST: GOLD STANDARD — AND ITS LIMITS
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="2">
+<section class="slide" data-slide="2" data-nav-tier="core">
   <h1>THE A/B TEST IDEAL</h1>
   <!-- Ridge the Penguin — slate blue — methodical/structured -->
   <div class="buddy-row">
@@ -416,69 +440,9 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 3 — REAL CASE: RETAIL DELIVERY PROMO
+     SLIDE 3 — BSTS: THE BAYESIAN COUNTERFACTUAL
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="4">
-  <h1>REAL CASE: RETAIL PROMO</h1>
-  <span class="badge">ANONYMIZED · UK E-COMMERCE RETAILER</span>
-
-  <h2>THE INTERVENTION</h2>
-  <p>A UK online retailer ran a <span style="color:var(--accent)">4-day delivery discount promo</span>. Goal: measure whether it generated incremental revenue beyond what would have happened anyway.</p>
-
-  <h2>THE ANALYSIS PIPELINE</h2>
-  <table class="flow-table">
-    <thead><tr><th>Step</th><th>What happened</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Pre-period</td>
-        <td>51 days of post-Christmas data (homogeneous regime) — chosen over 787-day full history because shorter = less seasonal noise</td>
-      </tr>
-      <tr>
-        <td>Covariates</td>
-        <td>Day-of-week, holidays, weather, Google Trends, sale-period detection. Paid sessions flagged as <span style="color:var(--rose)">contaminated</span> (media spend responded to the promo) and excluded.</td>
-      </tr>
-      <tr>
-        <td>Methods</td>
-        <td>6 methods run: BSTS (VI + HMC), CausalPy, RDiT, Prophet, Conformal CIs. All agreed the effect was positive.</td>
-      </tr>
-      <tr>
-        <td>Validation</td>
-        <td>448-spec Specification Curve Analysis. 99.5% of model variants showed a positive effect (range: +154K to +408K).</td>
-      </tr>
-      <tr>
-        <td>Permutation test</td>
-        <td>perm-p = 0.005 — the real promo effect was larger than 99.5% of random placebo dates.</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h2>KEY LESSONS LEARNED</h2>
-  <ul>
-    <li><span class="tag tag-red">LESSON 1</span> Including paid sessions as a covariate inflated model p from 0.04 to 0.19 — the covariate was absorbing the effect.</li>
-    <li>
-      <span class="tag tag-red">LESSON 2</span> <strong>Pre-period length can fake significance.</strong> Two runs of the same promo, same methods — only the pre-period changed:
-      <ul>
-        <li><span style="color:var(--rose)">787-day pre-period</span> (full history): model p = 0.020 looked “significant” — but <strong>perm-p = 0.47</strong> (almost half of random placebo promo dates looked just as good). Do not trust this run.</li>
-        <li><span style="color:var(--teal)">51-day clean pre-period</span> (post-Christmas only, one seasonal regime): <strong>perm-p = 0.005</strong> — the real effect beat 99.5% of placebo dates. Trust this run.</li>
-      </ul>
-      <div class="callout-honey" style="margin-top:10px">
-        ► Why the mismatch? A long pre-period mixes Black Friday, Christmas, summer lulls, and normal weeks. The model can fit that mash-up and emit a low <em>model</em> p-value — but so can many fake intervention dates. The permutation test (perm-p) asks: “If I pretend the promo started on random days, how often do I get a lift this big?” With 787 days, often (~47%). With 51 homogeneous days, almost never (0.5%).
-      </div>
-      <details style="margin-top:8px">
-        <summary>What are model p and perm-p?</summary>
-        <p><strong>Model p</strong> — p-value from the Bayesian Structural Time Series (BSTS) fit: “Is zero inside the credible interval for the cumulative effect?” Often too optimistic (miscalibrated).</p>
-        <p><strong>Perm-p</strong> — permutation test p-value: shuffle many fake treatment start dates on the same pre-period, re-run the analysis, count how often |placebo effect| ≥ |real effect|. Low perm-p = the real promo beat almost all noise dates.</p>
-        <p><em>Concrete rule:</em> If model p looks good but perm-p &gt; 0.20, treat the result as unvalidated — shorten or clean the pre-period until perm-p ≤ 0.10.</p>
-      </details>
-    </li>
-    <li><span class="tag tag-green">LESSON 3</span> Multi-method convergence: conservative estimate (RDiT) ~160K, primary (BSTS HMC) ~300K, upper (Prophet) ~355K. All positive, direction unanimous.</li>
-  </ul>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════
-     SLIDE 5 — BSTS: THE BAYESIAN COUNTERFACTUAL
-     ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="5">
+<section class="slide" data-slide="3" data-nav-tier="core">
   <h1>BSTS: BUILD THE COUNTERFACTUAL</h1>
   <!-- Bayes the Fox — teaching the mechanism -->
   <div class="buddy-row">
@@ -525,9 +489,9 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 6 — COVARIATES: ALLY & ENEMY
+     SLIDE 4 — COVARIATES: ALLY & ENEMY
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="6">
+<section class="slide" data-slide="4" data-nav-tier="core">
   <h1>COVARIATES: ALLY &amp; ENEMY</h1>
   <p>Covariates help the model explain variance that isn't the campaign. They make the counterfactual sharper — <em>but only if they're safe.</em></p>
 
@@ -557,9 +521,9 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 7 — MULTI-METHOD VALIDATION
+     SLIDE 5 — MULTI-METHOD VALIDATION
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="7">
+<section class="slide" data-slide="5" data-nav-tier="core">
   <h1>NEVER TRUST ONE METHOD</h1>
   <!-- Ridge the Penguin — methodical cross-checking -->
   <div class="buddy-row">
@@ -582,41 +546,176 @@
 
   <table class="flow-table">
     <thead>
-      <tr><th>Method</th><th>What it tests</th><th>Best for</th></tr>
+      <tr><th>Method</th><th>What it estimates</th><th>Best for</th></tr>
     </thead>
     <tbody>
       <tr>
         <td><span style="color:var(--accent)">BSTS / tfcausalimpact</span></td>
-        <td>Bayesian posterior counterfactual (VI or HMC)</td>
-        <td>Long campaigns, rich covariates</td>
+        <td>Daily counterfactual ŷ(t) → pointwise α(t) = y(t)−ŷ(t) → cumulative Σα(t) total lift</td>
+        <td>Total £ lift, short promos, complex seasonality</td>
       </tr>
       <tr>
-        <td><span style="color:var(--honey)">CausalPy (ITS)</span></td>
-        <td>Bayesian interrupted time-series regression</td>
-        <td>Structural breaks, medium series</td>
+        <td><span style="color:var(--honey)">CausalPy (ITS regression)</span></td>
+        <td>β₂ = level jump at T₀ · β₃ = slope change (new growth rate), with full Bayesian posteriors</td>
+        <td>Permanent structural breaks ("did growth accelerate?")</td>
       </tr>
       <tr>
         <td><span style="color:var(--teal)">RDiT</span></td>
-        <td>Regression Discontinuity in Time</td>
+        <td>Regression Discontinuity in Time — local polynomial around the cut-off</td>
         <td>Short campaigns (≤2 weeks), sharp cut-off</td>
       </tr>
       <tr>
         <td><span style="color:var(--rose)">Prophet</span></td>
-        <td>Additive seasonality cross-validation</td>
+        <td>Additive seasonality decomposition cross-validation</td>
         <td>Seasonal model sanity check</td>
       </tr>
     </tbody>
   </table>
 
   <div class="callout-honey">
-    ► If BSTS says +22%, RDiT says +18%, and CausalPy says +19% → direction and magnitude agree. Report with confidence. If one says −5%, that's a signal to investigate assumptions, not to average.
+    ► Convergence check: if BSTS says +22%, RDiT says +18%, and CausalPy says +19% → direction and magnitude agree. Report with confidence. If one says −5%, that's a signal to investigate which assumption is violated, not to average the results.
+  </div>
+  <div class="callout-slate" style="margin-top:14px">
+    ► Sub-chapters <span style="color:var(--slate)">6.1—6.3</span> in the side nav: Regression ITS vs BSTS · Choose or run both? · ITS variants (optional detail — skip on first pass).
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 8 — PERMUTATION TESTS
+     SLIDE 5.1 — REGRESSION ITS VS BSTS
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="8">
+<section class="slide" data-slide="6" data-nav-tier="sub-methods">
+  <span class="badge badge-sub">SUB-CHAPTER · MULTI-METHOD VALIDATION</span>
+  <h1>REGRESSION ITS VS BSTS</h1>
+  <p>Both use a before/after split on a single time series. The difference is in <em>what the model directly outputs</em>:</p>
+
+  <table class="flow-table">
+    <thead>
+      <tr><th>Paradigm</th><th>Model structure</th><th>Direct outputs</th><th>Use when…</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span style="color:var(--honey)">Segmented Regression ITS</span><br><small style="color:var(--mist)">(OLS or CausalPy Bayesian)</small></td>
+        <td><code>Y = β₀ + β₁t + β₂D + β₃(t−T₀)D</code><br><small>D=0 before, D=1 after</small></td>
+        <td>
+          <strong>β₂</strong> = immediate level jump at T₀<br>
+          <strong>β₃</strong> = change in growth rate (slope) after T₀<br>
+          <small style="color:var(--mist)">New slope = β₁ + β₃</small>
+        </td>
+        <td>Intervention causes a <em>permanent structural change</em> — e.g. website redesign that raises conversion rate indefinitely</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--accent)">Counterfactual ITS</span><br><small style="color:var(--mist)">(BSTS / tfcausalimpact)</small></td>
+        <td>State-space model learns pre-period dynamics → projects counterfactual ŷ(t) forward</td>
+        <td>
+          <strong>α(t)</strong> = y(t) − ŷ(t) per day<br>
+          <strong>Σα(t)</strong> = cumulative total lift<br>
+          <small style="color:var(--mist)">Full posterior uncertainty on each day</small>
+        </td>
+        <td>Intervention has a <em>bounded or time-varying effect</em> — e.g. a 4-day promo, or a campaign whose impact fades</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+
+  <div class="callout-rose">
+    <strong>The "rate of growth" claim — clarified:</strong> Regression ITS β₃ <em>is</em> the change in growth rate — that part is correct. But regression also gives β₂ (the level jump), and neither is "instead of" total lift. The key distinction: regression assumes the effect is a <em>permanent linear slope change</em>; BSTS estimates a full daily counterfactual and sums it. For a 4-day promo, β₃ (slope change) is nearly meaningless — promos don't permanently accelerate growth, they create a temporary lift. BSTS cumulative Σα(t) is the right output for promos. For a website redesign that permanently changes behaviour, regression β₃ is the right question.
+  </div>
+
+  <details>
+    <summary>Concrete comparison — same intervention, both methods</summary>
+    <p><strong>Website redesign (permanent):</strong></p>
+    <ul>
+      <li>Regression ITS: β₂ = +£500/day immediate jump · β₃ = +£10/day per week slope gain (growing permanently faster)</li>
+      <li>BSTS: cumulative over 3 months = £45K total lift (that's β₂·T + ½β₃·T² roughly)</li>
+    </ul>
+    <p><strong>4-day delivery promo (temporary):</strong></p>
+    <ul>
+      <li>Regression ITS: β₂ = +£2K/day jump · β₃ ≈ 0 (promo ends, slope returns to normal)</li>
+      <li>BSTS: Σα(t) over 4 days = £8K cumulative lift — directly readable, no integration needed</li>
+    </ul>
+    <p>CausalPy uses the <em>regression ITS</em> formula but gives β₂ and β₃ as full posterior distributions (credible intervals) instead of point estimates + frequentist CIs — same paradigm, richer uncertainty.</p>
+  </details>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5.2 — CHOOSE OR RUN BOTH?
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="7" data-nav-tier="sub-methods">
+  <span class="badge badge-sub">SUB-CHAPTER · MULTI-METHOD VALIDATION</span>
+  <h1>CHOOSE OR RUN BOTH?</h1>
+
+    <p>They answer different questions — running both is not redundant, but the logic depends on what the intervention is:</p>
+    <table class="flow-table" style="margin-top:10px">
+      <thead><tr><th>Intervention type</th><th>Primary method</th><th>Add the other?</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Temporary / bounded (promo, campaign)</td>
+          <td><span style="color:var(--accent)">BSTS</span> → cumulative Σα(t)</td>
+          <td>Regression ITS β₃ ≈ 0 and noisy — adds little. Skip or note it's expected flat.</td>
+        </tr>
+        <tr>
+          <td>Permanent / structural (UX redesign, pricing change)</td>
+          <td><span style="color:var(--honey)">Regression ITS</span> → β₂ + β₃</td>
+          <td>Running BSTS too is useful: if cumulative direction agrees, that's convergent validity. But interpret BSTS cumulative carefully — it will keep growing indefinitely if the effect persists.</td>
+        </tr>
+        <tr>
+          <td>Unsure whether effect is temporary or permanent</td>
+          <td>Run both</td>
+          <td>Plot BSTS α(t) over time — if α(t) stabilises at a constant level, the effect is likely permanent (→ regression interpretation); if it decays to zero, it's temporary (→ BSTS cumulative total is the metric).</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top:8px">Key rule: when you run both, don't average the numbers — interpret each on its own terms. If BSTS says +£300K cumulative and regression ITS says β₂=+£2K/day (×4 days ≈ £8K) and β₃≈0, they're not contradicting each other — they're measuring different things with different time horizons.</p>
+  
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5.3 — ITS VARIANTS
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="8" data-nav-tier="sub-methods">
+  <span class="badge badge-sub">SUB-CHAPTER · MULTI-METHOD VALIDATION</span>
+  <h1>ITS VARIANTS</h1>
+
+    <p>The "simple" segmented regression <code>Y = β₀ + β₁t + β₂D + β₃(t−T₀)D</code> is the baseline. Extensions, in order of practical importance:</p>
+    <table class="flow-table" style="margin-top:10px">
+      <thead><tr><th>Variant</th><th>What it adds</th><th>Use when</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span style="color:var(--rose)">Autoregressive ITS</span><br><small>(ARIMA-ITS)</small></td>
+          <td>Adds lagged Y(t−1), Y(t−2)… to the model</td>
+          <td>Almost always — business metrics are autocorrelated. Ignoring this inflates FPR.</td>
+        </tr>
+        <tr>
+          <td><span style="color:var(--teal)">Controlled ITS</span><br><small>(ITS + comparison series)</small></td>
+          <td>Subtracts a concurrent non-treated series before fitting: models the <em>gap</em> between treated and control</td>
+          <td>Strongest non-experimental design. Use when a comparable series exists that was unaffected (e.g. a product category not in the promo, or a parallel region).</td>
+        </tr>
+        <tr>
+          <td><span style="color:var(--honey)">Nonlinear trend ITS</span></td>
+          <td>Replaces β₁t with a polynomial or natural spline</td>
+          <td>Pre-period trend visibly curves (common in growing e-commerce series).</td>
+        </tr>
+        <tr>
+          <td><span style="color:var(--accent)">Multiple breakpoint ITS</span></td>
+          <td>Adds a second (or third) D/slope-change pair for each intervention</td>
+          <td>Sequential interventions on the same series (e.g. site launch → redesign → feature drop).</td>
+        </tr>
+        <tr>
+          <td><span style="color:var(--mist)">Hierarchical ITS</span></td>
+          <td>Multiple units (stores, regions, categories) each with their own β₂/β₃, sharing a common prior</td>
+          <td>Panel data — many units observed over time. Shares strength across units.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top:8px">CausalPy can implement the Bayesian version of most of these. BSTS absorbs autocorrelation and nonlinear trend automatically via its state-space components — one reason it's often preferred over plain regression ITS for messy real-world data.</p>
+  
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 9 — PERMUTATION TESTS
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="9" data-nav-tier="core">
   <h1>PERMUTATION TESTS</h1>
   <span class="badge">DON'T TRUST THE MODEL P-VALUE</span>
 
@@ -654,9 +753,9 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 9 — WATCH OUT: TOP PITFALLS
+     SLIDE 10 — WATCH OUT: TOP PITFALLS
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="9">
+<section class="slide" data-slide="10" data-nav-tier="core">
   <h1>WATCH OUT!</h1>
   <!-- Hootsworth the Owl — plum — wisdom / caution -->
   <div class="buddy-row">
@@ -686,12 +785,76 @@
     <li style="margin-top:10px"><span class="tag tag-red">TRAP 4</span> <strong>Mask zero-injection bug</strong> — masking a period then re-running data prep can silently fill masked days with y=0 + interpolated covariates. Verify your masked data has no rows, not rows of zeros.</li>
     <li style="margin-top:10px"><span class="tag tag-red">TRAP 5</span> <strong>Cherry-picking specs</strong> — reporting only the pre-period mode with lowest p-value. Show the full specification curve across all analytical choices.</li>
   </ul>
+  <div class="callout-slate" style="margin-top:14px">
+    ► Sub-chapter <span style="color:var(--slate)">8.1</span> in the side nav: a real UK retailer case that hit traps 1, 2, and 3 — and how the analysis was fixed.
+  </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 10 — DECISION GUIDE
+     SLIDE 10.1 — REAL CASE: RETAIL PROMO
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="10">
+<section class="slide" data-slide="11" data-nav-tier="sub-case">
+  <span class="badge badge-sub">SUB-CHAPTER · REAL CASE STUDY</span>
+  <h1>REAL CASE: RETAIL PROMO</h1>
+  <span class="badge">ANONYMIZED · UK E-COMMERCE RETAILER</span>
+
+  <h2>THE INTERVENTION</h2>
+  <p>A UK online retailer ran a <span style="color:var(--accent)">4-day delivery discount promo</span>. Goal: measure whether it generated incremental revenue beyond what would have happened anyway.</p>
+
+  <h2>THE ANALYSIS PIPELINE</h2>
+  <table class="flow-table">
+    <thead><tr><th>Step</th><th>What happened</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Pre-period</td>
+        <td>51 days of post-Christmas data (homogeneous regime) — chosen over 787-day full history because shorter = less seasonal noise</td>
+      </tr>
+      <tr>
+        <td>Covariates</td>
+        <td>Day-of-week, holidays, weather, Google Trends, sale-period detection. Paid sessions flagged as <span style="color:var(--rose)">contaminated</span> (media spend responded to the promo) and excluded.</td>
+      </tr>
+      <tr>
+        <td>Methods</td>
+        <td>6 methods run: BSTS (VI + HMC), CausalPy, RDiT, Prophet, Conformal CIs. All agreed the effect was positive.</td>
+      </tr>
+      <tr>
+        <td>Validation</td>
+        <td>448-spec Specification Curve Analysis. 99.5% of model variants showed a positive effect (range: +154K to +408K).</td>
+      </tr>
+      <tr>
+        <td>Permutation test</td>
+        <td>perm-p = 0.005 — the real promo effect was larger than 99.5% of random placebo dates.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>KEY LESSONS LEARNED</h2>
+  <ul>
+    <li><span class="tag tag-red">LESSON 1</span> Including paid sessions as a covariate inflated model p from 0.04 to 0.19 — the covariate was absorbing the effect.</li>
+    <li>
+      <span class="tag tag-red">LESSON 2</span> <strong>Pre-period length can fake significance.</strong> Two runs of the same promo, same methods — only the pre-period changed:
+      <ul>
+        <li><span style="color:var(--rose)">787-day pre-period</span> (full history): model p = 0.020 looked "significant" — but <strong>perm-p = 0.47</strong> (almost half of random placebo promo dates looked just as good). Do not trust this run.</li>
+        <li><span style="color:var(--teal)">51-day clean pre-period</span> (post-Christmas only, one seasonal regime): <strong>perm-p = 0.005</strong> — the real effect beat 99.5% of placebo dates. Trust this run.</li>
+      </ul>
+      <div class="callout-honey" style="margin-top:10px">
+        ► Why the mismatch? A long pre-period mixes Black Friday, Christmas, summer lulls, and normal weeks. The model can fit that mash-up and emit a low <em>model</em> p-value — but so can many fake intervention dates. The permutation test (perm-p) asks: "If I pretend the promo started on random days, how often do I get a lift this big?" With 787 days, often (~47%). With 51 homogeneous days, almost never (0.5%).
+      </div>
+      <details style="margin-top:8px">
+        <summary>What are model p and perm-p?</summary>
+        <p><strong>Model p</strong> — p-value from the Bayesian Structural Time Series (BSTS) fit: "Is zero inside the credible interval for the cumulative effect?" Often too optimistic (miscalibrated).</p>
+        <p><strong>Perm-p</strong> — permutation test p-value: shuffle many fake treatment start dates on the same pre-period, re-run the analysis, count how often |placebo effect| ≥ |real effect|. Low perm-p = the real promo beat almost all noise dates.</p>
+        <p><em>Concrete rule:</em> If model p looks good but perm-p &gt; 0.20, treat the result as unvalidated — shorten or clean the pre-period until perm-p ≤ 0.10.</p>
+      </details>
+    </li>
+    <li><span class="tag tag-green">LESSON 3</span> Multi-method convergence: conservative estimate (RDiT) ~160K, primary (BSTS HMC) ~300K, upper (Prophet) ~355K. All positive, direction unanimous.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 12 — DECISION GUIDE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="12" data-nav-tier="core">
   <h1>WHICH METHOD? DECISION GUIDE</h1>
 
   <table class="flow-table">
@@ -737,9 +900,9 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SLIDE 11 — QUEST COMPLETE
+     SLIDE 13 — QUEST COMPLETE
      ═══════════════════════════════════════════════════════════ -->
-<section class="slide" data-slide="11">
+<section class="slide" data-slide="13" data-nav-tier="core">
   <h1>QUEST COMPLETE</h1>
   <div class="buddy-row">
     <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
@@ -785,7 +948,7 @@
 
 <nav class="deck-controls">
   <button type="button" id="prev">◀ PREV</button>
-  <span id="counter">1 / 12</span>
+  <span id="counter">1 / 14</span>
   <button type="button" id="next">NEXT ▶</button>
 </nav>
 
@@ -794,16 +957,57 @@
   const sideNavList = document.getElementById("side-nav-list");
   const navButtons = [];
 
+  let mainNum = 0;
+  let subParentNum = 0;
+  let subIndex = 0;
+  let subMethodsHeaderAdded = false;
+  let subCaseHeaderAdded = false;
+
   slides.forEach((slide, j) => {
+    const tier = slide.dataset.navTier || "core";
+    let displayNum;
+
+    if (tier === "core") {
+      mainNum++;
+      subParentNum = mainNum;
+      subIndex = 0;
+      displayNum = String(mainNum);
+    } else if (tier === "sub-methods" || tier === "sub-case") {
+      if (tier === "sub-methods" && !subMethodsHeaderAdded) {
+        const head = document.createElement("p");
+        head.className = "side-nav-section";
+        head.textContent = "\u2570 MULTI-METHOD VALIDATION";
+        sideNavList.appendChild(head);
+        subMethodsHeaderAdded = true;
+      }
+      if (tier === "sub-case" && !subCaseHeaderAdded) {
+        const head = document.createElement("p");
+        head.className = "side-nav-section";
+        head.textContent = "\u2570 REAL CASE STUDY";
+        sideNavList.appendChild(head);
+        subCaseHeaderAdded = true;
+      }
+      subIndex++;
+      displayNum = `${subParentNum}.${subIndex}`;
+    } else {
+      displayNum = String(j + 1);
+    }
+
     const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "side-nav-btn";
-    btn.innerHTML = `<span class="side-nav-num">${j + 1}</span><span class="side-nav-label">${label}</span>`;
+    const isSub = tier === "sub-methods" || tier === "sub-case";
+    btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+    btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
     btn.addEventListener("click", () => show(j));
     sideNavList.appendChild(btn);
     navButtons.push(btn);
   });
+
+  const headCore = document.createElement("p");
+  headCore.className = "side-nav-section";
+  headCore.textContent = "360\u00b0 PATH \u2014 start here";
+  sideNavList.insertBefore(headCore, sideNavList.firstChild);
 
   let i = 0;
   const counter = document.getElementById("counter");
