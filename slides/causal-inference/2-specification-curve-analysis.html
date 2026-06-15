@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Specification Curve Analysis — Advanced Stats Quest</title>
+  <!-- Favicon: Hootsworth the Owl (plum) — wisdom / rigor -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="3" width="10" height="9" fill="%238870a0"/><rect x="4" y="4" width="3" height="3" fill="%23f0e8d8"/><rect x="9" y="4" width="3" height="3" fill="%23f0e8d8"/><rect x="5" y="5" width="1" height="1" fill="%233a3040"/><rect x="10" y="5" width="1" height="1" fill="%233a3040"/><rect x="7" y="7" width="2" height="1" fill="%23d4a060"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:     #f0ebe0;
+      --card:   #fffef8;
+      --accent: #1a5ca8;
+      --rose:   #c42848;
+      --honey:  #b86800;
+      --text:   #1c1a30;
+      --mist:   #6a5888;
+      --teal:   #0d7a6e;
+      --slate:  #3a4d7a;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 740px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    /* Side navigation */
+    .side-nav {
+      position: fixed;
+      left: 0; top: 0; bottom: 52px;
+      width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto;
+      z-index: 9;
+    }
+    .side-nav-title {
+      font-family: "Press Start 2P", monospace;
+      font-size: 8px;
+      color: var(--mist);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex; gap: 8px; align-items: flex-start;
+      width: 100%; text-align: left;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px; line-height: 1.35;
+      padding: 8px;
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .side-nav-btn:hover { background: rgba(26,92,168,.06); border-color: #ccc4e0; }
+    .side-nav-btn.active { background: rgba(26,92,168,.1); border-color: var(--accent); color: var(--accent); font-weight: bold; }
+    .side-nav-num { flex-shrink: 0; color: var(--mist); font-size: 10px; min-width: 1.2em; }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9px; color: var(--mist);
+      margin: 10px 0 4px; padding-top: 10px;
+      border-top: 1px solid #d0c8e0;
+      letter-spacing: 1px; line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+
+    .slide {
+      display: none;
+      background: var(--card);
+      border: 2px solid #ccc4e0;
+      box-shadow: 4px 4px 0 rgba(80,60,140,.18);
+      padding: 28px 28px 24px;
+      margin-bottom: 16px;
+    }
+    .slide.active { display: block; }
+    h1 {
+      font-family: "Press Start 2P", monospace;
+      font-size: 13px; color: var(--accent);
+      margin: 0 0 18px; letter-spacing: .5px;
+    }
+    h2 {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px; color: var(--honey);
+      font-weight: bold; text-transform: uppercase;
+      letter-spacing: 2px; margin: 18px 0 8px;
+    }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 22px; }
+    li { margin: 5px 0; }
+
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 18px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+    .buddy-speech {
+      flex: 1; background: #fff8f2;
+      border: 2px solid var(--rose); padding: 12px; position: relative;
+    }
+    .buddy-speech::before {
+      content: ""; position: absolute; left: -11px; top: 14px;
+      border: 7px solid transparent; border-right-color: var(--rose);
+    }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    .formula {
+      font-family: Consolas, "Courier New", monospace; font-size: 12px;
+      color: var(--accent); background: rgba(26,92,168,.06);
+      padding: 14px; border: 2px solid rgba(26,92,168,.3); margin: 12px 0;
+    }
+    .formula em { color: var(--honey); font-style: normal; }
+    .callout-teal { background: rgba(13,122,110,.07); border: 2px solid var(--teal); padding: 12px; margin: 10px 0; color: #075a50; }
+    .callout-rose { background: rgba(196,40,72,.06); border: 2px solid var(--rose); padding: 12px; margin: 10px 0; color: #8a1830; }
+    .callout-honey { background: rgba(184,104,0,.07); border: 2px solid var(--honey); padding: 12px; margin: 10px 0; color: #7a4400; }
+    .callout-slate { background: rgba(58,77,122,.07); border: 2px solid var(--slate); padding: 12px; margin: 10px 0; color: var(--slate); }
+
+    .tag { display: inline-block; padding: 1px 7px; font-size: 11px; border: 2px solid; margin: 2px 3px 2px 0; }
+    .tag-green  { color: var(--teal);  border-color: var(--teal);  }
+    .tag-red    { color: var(--rose);  border-color: var(--rose);  }
+    .tag-amber  { color: var(--honey); border-color: var(--honey); }
+    .tag-slate  { color: var(--slate); border-color: var(--slate); }
+
+    .flow-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 14px 0; }
+    .flow-table th {
+      background: rgba(26,92,168,.08); color: var(--accent); padding: 8px 10px;
+      text-align: left; border: 2px solid #ccc4e0;
+      font-family: Consolas, "Courier New", monospace; font-size: 11px;
+      font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .flow-table td { padding: 7px 10px; border: 2px solid #ccc4e0; vertical-align: top; }
+    .flow-table tr:nth-child(even) td { background: rgba(80,60,140,.04); }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 10px; }
+
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+    .checkpoint li { margin: 8px 0; }
+
+    .hr { border: 0; border-top: 2px solid #d0c8e0; margin: 14px 0; }
+
+    .badge {
+      display: inline-block;
+      font-family: Consolas, "Courier New", monospace; font-size: 10px;
+      color: var(--mist); border: 2px solid #ccc4e0;
+      padding: 1px 8px; margin-bottom: 12px; letter-spacing: 1px;
+    }
+    .badge-sub { border-color: var(--slate); color: var(--slate); }
+
+    nav.deck-controls {
+      position: fixed; bottom: 0; left: 212px; right: 0;
+      display: flex; justify-content: center; align-items: center; gap: 16px;
+      padding: 12px; background: rgba(240,235,224,.97);
+      border-top: 3px solid var(--honey); z-index: 10;
+    }
+    #counter { font-family: "Press Start 2P", monospace; font-size: 9px; color: var(--mist); min-width: 60px; text-align: center; }
+    button {
+      font-family: "Press Start 2P", monospace; font-size: 9px;
+      padding: 10px 16px; background: var(--accent); color: #fffef8;
+      border: 2px solid #0d3d7a; box-shadow: 3px 3px 0 rgba(26,92,168,.25); cursor: pointer;
+    }
+    button:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+
+    .fd-particle, .fd-petal { position: fixed; z-index: 99999; pointer-events: none; }
+    body { cursor: none; }
+    button, a, summary, [role="button"], .side-nav, .side-nav-btn, details { cursor: none !important; }
+    #laser-dot {
+      position: fixed; width: 12px; height: 12px; border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, #c42848 45%, transparent 70%);
+      box-shadow: 0 0 6px 2px #c42848, 0 0 14px 4px #c4284855;
+      pointer-events: none; z-index: 99999;
+      transform: translate(-50%, -50%); transition: transform 0.05s ease;
+    }
+    @media (prefers-reduced-motion: reduce) { #laser-dot { display: none; } body { cursor: auto; } }
+  </style>
+</head>
+<body>
+<aside class="side-nav" aria-label="Slide contents">
+  <p class="side-nav-title">CONTENTS</p>
+  <div id="side-nav-list" class="side-nav-list"></div>
+</aside>
+
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 0 — TITLE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide active" data-slide="0" data-nav-tier="core">
+  <span class="badge">CAUSAL INFERENCE · CONCEPT DECK</span>
+  <h1>SPECIFICATION CURVE</h1>
+  <div class="buddy-row">
+    <!-- Hootsworth the Owl — plum — wisdom / rigor -->
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+      <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+      <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+      <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+      <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> You ran a causal impact analysis and got p=0.03. Great! But did you try <em>other</em> reasonable setups? Would they agree — or flip the conclusion? That's what Specification Curve Analysis (SCA) answers.
+    </div>
+  </div>
+
+  <h2>WHAT YOU'LL LEARN</h2>
+  <ul>
+    <li>Why a single model specification can mislead — the "forking paths" problem</li>
+    <li>What SCA is and how it stress-tests analytical choices exhaustively</li>
+    <li>How to read a spec curve chart and indicator matrix</li>
+    <li>Why permutation validation is required on top of SCA</li>
+    <li>How to report honestly: range of estimates, not cherry-picked best</li>
+  </ul>
+  <p class="chart-caption" style="margin-top:12px;font-size:11px;color:var(--slate)">Companion to the Causal Impact deck. Assumes you know BSTS / counterfactual ITS basics.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 1 — THE PROBLEM: SPECIFICATION SEARCH
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="1" data-nav-tier="core">
+  <h1>THE PROBLEM</h1>
+  <p>Every causal impact analysis requires dozens of decisions <em>before</em> you see the result:</p>
+
+  <ul>
+    <li>Which covariates to include?</li>
+    <li>How long a pre-period? Start from October or January?</li>
+    <li>Mask out Christmas? All of November–January?</li>
+    <li>Weekly seasonality (nseasons=7) or biweekly (nseasons=14)?</li>
+    <li>Log-transform the target?</li>
+    <li>Day-of-week as sin/cos, binary weekend, or 7 dummies?</li>
+  </ul>
+
+  <p>Each of these is a <strong>forking path</strong> — a point where a reasonable analyst could go either way.</p>
+
+  <div class="callout-rose">
+    <strong>The specification search trap:</strong> If you try 48 combinations and report the one with the lowest p-value, you've run a multiple-testing experiment disguised as a single analysis. The "best" spec might just be the one that got lucky with noise.
+  </div>
+
+  <hr class="hr">
+
+  <div class="formula">
+    With just 6 binary choices → 2⁶ = <em>64 possible specifications</em>
+    <br>With realistic options (3–5 levels per choice) → hundreds or thousands
+  </div>
+
+  <div class="callout-teal">
+    ► Specification Curve Analysis (SCA) makes this problem the <em>feature</em>: run all reasonable specs, plot them all, and let the distribution speak.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 2 — WHAT IS SCA?
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="2" data-nav-tier="core">
+  <h1>WHAT IS SCA?</h1>
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="56" height="56" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+      <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+      <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> SCA was introduced by Simonsohn, Simmons &amp; Nelson (2020). The idea: instead of defending <em>one</em> specification, run <em>all</em> defensible ones and show the full distribution of results.
+    </div>
+  </div>
+
+  <h2>THE THREE-STEP RECIPE</h2>
+  <div class="callout-slate">
+    <span style="color:var(--accent)">① ENUMERATE</span> — List every reasonable analytical choice (covariates, pre-period, masking, seasonality, encoding). Cross them to get the full grid of specifications.
+  </div>
+  <div class="callout-slate">
+    <span style="color:var(--honey)">② RUN ALL</span> — Fit the causal impact model under every specification. Record the effect estimate, CI, and p-value for each.
+  </div>
+  <div class="callout-slate">
+    <span style="color:var(--rose)">③ PLOT &amp; INTERPRET</span> — Sort specs by effect size. Plot the spec curve (effect bars) with an indicator matrix below showing which choices produced each bar. The shape tells the story.
+  </div>
+
+  <hr class="hr">
+
+  <div class="callout-honey">
+    ► SCA does not "pick the best model." It asks: <strong>is the conclusion robust to the analytical choices, or does it depend on one lucky configuration?</strong>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 3 — THE FORKING PATHS
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="3" data-nav-tier="core">
+  <h1>THE FORKING PATHS</h1>
+  <p>In a causal impact analysis, these are the typical dimensions you vary across specs:</p>
+
+  <table class="flow-table">
+    <thead>
+      <tr><th>Dimension</th><th>Typical options</th><th>Why it matters</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span style="color:var(--accent)">Pre-period mode</span></td>
+        <td>Full range · mask Christmas · mask Nov–Jan · post-holiday trimmed</td>
+        <td>High-variance periods inflate CIs; masking removes them but also removes training data</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--honey)">Seasonality</span></td>
+        <td>nseasons=7 (weekly) · nseasons=14 (biweekly, captures payday cycles)</td>
+        <td>Biweekly often halves p-value in retail — but only if fortnightly patterns exist</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--teal)">Day-of-week encoding</span></td>
+        <td>None · sin/cos pair · binary is_weekend · 7 day dummies</td>
+        <td>Redundant with nseasons=7 but needed with nseasons=14</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--rose)">Calendar signals</span></td>
+        <td>None · Christmas intensity · bank holidays · full (xmas + holidays + payday)</td>
+        <td>Continuous intensity beats binary flags for high-variance events</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--slate)">External signals</span></td>
+        <td>None · Google Trends (category, daily) · weather · both</td>
+        <td>Category search (near-zero revenue correlation) is paradoxically the strongest covariate</td>
+      </tr>
+      <tr>
+        <td><span style="color:var(--mist)">Sale detection</span></td>
+        <td>None · binary flag · continuous intensity · both (zeroed during treatment)</td>
+        <td>Must be zeroed during the treatment window to prevent contamination</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-teal">
+    ► <strong>Masking and seasonal enrichments are mutually exclusive.</strong> Masking removes exactly the dates where holiday Gaussian signals are non-zero — making them constant (all zeros) in the pre-period. Pick one: mask to remove holiday variance, OR decompose to model it.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 4 — BUILDING THE SPEC GRID
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="4" data-nav-tier="core">
+  <h1>BUILDING THE GRID</h1>
+
+  <p>A full factorial of all dimensions creates thousands of specs — most are junk. Smart SCA uses <strong>curated bundles</strong> instead:</p>
+
+  <h2>BUNDLE STRATEGY</h2>
+  <ul>
+    <li><strong>Forward stepwise bundles</strong> — start from a minimal spec, add one enrichment at a time. Traces "what does each addition buy?" Often the first 2–3 enrichments capture 80% of the improvement.</li>
+    <li><strong>Leave-one-group-out bundles</strong> — start from the full spec, drop one enrichment group at a time. Identifies "which group matters most?"</li>
+    <li><strong>Head-to-head bundles</strong> — within each dimension, test genuinely different signals against each other (e.g. sin/cos vs binary weekend vs day dummies).</li>
+  </ul>
+
+  <hr class="hr">
+  <h2>PRACTICAL EXAMPLE — RETAIL SCA</h2>
+  <div class="formula">
+    4 pre-period modes × 2 seasonality × 4 DoW × 4 calendar × 3 external × 3 sale
+    <br>= 1,152 full factorial — but only ~50–100 curated bundles needed
+  </div>
+
+  <div class="callout-slate">
+    ► <strong>No hard covariate cap.</strong> BSTS uses a horseshoe prior that handles many covariates via shrinkage. If a 9-covariate spec passes the permutation test, the feature count is fine. Use permutation p &lt; 0.10 as the gatekeeper, not an arbitrary covariate budget.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5 — READING THE SPEC CURVE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="5" data-nav-tier="core">
+  <h1>READING THE CHART</h1>
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="56" height="56" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+      <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+      <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> A spec curve has two panels. The top panel is the headline — but the bottom panel (the indicator matrix) is where the insight lives.
+    </div>
+  </div>
+
+  <h2>TOP PANEL — THE SPEC CURVE</h2>
+  <p>Bars sorted by effect size (left = smallest, right = largest). Each bar = one specification's cumulative effect estimate. CI whiskers show uncertainty. Color marks significance:</p>
+  <ul>
+    <li><span class="tag tag-green">p &lt; 0.05</span> — formally significant</li>
+    <li><span class="tag tag-amber">p 0.05–0.10</span> — borderline</li>
+    <li><span class="tag tag-red">p &gt; 0.10</span> — not significant</li>
+  </ul>
+
+  <hr class="hr">
+  <h2>BOTTOM PANEL — INDICATOR MATRIX</h2>
+  <p>A binary grid below the bars. Each row is one analytical choice (e.g. "mask Nov–Jan: yes/no", "include weather: yes/no"). Filled dots show which choices produced each bar. Patterns emerge:</p>
+  <ul>
+    <li>If all green bars share "mask_xmas = yes" → masking drives significance</li>
+    <li>If green bars scatter across all rows → result is robust to choices</li>
+  </ul>
+
+  <hr class="hr">
+  <h2>WHAT TO REPORT</h2>
+  <div class="formula">
+    Median effect · IQR · % specs significant · % positive direction
+    <br>Per-dimension average p improvement when included vs excluded
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 6 — PERMUTATION VALIDATION
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="6" data-nav-tier="core">
+  <h1>PERMUTATION ON TOP</h1>
+  <span class="badge">SCA ALONE IS NOT ENOUGH</span>
+
+  <p>A spec that achieves p=0.03 across the curve looks good — but <em>does the same spec produce p=0.03 at random dates too?</em> If yes, the model is overconfident, not the effect is real.</p>
+
+  <h2>THE PROTOCOL</h2>
+  <ol>
+    <li>Take the top 50 specs from the SCA (sorted by p-value)</li>
+    <li>For each spec, run 10+ permutation shuffles (random fake treatment dates)</li>
+    <li>Compute permutation p for each spec: how often does a random date match or beat the real effect?</li>
+    <li>Any spec with permutation p &gt; 0.10 → flag as potentially spurious</li>
+  </ol>
+
+  <div class="callout-rose">
+    <strong>Real finding:</strong> In one retail engagement, sale signals alone passed BSTS p-value but <em>failed</em> the permutation test. When combined with external signals (Google Trends category), the combination passed. The external signal carried the robust causal information — the sale flag was just picking up calendar regularity.
+  </div>
+
+  <hr class="hr">
+  <h2>MASKING + TIGHT MODELS — THE OVERCONFIDENCE TRAP</h2>
+  <p>Masking high-variance months (e.g. Nov–Jan) leaves only calm data. The model becomes very "sure" of predictions from this calm period, producing low p-values for <em>both</em> real and random intervention dates.</p>
+
+  <div class="callout-honey">
+    ► One retail spec had BSTS p=0.017 but permutation p=0.22 — 11 out of 49 random dates produced effects as large as the real promo. The permutation p is the honest one. <strong>Always report both.</strong>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 7 — HONEST REPORTING
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="7" data-nav-tier="core">
+  <h1>THE HONEST REPORT</h1>
+
+  <p>After running the SCA and permutation validation, here's what to actually say:</p>
+
+  <table class="flow-table">
+    <thead>
+      <tr><th>What you found</th><th>How to frame it</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Pre-registered one spec, it's significant</td>
+        <td><span class="tag tag-green">CONFIRMATORY</span> — lead with it. This is the gold standard.</td>
+      </tr>
+      <tr>
+        <td>Tested N specs, <em>all</em> significant</td>
+        <td><span class="tag tag-green">ROBUST</span> — lead with the median and range. Very strong.</td>
+      </tr>
+      <tr>
+        <td>Tested N specs, <em>best one</em> is significant</td>
+        <td><span class="tag tag-amber">EXPLORATORY</span> — lead with the full range. Best spec is exploratory, not confirmatory. Consider Bonferroni correction: multiply best p by N.</td>
+      </tr>
+      <tr>
+        <td>Tested N specs, <em>none</em> significant</td>
+        <td><span class="tag tag-red">INCONCLUSIVE</span> — lead with Bayesian posterior probability and direction consistency. "Inconclusive" is a valid result.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="hr">
+  <div class="callout-rose">
+    <strong>The probability inflation trap:</strong> If you tested 48 specs and the best gave p=0.039, quoting "96% probability" (1 − 0.039) smuggles the cherry-picked result into a Bayesian-sounding claim. Derive the probability range from a <em>systematic</em> sensitivity rerun. Honest range: ~75–90%, not 80–96%.
+  </div>
+
+  <div class="callout-teal" style="margin-top:10px">
+    ► <strong>The client doesn't need p &lt; 0.05.</strong> They need to know whether to run the promo again. All specs positive + consistent direction is often more useful than one significant p-value.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 7.1 — WORKED EXAMPLE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="8" data-nav-tier="sub-detail">
+  <span class="badge badge-sub">SUB-CHAPTER · WORKED EXAMPLE</span>
+  <h1>REAL CASE: 448-SPEC SCA</h1>
+  <span class="badge">ANONYMIZED · UK E-COMMERCE RETAILER</span>
+
+  <h2>SETUP</h2>
+  <p>A UK retailer ran a 4-day delivery promo. The analyst ran a Specification Curve Analysis across 448 model variants, varying pre-period mode, seasonality, covariates, and enrichments.</p>
+
+  <h2>RESULTS SUMMARY</h2>
+  <table class="flow-table">
+    <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Total specs</td><td>448</td></tr>
+      <tr><td>% showing positive effect</td><td>99.5%</td></tr>
+      <tr><td>Effect range</td><td>+£154K to +£408K</td></tr>
+      <tr><td>Median effect</td><td>~£280K</td></tr>
+      <tr><td>Best permutation p</td><td>0.005 (short clean pre-period)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>KEY FINDINGS FROM THE INDICATOR MATRIX</h2>
+  <ul>
+    <li><strong>Short pre-period dominates low-p specs</strong> — Jan–Feb only (51 days). This reflects regime homogeneity: stable post-Christmas data reduces observation error variance, narrowing CIs. Not cherry-picking.</li>
+    <li><strong>Category Google Trends</strong> was the single strongest covariate improvement: ~6.5× p-value improvement over baseline, validated by permutation.</li>
+    <li><strong>Sale signals alone failed permutation</strong> (perm-p ~0.14) but combined with Trends they passed (perm-p ~0.08). Complementary, not standalone.</li>
+    <li><strong>Weather was the biggest permutation improver</strong> (perm-p from 0.098 → 0.059) despite minimal CI impact. Truly exogenous signals help the model explain residual variance at random dates.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 9 — QUIZ
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="9" data-nav-tier="core">
+  <h1>QUIZ</h1>
+
+  <p><strong>Scenario:</strong> You ran 60 SCA specs. The best one gives BSTS p = 0.02. The median across all specs gives p = 0.18. Permutation test on the best spec gives perm-p = 0.15.</p>
+
+  <p>Your stakeholder asks: "Is the campaign effect statistically significant?"</p>
+
+  <details>
+    <summary>Reveal answer</summary>
+    <p><strong>No — the result is exploratory, not confirmatory.</strong></p>
+    <ul>
+      <li>The best spec (p=0.02) is cherry-picked from 60 options. With Bonferroni correction: 0.02 × 60 = 1.2 — nowhere near significant.</li>
+      <li>The median p=0.18 represents the "typical" specification — not significant.</li>
+      <li>Permutation p=0.15 on the best spec means 15% of random dates look equally good — the model can't reliably distinguish the real intervention from noise.</li>
+      <li><strong>Honest framing:</strong> "Our best estimate is a positive effect (99% of specs agree on direction). However, we cannot claim statistical significance — the median p-value is 0.18 and the best spec's significance does not survive permutation validation."</li>
+    </ul>
+  </details>
+
+  <hr class="hr">
+
+  <p><strong>Bonus question:</strong> What would you change to improve the analysis?</p>
+  <details>
+    <summary>Reveal answer</summary>
+    <ul>
+      <li>Shorten the pre-period to a single homogeneous regime (e.g. post-Christmas)</li>
+      <li>Add truly exogenous covariates: weather, category-level Google Trends (not brand-level)</li>
+      <li>Remove covariates that were redundant with nseasons (e.g. cos_dow when nseasons=7)</li>
+      <li>Run a longer campaign next time — 4 days is at the detection limit for BSTS</li>
+    </ul>
+  </details>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 10 — QUEST COMPLETE
+     ═══════════════════════════════════════════════════════════ -->
+<section class="slide" data-slide="10" data-nav-tier="core">
+  <h1>QUEST COMPLETE</h1>
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+         shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+      <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+      <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+      <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+      <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+      <!-- sparkles -->
+      <rect x="1"  y="2" width="1" height="1" fill="#d4a76a"/>
+      <rect x="14" y="2" width="1" height="1" fill="#d4a76a"/>
+      <rect x="0"  y="5" width="1" height="1" fill="#82c4a0"/>
+      <rect x="15" y="5" width="1" height="1" fill="#82c4a0"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> Specification Curve Analysis turns a weakness (many possible models) into a strength (robustness evidence). The spec curve doesn't find the answer — it shows you whether an answer <em>exists</em> across all reasonable choices.
+    </div>
+  </div>
+
+  <ul class="checkpoint">
+    <li>Every analysis has forking paths — covariate choice, pre-period, masking, seasonality. Reporting one spec without acknowledging the others is incomplete at best, misleading at worst.</li>
+    <li>SCA runs all defensible specifications and plots the full distribution. The shape of the curve — not any single bar — is the finding.</li>
+    <li>Read the indicator matrix: if significance clusters around one configuration, the result is fragile. If it's spread across many configurations, it's robust.</li>
+    <li>SCA alone is not enough. Permutation tests validate whether low p-values reflect real effects or model overconfidence. Report both BSTS p and permutation p.</li>
+    <li>Honest framing: median effect, IQR, percentage of specs showing positive direction, percentage significant. Never lead with the cherry-picked best spec unless it was pre-registered.</li>
+  </ul>
+</section>
+
+</div><!-- /deck -->
+
+<nav class="deck-controls">
+  <button type="button" id="prev">◀ PREV</button>
+  <span id="counter">1 / 11</span>
+  <button type="button" id="next">NEXT ▶</button>
+</nav>
+
+<script>
+  const slides = [...document.querySelectorAll(".slide")];
+  const sideNavList = document.getElementById("side-nav-list");
+  const navButtons = [];
+
+  let mainNum = 0;
+  let subParentNum = 0;
+  let subIndex = 0;
+  let subDetailHeaderAdded = false;
+
+  slides.forEach((slide, j) => {
+    const tier = slide.dataset.navTier || "core";
+    let displayNum;
+
+    if (tier === "core") {
+      mainNum++;
+      subParentNum = mainNum;
+      subIndex = 0;
+      displayNum = String(mainNum);
+    } else if (tier === "sub-detail") {
+      if (!subDetailHeaderAdded) {
+        const head = document.createElement("p");
+        head.className = "side-nav-section";
+        head.textContent = "\u2570 WORKED EXAMPLE";
+        sideNavList.appendChild(head);
+        subDetailHeaderAdded = true;
+      }
+      subIndex++;
+      displayNum = `${subParentNum}.${subIndex}`;
+    } else {
+      displayNum = String(j + 1);
+    }
+
+    const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    const isSub = tier === "sub-detail";
+    btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+    btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
+    btn.addEventListener("click", () => show(j));
+    sideNavList.appendChild(btn);
+    navButtons.push(btn);
+  });
+
+  const headCore = document.createElement("p");
+  headCore.className = "side-nav-section";
+  headCore.textContent = "360\u00b0 PATH \u2014 start here";
+  sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
+  let i = 0;
+  const counter = document.getElementById("counter");
+  function show(n) {
+    i = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach((s, j) => s.classList.toggle("active", j === i));
+    navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+    counter.textContent = `${i + 1} / ${slides.length}`;
+    navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  document.getElementById("prev").onclick = () => show(i - 1);
+  document.getElementById("next").onclick = () => show(i + 1);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") show(i + 1);
+    if (e.key === "ArrowLeft")  show(i - 1);
+  });
+</script>
+
+<div id="laser-dot"></div>
+<script>
+/* ── Cursor effects: fairydust trail + click explosion ── */
+(function () {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var PALETTE = ['#1a5ca8','#c42848','#b86800','#0d7a6e','#6a5888','#f5c842','#e87060','#a8d870'];
+  var PETAL_COLORS = ['#c42848','#b86800','#f5c842','#6a5888','#1a5ca8','#e87060','#0d7a6e'];
+  var PISTIL_COLORS = ['#f5c842','#1c1a30','#c42848'];
+  var LEAF_COLORS = ['#a8d870','#4a9a40','#7bc860','#e8a040','#c84828'];
+  var STAR_COLORS = ['#1a5ca8','#b86800','#c42848','#0d7a6e'];
+  var PARTICLE_CAP = 40;
+  var lastSpawn = 0;
+  var particleCount = 0;
+  var laser = document.getElementById('laser-dot');
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function rnd(min, max) { return min + Math.random() * (max - min); }
+
+  function makeFlower() {
+    var color = pick(PETAL_COLORS);
+    var pistil = pick(PISTIL_COLORS);
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    svg.setAttribute('width', '14');
+    svg.setAttribute('height', '14');
+    var g = document.createElementNS(NS, 'g');
+    g.setAttribute('transform', 'translate(8,8)');
+    for (var i = 0; i < 5; i++) {
+      var petal = document.createElementNS(NS, 'ellipse');
+      petal.setAttribute('cx', '0');
+      petal.setAttribute('cy', '-4');
+      petal.setAttribute('rx', '2.5');
+      petal.setAttribute('ry', '4');
+      petal.setAttribute('fill', color);
+      petal.setAttribute('opacity', '0.9');
+      if (i > 0) petal.setAttribute('transform', 'rotate(' + (i * 72) + ')');
+      g.appendChild(petal);
+    }
+    var pistilEl = document.createElementNS(NS, 'circle');
+    pistilEl.setAttribute('cx', '0');
+    pistilEl.setAttribute('cy', '0');
+    pistilEl.setAttribute('r', '2.5');
+    pistilEl.setAttribute('fill', pistil);
+    g.appendChild(pistilEl);
+    svg.appendChild(g);
+    return svg;
+  }
+
+  function makeLeaf() {
+    var color = pick(LEAF_COLORS);
+    var angle = Math.floor(rnd(0, 360));
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    svg.setAttribute('width', '14');
+    svg.setAttribute('height', '14');
+    var ellipse = document.createElementNS(NS, 'ellipse');
+    ellipse.setAttribute('cx', '8');
+    ellipse.setAttribute('cy', '8');
+    ellipse.setAttribute('rx', '3.5');
+    ellipse.setAttribute('ry', '6.5');
+    ellipse.setAttribute('fill', color);
+    ellipse.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+    var line = document.createElementNS(NS, 'line');
+    line.setAttribute('x1', '8');
+    line.setAttribute('y1', '2');
+    line.setAttribute('x2', '8');
+    line.setAttribute('y2', '14');
+    line.setAttribute('stroke', '#2a5a20');
+    line.setAttribute('stroke-width', '0.8');
+    line.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+    svg.appendChild(ellipse);
+    svg.appendChild(line);
+    return svg;
+  }
+
+  function makeStar() {
+    var color = pick(STAR_COLORS);
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    svg.setAttribute('width', '14');
+    svg.setAttribute('height', '14');
+    var polygon = document.createElementNS(NS, 'polygon');
+    polygon.setAttribute('points', '8,1 9.5,6.5 15,8 9.5,9.5 8,15 6.5,9.5 1,8 6.5,6.5');
+    polygon.setAttribute('fill', color);
+    svg.appendChild(polygon);
+    return svg;
+  }
+
+  /* Effect 1 — Fairydust trail */
+  document.addEventListener('mousemove', function (e) {
+    if (laser) {
+      laser.style.left = e.clientX + 'px';
+      laser.style.top = e.clientY + 'px';
+    }
+    var now = Date.now();
+    if (now - lastSpawn < 30 || particleCount >= PARTICLE_CAP) return;
+    lastSpawn = now;
+
+    var size = 4 + Math.floor(rnd(0, 3));
+    var el = document.createElement('div');
+    el.className = 'fd-particle';
+    el.style.cssText = [
+      'width:' + size + 'px',
+      'height:' + size + 'px',
+      'background:' + pick(PALETTE),
+      'border-radius:0',
+      'left:' + (e.clientX + rnd(-6, 6) - size / 2) + 'px',
+      'top:' + (e.clientY + rnd(-6, 6) - size / 2) + 'px'
+    ].join(';');
+    document.body.appendChild(el);
+    particleCount++;
+
+    var ty = -rnd(20, 40);
+    el.animate(
+      [{ opacity: 1, transform: 'translateY(0)' },
+       { opacity: 0, transform: 'translateY(' + ty + 'px)' }],
+      { duration: rnd(600, 800), easing: 'ease-out', fill: 'forwards' }
+    ).addEventListener('finish', function () { el.remove(); particleCount--; });
+  });
+
+  /* Effect 2 — Click explosion with random theme (flower / leaf / star) */
+  document.addEventListener('click', function (e) {
+    var themes = ['flower', 'leaf', 'star'];
+    var theme = themes[Math.floor(Math.random() * 3)];
+    var count = 12 + Math.floor(rnd(0, 5));
+    for (var k = 0; k < count; k++) {
+      var angle = rnd(0, 360) * Math.PI / 180;
+      var dist = rnd(40, 80);
+      var dx = Math.cos(angle) * dist;
+      var dy = Math.sin(angle) * dist;
+      var rotate = rnd(0, 360);
+      var el;
+      if (theme === 'flower') { el = makeFlower(); }
+      else if (theme === 'leaf') { el = makeLeaf(); }
+      else { el = makeStar(); }
+      el.setAttribute('class', 'fd-petal');
+      el.style.cssText = [
+        'left:' + (e.clientX - 7) + 'px',
+        'top:' + (e.clientY - 7) + 'px',
+        'transform:rotate(' + rotate + 'deg)'
+      ].join(';');
+      document.body.appendChild(el);
+
+      (function (el, rotate, dx, dy) {
+        el.animate(
+          [{ opacity: 1, transform: 'rotate(' + rotate + 'deg) translate(0,0)' },
+           { opacity: 0, transform: 'rotate(' + (rotate + 180) + 'deg) translate(' + dx + 'px,' + dy + 'px)' }],
+          { duration: rnd(700, 900), easing: 'ease-out', fill: 'forwards' }
+        ).addEventListener('finish', function () { el.remove(); });
+      }(el, rotate, dx, dy));
+    }
+  });
+}());
+</script>
+</body>
+</html>
