@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Task 2: When Will the Owl Be Heard? — Advanced Stats Quest</title>
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="1" width="1" height="2" fill="%23706090"/><rect x="12" y="1" width="1" height="2" fill="%23706090"/><rect x="3" y="3" width="10" height="9" fill="%238870a0"/><rect x="4" y="4" width="3" height="3" fill="%23f0e8d8"/><rect x="9" y="4" width="3" height="3" fill="%23f0e8d8"/><rect x="5" y="5" width="1" height="1" fill="%233a3040"/><rect x="10" y="5" width="1" height="1" fill="%233a3040"/><rect x="7" y="7" width="2" height="1" fill="%23d4a060"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:     #f0ebe0;
+      --card:   #fffef8;
+      --accent: #1a5ca8;
+      --rose:   #c42848;
+      --honey:  #b86800;
+      --text:   #1c1a30;
+      --mist:   #6a5888;
+      --teal:   #0d7a6e;
+      --slate:  #3a4d7a;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 720px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+    .side-nav { position: fixed; left: 0; top: 0; bottom: 52px; width: 212px; padding: 16px 10px 16px 12px; background: var(--card); border-right: 2px solid #ccc4e0; box-shadow: 2px 0 0 rgba(80,60,140,.08); overflow-y: auto; z-index: 9; }
+    .side-nav-title { font-family: "DotGothic16", monospace; font-size: 8px; color: var(--mist); margin-bottom: 12px; letter-spacing: 1px; }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn { display: flex; gap: 8px; align-items: flex-start; width: 100%; text-align: left; font-family: Consolas, "Courier New", monospace; font-size: 11px; line-height: 1.35; padding: 8px; border: 2px solid transparent; background: transparent; color: var(--text); cursor: pointer; box-shadow: none; }
+    .side-nav-btn:hover { background: rgba(26,92,168,.06); border-color: #ccc4e0; }
+    .side-nav-btn.active { background: rgba(26,92,168,.1); border-color: var(--accent); color: var(--accent); font-weight: bold; }
+    .side-nav-num { flex-shrink: 0; color: var(--mist); font-size: 10px; min-width: 1.2em; }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section { font-family: Consolas, "Courier New", monospace; font-size: 9px; color: var(--mist); margin: 10px 0 4px; padding-top: 10px; border-top: 1px solid #d0c8e0; letter-spacing: 1px; line-height: 1.4; }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+    .slide { display: none; background: var(--card); border: 2px solid #ccc4e0; box-shadow: 4px 4px 0 rgba(80,60,140,.18); padding: 24px; margin-bottom: 16px; }
+    .slide.active { display: block; }
+    h1 { font-family: "DotGothic16", monospace; font-size: 13px; color: var(--accent); margin: 0 0 16px; letter-spacing: .5px; }
+    h2 { font-family: Consolas, "Courier New", monospace; font-size: 11px; color: var(--honey); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin: 18px 0 8px; }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+    .buddy-speech { flex: 1; background: #fff8f2; border: 2px solid var(--rose); padding: 12px; position: relative; }
+    .buddy-speech::before { content: ""; position: absolute; left: -11px; top: 14px; border: 7px solid transparent; border-right-color: var(--rose); }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+    .formula { font-family: Consolas, "Courier New", monospace; font-size: 12px; color: var(--accent); background: rgba(26,92,168,.06); padding: 14px 16px; border: 2px solid rgba(26,92,168,.3); margin: 12px 0; white-space: pre-wrap; overflow-x: auto; line-height: 1.9; }
+    .formula .katex { font-size: 1.08em; }
+    .formula .katex-display { margin: 6px 0; white-space: normal; }
+    .tip { border-bottom: 2px dashed var(--honey); cursor: help; }
+    #tip-box { position: fixed; display: none; background: #fff8f2; border: 2px solid var(--honey); box-shadow: 4px 4px 0 rgba(80,60,140,.22); padding: 10px 14px; max-width: 300px; font-size: 11px; z-index: 99998; color: var(--text); line-height: 1.6; pointer-events: none; }
+    .tip-label { font-weight: bold; color: var(--honey); display: block; margin-bottom: 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .formula em { color: var(--honey); font-style: normal; }
+    .callout { background: rgba(13,122,110,.08); border: 2px solid var(--teal); padding: 12px; margin: 12px 0; color: var(--teal); }
+    .warn { background: rgba(196,40,72,.06); border: 2px solid var(--rose); padding: 12px; margin: 12px 0; }
+    .warn strong { color: var(--rose); }
+    .flag { background: rgba(184,104,0,.08); border: 2px solid var(--honey); padding: 12px; margin: 12px 0; }
+    .flag strong { color: var(--honey); }
+    .visual-center { display: flex; justify-content: center; margin: 14px 0; }
+    .visual-row { display: flex; gap: 20px; align-items: flex-start; justify-content: center; flex-wrap: wrap; margin: 14px 0; }
+    .visual-caption { text-align: center; font-size: 10px; color: var(--mist); font-style: italic; margin-top: 4px; }
+    .table-wrap { overflow-x: auto; margin: 12px 0; }
+    table { border-collapse: collapse; width: 100%; font-size: 12px; }
+    th { background: rgba(26,92,168,.1); color: var(--accent); font-weight: bold; padding: 8px; border: 1px solid #ccc4e0; text-align: left; }
+    td { padding: 8px; border: 1px solid #ccc4e0; }
+    tr:nth-child(even) td { background: rgba(26,92,168,.03); }
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 8px; }
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+    .badge-exam { border: 2px solid var(--honey); color: var(--honey); font-size: 10px; padding: 4px 8px; margin-bottom: 12px; display: inline-block; }
+    .badge-sub { border: 2px solid var(--slate); color: var(--slate); font-size: 10px; padding: 4px 8px; margin-bottom: 12px; display: inline-block; }
+    .badge-visual { border: 2px solid var(--teal); color: var(--teal); font-size: 10px; padding: 4px 8px; margin-bottom: 12px; display: inline-block; }
+    .code-block { background: #1c1a30; color: #a8d870; font-family: Consolas, "Courier New", monospace; font-size: 11px; padding: 14px; border: 2px solid #3a3060; margin: 12px 0; line-height: 1.8; overflow-x: auto; white-space: pre; }
+    .code-block .c { color: #6a5888; }
+    .code-block .k { color: #7ac0f0; font-weight: bold; }
+    .code-block .s { color: #b86800; }
+    nav.deck-controls { position: fixed; bottom: 0; left: 212px; right: 0; display: flex; justify-content: center; align-items: center; gap: 16px; padding: 12px; background: rgba(240,235,224,.97); border-top: 3px solid var(--honey); z-index: 10; }
+    #counter { font-family: "DotGothic16", monospace; font-size: 9px; color: var(--mist); }
+    button { font-family: "DotGothic16", monospace; font-size: 9px; padding: 10px 16px; background: var(--accent); color: #fffef8; border: 2px solid #0d3d7a; box-shadow: 3px 3px 0 rgba(26,92,168,.25); cursor: pointer; }
+    button:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+    .fd-particle, .fd-petal { position: fixed; z-index: 99999; pointer-events: none; }
+    body { cursor: none; }
+    button, a, summary, [role="button"], .side-nav, .side-nav-btn, details { cursor: none !important; }
+    #laser-dot { position: fixed; width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle, #ffffff 0%, #c42848 45%, transparent 70%); box-shadow: 0 0 6px 2px #c42848, 0 0 14px 4px #c4284855; pointer-events: none; z-index: 99999; transform: translate(-50%,-50%); transition: transform 0.05s ease; }
+    @media (prefers-reduced-motion: reduce) { #laser-dot { display: none; } body { cursor: auto; } }
+  </style>
+</head>
+<body>
+<aside class="side-nav" aria-label="Slide contents">
+  <p class="side-nav-title">CONTENTS</p>
+  <div id="side-nav-list" class="side-nav-list"></div>
+</aside>
+
+<div class="deck" id="deck">
+
+<!-- ══ 0: Title ══ -->
+<section class="slide active" data-slide="0">
+  <span class="badge-exam">EXAM TASK 2 · ξ4 = 3 · SURVIVAL FUNCTION</span>
+  <h1>Task 2: When Will the Owl Be Heard?</h1>
+  <div class="buddy-row">
+    <!-- Hootsworth the Owl -->
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+      <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+      <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+      <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+      <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> Y = hours until you hear me call. You can't say exactly when — but you can model the probability of still not hearing me at any given time. That's a survival function. Press → to begin!
+    </div>
+  </div>
+  <p><strong>Your personal setup:</strong> ξ4 = 3 → survival mixture branch.<br>
+  F̄_Y(y) = P(Y &gt; y) = 0.79·e<sup>−4y²</sup> + 0.20·e<sup>−6y²</sup>,  y ≥ 0 (hours)</p>
+  <h2>What you will deliver</h2>
+  <ul>
+    <li>PDF f_Y(y) derived from the survival function (+ plot)</li>
+    <li>P(2 &lt; Y &lt; 4) — with honest discussion of the result</li>
+    <li>Minute-level histogram (unit-converted from hours)</li>
+    <li>Mean, variance, quartiles annotated on plots</li>
+    <li>Flag and discuss the 0.01 gap (ξ5 + ξ7 = 0.99 ≠ 1)</li>
+  </ul>
+</section>
+
+<!-- ══ 1: The big picture — time-to-event ══ -->
+<section class="slide" data-slide="1">
+  <span class="badge-visual">START HERE — THE BIG PICTURE</span>
+  <h1>Modeling Time-to-Event</h1>
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3" y="1" width="1" height="2" fill="#706090"/><rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3" y="3" width="10" height="9" fill="#8870a0"/><rect x="4" y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9" y="4" width="3" height="3" fill="#f0e8d8"/><rect x="5" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/><rect x="7" y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="5" y="8" width="6" height="3" fill="#c8a870"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> Task 2 is a different type of problem from Task 1. Task 1 had a fixed, known outcome (for/against). Task 2 has a continuous outcome: time. You can hear me at any moment — 3 minutes, 22 minutes, 1.5 hours. The math changes.
+    </div>
+  </div>
+  <p>Compare Task 1 vs Task 2:</p>
+  <div class="visual-center">
+    <svg width="560" height="140" viewBox="0 0 560 140" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <rect x="10" y="10" width="250" height="120" rx="4" fill="rgba(196,40,72,.05)" stroke="#c42848" stroke-width="2"/>
+      <text x="135" y="30" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">TASK 1 — Bernoulli</text>
+      <text x="135" y="50" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">DISCRETE outcomes</text>
+      <text x="135" y="70" text-anchor="middle" font-family="Consolas,monospace" font-size="13" fill="#1c1a30">{ "for", "against" }</text>
+      <text x="135" y="92" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">→ PMF (sum to 1)</text>
+      <text x="135" y="110" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">→ finite, countable</text>
+      <text x="135" y="126" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">→ bar chart</text>
+
+      <rect x="300" y="10" width="250" height="120" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
+      <text x="425" y="30" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">TASK 2 — Continuous</text>
+      <text x="425" y="50" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">CONTINUOUS outcomes</text>
+      <text x="425" y="70" text-anchor="middle" font-family="Consolas,monospace" font-size="13" fill="#1c1a30">Y ∈ [0, ∞)</text>
+      <text x="425" y="92" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">→ PDF (integrates to 1)</text>
+      <text x="425" y="110" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">→ uncountably infinite</text>
+      <text x="425" y="126" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">→ smooth curve</text>
+    </svg>
+  </div>
+  <p>Real-world examples of <em>time-to-event</em> models:</p>
+  <ul>
+    <li><strong>Reliability engineering</strong>: How long until a machine fails?</li>
+    <li><strong>Medicine</strong>: How long until a patient recovers (or relapses)?</li>
+    <li><strong>Finance</strong>: How long until a loan defaults?</li>
+    <li><strong>Your task</strong>: How long until the owl calls?</li>
+  </ul>
+  <div class="callout">
+    All of these are modeled with <strong>survival analysis</strong>. The core question is always: "At time y, what's the probability the event HASN'T happened yet?" That probability as a function of y is the survival function.
+  </div>
+</section>
+
+<!-- ══ 2: CDF vs Survival Function ══ -->
+<section class="slide" data-slide="2">
+  <h1>CDF vs Survival Function</h1>
+  <p>There are two equivalent ways to describe how a distribution spreads over time. They're mirror images of each other.</p>
+  <div class="visual-center">
+    <svg width="560" height="210" viewBox="0 0 560 210" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <defs>
+        <marker id="a1" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#1c1a30"/></marker>
+      </defs>
+      <!-- LEFT: CDF -->
+      <rect x="5" y="5" width="250" height="200" rx="4" fill="rgba(26,92,168,.05)" stroke="#1a5ca8" stroke-width="2"/>
+      <text x="130" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8" font-weight="bold">CDF — F_Y(y) = P(Y ≤ y)</text>
+      <text x="130" y="38" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">"owl HAS been heard by time y"</text>
+      <!-- axes -->
+      <line x1="35" y1="175" x2="240" y2="175" stroke="#1c1a30" stroke-width="1.5"/>
+      <line x1="35" y1="60" x2="35" y2="175" stroke="#1c1a30" stroke-width="1.5"/>
+      <!-- CDF curve: goes from 0 to ~1 -->
+      <path d="M35,174 C80,173 110,155 140,128 C165,105 185,75 210,62 C220,58 230,57 240,56"
+            stroke="#1a5ca8" stroke-width="2.5" fill="rgba(26,92,168,.08)"/>
+      <!-- labels -->
+      <text x="37" y="170" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0</text>
+      <text x="37" y="67" font-family="Consolas,monospace" font-size="9" fill="#6a5888">1</text>
+      <text x="35" y="190" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0</text>
+      <text x="225" y="190" font-family="Consolas,monospace" font-size="9" fill="#6a5888">time y →</text>
+      <text x="130" y="200" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1a5ca8">starts at 0, rises to 1</text>
+
+      <!-- RIGHT: Survival -->
+      <rect x="305" y="5" width="250" height="200" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
+      <text x="430" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">Survival — F̄_Y(y) = P(Y > y)</text>
+      <text x="430" y="38" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">"owl has NOT been heard yet"</text>
+      <!-- axes -->
+      <line x1="335" y1="175" x2="540" y2="175" stroke="#1c1a30" stroke-width="1.5"/>
+      <line x1="335" y1="60" x2="335" y2="175" stroke="#1c1a30" stroke-width="1.5"/>
+      <!-- Survival curve: starts near 1, falls to 0 -->
+      <path d="M335,62 C345,62 360,64 380,80 C400,98 420,128 450,155 C470,168 490,173 540,175"
+            stroke="#0d7a6e" stroke-width="2.5" fill="rgba(13,122,110,.08)"/>
+      <!-- labels -->
+      <text x="337" y="170" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0</text>
+      <text x="337" y="67" font-family="Consolas,monospace" font-size="9" fill="#6a5888">1</text>
+      <text x="335" y="190" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0</text>
+      <text x="525" y="190" font-family="Consolas,monospace" font-size="9" fill="#6a5888">time y →</text>
+      <text x="430" y="200" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">starts at 1, falls to 0</text>
+    </svg>
+  </div>
+  <div class="formula">$$\bar{F}_Y(y) = 1 - F_Y(y) \qquad \bar{F}_Y(y) + F_Y(y) = 1 \text{ always}$$
+$$F_Y(y) = 1 - \bar{F}_Y(y)$$</div>
+  <p>Your exam gives you F̄_Y(y) directly. Everything you need — the PDF, probabilities, mean — can be derived from it.</p>
+  <div class="callout">
+    <strong>Why give you the survival function instead of the CDF?</strong> In time-to-event problems, the survival function is more natural. "What fraction of owls are still unheard at time y?" is a more intuitive question than "What fraction have been heard by y?" — both are valid, just convention.
+  </div>
+</section>
+
+<!-- ══ 3: Reading the survival curve with real numbers ══ -->
+<section class="slide" data-slide="3">
+  <h1>Reading Your Survival Curve</h1>
+  <p>F̄_Y(y) = 0.79·e<sup>−4y²</sup> + 0.20·e<sup>−6y²</sup>. Let's plug in real values and see what it says.</p>
+
+  <!-- survival curve with annotated values -->
+  <div class="visual-center">
+    <svg width="560" height="220" viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <defs>
+        <marker id="a2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#b86800"/></marker>
+      </defs>
+      <!-- axes -->
+      <line x1="60" y1="180" x2="520" y2="180" stroke="#1c1a30" stroke-width="2"/>
+      <line x1="60" y1="20" x2="60" y2="180" stroke="#1c1a30" stroke-width="2"/>
+      <!-- y ticks -->
+      <line x1="53" y1="180" x2="60" y2="180" stroke="#1c1a30" stroke-width="1.5"/><text x="48" y="184" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0</text>
+      <line x1="53" y1="132" x2="60" y2="132" stroke="#1c1a30" stroke-width="1"/><text x="48" y="136" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0.25</text>
+      <line x1="53" y1="84" x2="60" y2="84" stroke="#1c1a30" stroke-width="1"/><text x="48" y="88" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0.50</text>
+      <line x1="53" y1="36" x2="60" y2="36" stroke="#1c1a30" stroke-width="1"/><text x="48" y="40" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0.99</text>
+      <!-- x ticks: y=0,0.25,0.5,0.75,1.0 mapped to x: 60,175,290,405,520 -->
+      <line x1="60" y1="180" x2="60" y2="187" stroke="#1c1a30" stroke-width="1.5"/><text x="60" y="198" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0</text>
+      <line x1="175" y1="180" x2="175" y2="187" stroke="#1c1a30" stroke-width="1.5"/><text x="175" y="198" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0.25h</text>
+      <line x1="290" y1="180" x2="290" y2="187" stroke="#1c1a30" stroke-width="1.5"/><text x="290" y="198" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0.5h</text>
+      <line x1="405" y1="180" x2="405" y2="187" stroke="#1c1a30" stroke-width="1.5"/><text x="405" y="198" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0.75h</text>
+      <line x1="520" y1="180" x2="520" y2="187" stroke="#1c1a30" stroke-width="1.5"/><text x="520" y="198" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">1.0h</text>
+      <!-- axis labels -->
+      <text x="290" y="213" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">time y (hours)</text>
+      <text x="12" y="100" font-family="Consolas,monospace" font-size="9" fill="#6a5888" transform="rotate(-90,12,100)">P(not heard yet)</text>
+      <!-- Survival curve: points mapped -->
+      <!-- y=0 → x=60, S=0.99 → svg_y=36+tiny = ~37 -->
+      <!-- y=0.25 → x=175, S=0.753 → svg_y = 180 - 0.753*160 = 180-120 = 60 -->
+      <!-- y=0.5 → x=290, S=0.335 → svg_y = 180 - 0.335*160 = 180-54 = 126 -->
+      <!-- y=0.75 → x=405, S=0.090 → svg_y = 180 - 0.090*160 = 180-14 = 166 -->
+      <!-- y=1.0 → x=520, S=0.015 → svg_y = 180 - 0.015*160 = 180-2 = 178 -->
+      <path d="M60,37 C90,37 130,45 175,60 C220,76 255,118 290,126 C335,135 370,162 405,166 C445,170 475,177 520,178"
+            stroke="#0d7a6e" stroke-width="2.5" fill="rgba(13,122,110,.07)"/>
+      <!-- data point dots + callouts -->
+      <!-- y=0: S=0.99 -->
+      <circle cx="60" cy="37" r="4" fill="#0d7a6e"/>
+      <line x1="62" y1="35" x2="100" y2="18" stroke="#b86800" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="102" y="17" font-family="Consolas,monospace" font-size="9" fill="#b86800">y=0: S=0.99</text>
+      <text x="102" y="28" font-family="Consolas,monospace" font-size="9" fill="#6a5888">99% not heard at t=0</text>
+      <!-- y=0.25: S=0.753 -->
+      <circle cx="175" cy="60" r="4" fill="#0d7a6e"/>
+      <line x1="177" y1="58" x2="210" y2="45" stroke="#b86800" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="212" y="44" font-family="Consolas,monospace" font-size="9" fill="#b86800">y=15min: S=0.75</text>
+      <text x="212" y="55" font-family="Consolas,monospace" font-size="9" fill="#6a5888">75% still waiting</text>
+      <!-- y=0.5: S=0.335 -->
+      <circle cx="290" cy="126" r="4" fill="#0d7a6e"/>
+      <line x1="288" y1="128" x2="240" y2="148" stroke="#b86800" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="142" y="149" font-family="Consolas,monospace" font-size="9" fill="#b86800">y=30min: S=0.34</text>
+      <text x="142" y="160" font-family="Consolas,monospace" font-size="9" fill="#6a5888">34% still waiting</text>
+      <!-- y=0.75: S=0.090 -->
+      <circle cx="405" cy="166" r="4" fill="#0d7a6e"/>
+      <!-- y=1.0: S=0.015 -->
+      <circle cx="520" cy="178" r="4" fill="#c42848"/>
+      <line x1="518" y1="176" x2="490" y2="158" stroke="#c42848" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="390" y="157" font-family="Consolas,monospace" font-size="9" fill="#c42848">y=1h: S=0.015</text>
+      <text x="390" y="168" font-family="Consolas,monospace" font-size="9" fill="#c42848">only 1.5% still waiting!</text>
+    </svg>
+  </div>
+  <p class="visual-caption">The owl is almost certainly heard within the first hour. By y=2 hours, S(2) ≈ 0.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Time y</th><th>In minutes</th><th>F̄(y) = P(not heard)</th><th>F(y) = P(heard)</th></tr>
+      <tr><td>0 h</td><td>0 min</td><td>0.990</td><td>0.010</td></tr>
+      <tr><td>0.25 h</td><td>15 min</td><td>0.753</td><td>0.247</td></tr>
+      <tr><td>0.50 h</td><td>30 min</td><td>0.335</td><td>0.665</td></tr>
+      <tr><td>0.75 h</td><td>45 min</td><td>0.090</td><td>0.910</td></tr>
+      <tr><td>1.00 h</td><td>60 min</td><td>0.015</td><td>0.985</td></tr>
+      <tr><td>2.00 h</td><td>120 min</td><td>≈ 0</td><td>≈ 1</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ══ 4: The 0.01 gap ══ -->
+<section class="slide" data-slide="4">
+  <h1>The 0.01 Gap — Flag It</h1>
+  <p>A valid survival function must satisfy F̄(0) = 1 (at the start, the event has definitely not happened). Check yours:</p>
+  <div class="formula">$$\bar{F}(0) = 0.79\cdot e^{0} + 0.20\cdot e^{0} = 0.79 + 0.20 = 0.99 \neq 1$$</div>
+
+  <div class="flag">
+    <strong>FLAG:</strong> ξ5 + ξ7 = 0.79 + 0.20 = 0.99. A proper mixture survival function requires these weights to sum to 1. The missing 0.01 is a parameter inconsistency. You must flag this in the notebook and discuss it. Do NOT silently proceed as if F̄(0) = 1.
+  </div>
+
+  <h2>What to write in the notebook</h2>
+  <div class="callout">
+    Two plausible explanations to offer: (1) <strong>Rounding</strong> — the generator rounded 0.795 → 0.79 and 0.205 → 0.20, losing 0.01. (2) <strong><span class="tip" data-tip-title="Point mass" data-tip="A point mass at $y=0$ means $P(Y=0) > 0$ — a discrete chunk of probability at a single exact value, mixed into an otherwise continuous distribution. This is called a mixed distribution. Here, 1% of nights might feature an owl called at exactly $t=0$.">Point mass at 0</span></strong> — there's a 1% probability the owl is heard at exactly t=0 (a "point mass" at the origin, not captured in the continuous part). In either case, proceed with the given parameters, acknowledge the gap, and note that all computed probabilities will be off by at most 0.01 from the "true" normalized version.
+  </div>
+
+  <h2>Does it change your work?</h2>
+  <ul>
+    <li>The PDF still integrates to 0.99 (not 1) — state this explicitly</li>
+    <li>All formulas remain the same — you just work with the given F̄(y) as-is</li>
+    <li>The examiner is testing whether you <em>notice</em> — this is a deliberate check</li>
+  </ul>
+  <div class="warn">
+    <strong>Common mistake:</strong> silently "fixing" the weights by renormalizing to 0.79/0.99 and 0.20/0.99. That changes the problem parameters. Flag the gap, use the given values, discuss the implication. That's all.
+  </div>
+</section>
+
+<!-- ══ 5: Mixture distributions ══ -->
+<section class="slide" data-slide="5">
+  <h1>Mixture = Two Populations Blended</h1>
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3" y="1" width="1" height="2" fill="#706090"/><rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3" y="3" width="10" height="9" fill="#8870a0"/><rect x="4" y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9" y="4" width="3" height="3" fill="#f0e8d8"/><rect x="5" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/><rect x="7" y="7" width="2" height="1" fill="#d4a060"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> Imagine two types of nights: "quiet nights" where I call early (~22 min average), and "slow nights" where I take longer (~27 min average). 80% of nights are slow, 20% are quick. If you sample a night at random, you get a mixture of both behaviors. That's what the two terms model.
+    </div>
+  </div>
+
+  <div class="visual-center">
+    <svg width="560" height="200" viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <!-- axes -->
+      <line x1="40" y1="160" x2="540" y2="160" stroke="#1c1a30" stroke-width="1.5"/>
+      <line x1="40" y1="20" x2="40" y2="160" stroke="#1c1a30" stroke-width="1.5"/>
+      <text x="290" y="178" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">time y (hours) →</text>
+      <text x="290" y="190" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">mode ≈ 21 min     mode ≈ 26 min</text>
+
+      <!-- Component 1 (weight 0.79): f₁_scaled = 0.79 * 8y·e^(-4y²), peak ~1.39 at y≈0.354 -->
+      <!-- Component 2 (weight 0.20): f₂_scaled = 0.20 * 12y·e^(-6y²), peak ~0.35 at y≈0.289 -->
+      <!-- Combined peak: ~1.76 at y≈0.35 -->
+      <!-- Scale: y from 0 to 1.2h → x: 40 to 540, so 1h = 416px -->
+      <!-- SVG y: 160 - value * 85 (so peak of 1.76 → 160 - 150 = 10) -->
+      <!-- Actually let me use: height scaled so max (1.76) maps to about 130px height → scale = 74 -->
+
+      <!-- Component 2 curve (narrower, lighter) — draw first so component 1 overlays -->
+      <!-- f2_path: 0.20 * 12y * e^(-6y^2) sampled at key points: -->
+      <!-- y=0:0, y=0.1:0.20*12*0.1*e^(-0.06)=0.20*1.130=0.226, y=0.2:0.20*12*0.2*e^(-0.24)=0.20*1.881=0.376 -->
+      <!-- y=0.289 (peak):0.20*12*0.289*e^(-0.5)=0.20*2.10=0.420... hmm let me just approximate -->
+      <!-- Component 2 peak: d/dy[12y·e^(-6y²)]=12(1-12y²)e^(-6y²)=0 → y=1/√12=0.2887 -->
+      <!-- peak val: 12*0.2887*e^(-0.5)=12*0.2887*0.6065=0.2099*12=2.099... *0.20 = 0.420 wait -->
+      <!-- f2(y) = 0.20*(12y*e^(-6y²)), at y=0.289: 0.20*12*0.289*e^(-0.5) = 0.20*3.468*0.6065 = 0.421 -->
+      <!-- SVG: scale=74, so peak maps to 160-0.421*74=160-31=129... that seems small -->
+      <!-- Let's use scale = 100 so combined peak (1.758) → 160-176 = too big -->
+      <!-- Let me use scale=80: combined peak 1.758*80=141, starts at 160, so svg_y_peak = 19. -->
+      <!-- Actually OK let's use scale=75 -->
+
+      <!-- Component 2 path (0.20 weight, faster decay) -->
+      <path d="M40,160 C80,160 110,155 135,140 C148,133 155,129 165,130 C175,131 195,140 230,150 C270,158 330,160 540,160"
+            stroke="#c42848" stroke-width="1.5" fill="rgba(196,40,72,.07)" stroke-dasharray="5,3"/>
+
+      <!-- Component 1 path (0.79 weight, slower decay) -->
+      <path d="M40,160 C80,160 120,153 165,125 C188,110 200,96 215,100 C232,105 260,120 300,140 C350,155 420,159 540,160"
+            stroke="#1a5ca8" stroke-width="1.5" fill="rgba(26,92,168,.07)" stroke-dasharray="5,3"/>
+
+      <!-- Combined PDF path (sum) -->
+      <path d="M40,160 C80,160 115,148 160,107 C185,86 200,78 216,82 C235,87 265,108 310,135 C360,153 430,159 540,160"
+            stroke="#0d7a6e" stroke-width="2.5" fill="rgba(13,122,110,.10)"/>
+
+      <!-- legend -->
+      <line x1="50" y1="30" x2="80" y2="30" stroke="#c42848" stroke-width="2" stroke-dasharray="5,3"/>
+      <text x="85" y="34" font-family="Consolas,monospace" font-size="9" fill="#c42848">Component 2: 0.20·12y·e^(−6y²) — faster</text>
+      <line x1="50" y1="46" x2="80" y2="46" stroke="#1a5ca8" stroke-width="2" stroke-dasharray="5,3"/>
+      <text x="85" y="50" font-family="Consolas,monospace" font-size="9" fill="#1a5ca8">Component 1: 0.79·8y·e^(−4y²)  — slower</text>
+      <line x1="50" y1="62" x2="80" y2="62" stroke="#0d7a6e" stroke-width="2.5"/>
+      <text x="85" y="66" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">Combined PDF f_Y(y) — what you observe</text>
+    </svg>
+  </div>
+  <div class="formula">$$\bar{F}(y) = \underbrace{0.79}_{\substack{\text{weight of}\\\text{slow component}}} \cdot e^{-4y^2} \;+\; \underbrace{0.20}_{\substack{\text{weight of}\\\text{fast component}}} \cdot e^{-6y^2}$$</div>
+  <p>The combined survival is a weighted average of two "pure" survival curves. When you observe a random night, 79% of the time you're drawing from the slower-decay distribution, 20% from the faster one.</p>
+</section>
+
+<!-- ══ 6: Survival → PDF ══ -->
+<section class="slide" data-slide="6">
+  <h1>From Survival Function to PDF</h1>
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3" y="1" width="1" height="2" fill="#706090"/><rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3" y="3" width="10" height="9" fill="#8870a0"/><rect x="4" y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9" y="4" width="3" height="3" fill="#f0e8d8"/><rect x="5" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/><rect x="7" y="7" width="2" height="1" fill="#d4a060"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> Think of the survival curve like water draining from a tank. The current level is S(y). The <em>rate</em> at which water is leaving the tank right now is the density f(y). Fast drain = high density. The PDF is just "how quickly is S(y) dropping?"
+    </div>
+  </div>
+
+  <!-- Water tank analogy -->
+  <div class="visual-center">
+    <svg width="540" height="170" viewBox="0 0 540 170" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <!-- Tank at t=0: nearly full -->
+      <rect x="30" y="20" width="100" height="130" rx="4" fill="none" stroke="#1c1a30" stroke-width="2"/>
+      <rect x="32" y="22" width="96" height="127" rx="2" fill="rgba(13,122,110,.15)"/>
+      <rect x="32" y="22" width="96" height="127" rx="2" fill="rgba(13,122,110,.35)" opacity="0.8"/>
+      <text x="80" y="95" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="white" font-weight="bold">S(0)=0.99</text>
+      <text x="80" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="white">nearly full</text>
+      <text x="80" y="163" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">t = 0</text>
+      <!-- arrow down slow -->
+      <line x1="80" y1="152" x2="80" y2="162" stroke="#1c1a30" stroke-width="1.5" marker-end="url(#a3)"/>
+
+      <!-- Tank at t=0.25h: 75% full -->
+      <rect x="165" y="20" width="100" height="130" rx="4" fill="none" stroke="#1c1a30" stroke-width="2"/>
+      <rect x="167" y="54" width="96" height="95" rx="2" fill="rgba(13,122,110,.35)"/>
+      <text x="215" y="105" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="white" font-weight="bold">S(0.25)=0.75</text>
+      <text x="215" y="163" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">t = 15min</text>
+
+      <!-- Tank at t=0.5h: 34% full -->
+      <rect x="300" y="20" width="100" height="130" rx="4" fill="none" stroke="#1c1a30" stroke-width="2"/>
+      <rect x="302" y="106" width="96" height="43" rx="2" fill="rgba(13,122,110,.35)"/>
+      <text x="350" y="130" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="white" font-weight="bold">S(0.5)=0.34</text>
+      <text x="350" y="163" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">t = 30min</text>
+
+      <!-- Tank at t=1h: almost empty -->
+      <rect x="435" y="20" width="100" height="130" rx="4" fill="none" stroke="#1c1a30" stroke-width="2"/>
+      <rect x="437" y="148" width="96" height="1" rx="2" fill="rgba(13,122,110,.35)"/>
+      <text x="485" y="95" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">S(1)≈0.015</text>
+      <text x="485" y="110" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">almost empty</text>
+      <text x="485" y="163" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">t = 1h</text>
+
+      <defs>
+        <marker id="a3" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#1c1a30"/></marker>
+      </defs>
+    </svg>
+  </div>
+  <p class="visual-caption">The tank drains fastest when it's between ¼ and ½ full — that's where the PDF peaks (around 20-25 min).</p>
+
+  <h2>The formula</h2>
+  <div class="formula">$$f_Y(y) = -\frac{d}{dy}\,\bar{F}_Y(y)$$
+The negative sign: $\bar{F}(y)$ is decreasing, so its derivative is negative.
+We negate it to get a positive density.</div>
+  <p>The logic: if S(y) drops by 0.10 between y=0.4 and y=0.5, that means 10% of owls are heard in that half-hour window — and the density there is high.</p>
+</section>
+
+<!-- ══ 7: The PDF derivation ══ -->
+<section class="slide" data-slide="7">
+  <h1>Deriving the PDF — Step by Step</h1>
+  <div class="formula">Start with:
+  $$\bar{F}(y) = 0.79\,e^{-4y^2} + 0.20\,e^{-6y^2}$$
+
+Differentiate term by term using <span class="tip" data-tip-title="Chain rule" data-tip="$\frac{d}{dy}[g(h(y))] = g'(h(y))\cdot h'(y)$. Here: $\frac{d}{dy}[e^{-ay^2}] = e^{-ay^2}\cdot(-2ay) = -2ay\,e^{-ay^2}$.">chain rule</span>:
+  $\tfrac{d}{dy}[e^{-4y^2}] = -8y\,e^{-4y^2}$
+  $\tfrac{d}{dy}[e^{-6y^2}] = -12y\,e^{-6y^2}$
+
+So:
+  $\tfrac{d}{dy}\bar{F}(y) = 0.79\cdot(-8y)\,e^{-4y^2} + 0.20\cdot(-12y)\,e^{-6y^2}$
+
+Apply $f(y) = -\tfrac{d}{dy}\bar{F}(y)$:
+  $$f_Y(y) = 0.79\cdot 8y\,e^{-4y^2} + 0.20\cdot 12y\,e^{-6y^2}$$
+  $$\boxed{f_Y(y) = 6.32\,y\,e^{-4y^2} + 2.40\,y\,e^{-6y^2}}$$</div>
+
+  <h2>Sanity check — integrate to verify</h2>
+  <div class="formula">$\displaystyle\int_0^\infty a\,y\,e^{-by^2}\,dy = \frac{a}{2b}$ &nbsp;&nbsp;[standard result]
+
+$\displaystyle\int_0^\infty 6.32\,y\,e^{-4y^2}\,dy = \frac{6.32}{8} = 0.79$ &nbsp;✓
+$\displaystyle\int_0^\infty 2.40\,y\,e^{-6y^2}\,dy = \frac{2.40}{12} = 0.20$ ✓
+
+Total: $0.79 + 0.20 = 0.99$ ← confirms the 0.01 gap</div>
+
+  <!-- PDF plot -->
+  <div class="visual-center">
+    <svg width="520" height="165" viewBox="0 0 520 165" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <!-- axes -->
+      <line x1="50" y1="140" x2="500" y2="140" stroke="#1c1a30" stroke-width="1.5"/>
+      <line x1="50" y1="10" x2="50" y2="140" stroke="#1c1a30" stroke-width="1.5"/>
+      <!-- y tick marks: scale 1.758 → 110px, so 1.0 → 63px -->
+      <line x1="44" y1="140" x2="50" y2="140" stroke="#1c1a30" stroke-width="1"/><text x="40" y="144" text-anchor="end" font-family="Consolas,monospace" font-size="8" fill="#6a5888">0</text>
+      <line x1="44" y1="77" x2="50" y2="77" stroke="#1c1a30" stroke-width="1"/><text x="40" y="81" text-anchor="end" font-family="Consolas,monospace" font-size="8" fill="#6a5888">1</text>
+      <line x1="44" y1="30" x2="50" y2="30" stroke="#1c1a30" stroke-width="1"/><text x="40" y="34" text-anchor="end" font-family="Consolas,monospace" font-size="8" fill="#6a5888">1.76</text>
+      <!-- x ticks: y=0..1h, 450px range -->
+      <line x1="50" y1="140" x2="50" y2="147" stroke="#1c1a30" stroke-width="1"/><text x="50" y="158" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">0</text>
+      <line x1="162" y1="140" x2="162" y2="147" stroke="#1c1a30" stroke-width="1"/><text x="162" y="158" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">0.25h</text>
+      <line x1="275" y1="140" x2="275" y2="147" stroke="#1c1a30" stroke-width="1"/><text x="275" y="158" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">0.5h</text>
+      <line x1="387" y1="140" x2="387" y2="147" stroke="#1c1a30" stroke-width="1"/><text x="387" y="158" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">0.75h</text>
+      <line x1="500" y1="140" x2="500" y2="147" stroke="#1c1a30" stroke-width="1"/><text x="500" y="158" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">1h</text>
+      <!-- PDF curve: sample points mapped -->
+      <!-- x mapping: y*450+50, svg_y mapping: 140 - f*63 -->
+      <!-- y=0: x=50, f=0, svgy=140 -->
+      <!-- y=0.1: x=95, f=0.833, svgy=140-52=88 -->
+      <!-- y=0.2: x=140, f=1.455, svgy=140-92=48 -->
+      <!-- y=0.3: x=185, f=1.742, svgy=140-110=30 -->
+      <!-- y=0.35: x=207, f=1.758, svgy=140-111=29 (mode) -->
+      <!-- y=0.4: x=230, f=1.701, svgy=140-107=33 -->
+      <!-- y=0.5: x=275, f=1.430, svgy=140-90=50 -->
+      <!-- y=0.6: x=320, f=1.065, svgy=140-67=73 -->
+      <!-- y=0.8: x=410, f=0.432, svgy=140-27=113 -->
+      <!-- y=1.0: x=500, f=0.122, svgy=140-8=132 -->
+      <path d="M50,140 C60,140 75,115 95,88 C115,62 130,46 140,48 C155,50 170,34 185,30 C198,27 207,29 215,30 C225,32 240,37 260,46 C275,53 295,64 320,73 C345,82 375,100 410,113 C450,126 475,131 500,132"
+            stroke="#0d7a6e" stroke-width="2.5" fill="rgba(13,122,110,.10)"/>
+      <!-- mode marker -->
+      <line x1="207" y1="29" x2="207" y2="140" stroke="#b86800" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="210" y="25" font-family="Consolas,monospace" font-size="8" fill="#b86800">mode ≈ 21 min</text>
+      <!-- mean marker -->
+      <line x1="240" y1="37" x2="240" y2="140" stroke="#1a5ca8" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="243" y="70" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">mean=25min</text>
+      <!-- axis label -->
+      <text x="275" y="10" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e" font-weight="bold">f_Y(y) = 6.32y·e^(−4y²) + 2.40y·e^(−6y²)</text>
+    </svg>
+  </div>
+  <p class="visual-caption">The PDF is zero at y=0 (you can't hear an instantaneous sound), peaks around 21 min, then decays. This <span class="tip" data-tip-title="Rayleigh distribution" data-tip="The Rayleigh distribution has PDF $f(x) = (x/\sigma^2)\,e^{-x^2/(2\sigma^2)}$ — zero at 0, peaks at $\sigma$, then decays. Your $f_Y(y) = 6.32\,y\,e^{-4y^2} + 2.40\,y\,e^{-6y^2}$ has exactly that shape: starts at 0, peaks ~21 min, then decays.">Rayleigh-like</span> shape is typical for "shortest time to an event with a quadratic hazard."</p>
+</section>
+
+<!-- ══ 8: Computing P(2 < Y < 4) ══ -->
+<section class="slide" data-slide="8">
+  <h1>Computing P(2 &lt; Y &lt; 4)</h1>
+  <p>The exam asks for P(2 &lt; Y &lt; 4). The survival function gives us interval probabilities elegantly:</p>
+  <div class="formula">For any $a < b$:
+  $$P(a < Y < b) = P(Y > a) - P(Y > b) = \bar{F}(a) - \bar{F}(b)$$</div>
+
+  <h2>Why this works — visually</h2>
+  <div class="visual-center">
+    <svg width="480" height="120" viewBox="0 0 480 120" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <!-- number line -->
+      <line x1="30" y1="60" x2="450" y2="60" stroke="#1c1a30" stroke-width="2"/>
+      <!-- marks: 0, a, b, ∞ -->
+      <line x1="30" y1="54" x2="30" y2="66" stroke="#1c1a30" stroke-width="2"/><text x="30" y="80" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">0</text>
+      <line x1="180" y1="54" x2="180" y2="66" stroke="#b86800" stroke-width="2"/><text x="180" y="80" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#b86800">a=2h</text>
+      <line x1="320" y1="54" x2="320" y2="66" stroke="#b86800" stroke-width="2"/><text x="320" y="80" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#b86800">b=4h</text>
+      <text x="450" y="64" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#6a5888">∞</text>
+      <!-- F_bar(a) = everything > a -->
+      <rect x="180" y="40" width="270" height="12" fill="rgba(26,92,168,.25)" rx="2"/>
+      <text x="315" y="35" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1a5ca8">F̄(a) = P(Y > a)</text>
+      <!-- F_bar(b) = everything > b -->
+      <rect x="320" y="52" width="130" height="12" fill="rgba(196,40,72,.25)" rx="2"/>
+      <text x="385" y="78" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">F̄(b) = P(Y > b)</text>
+      <!-- P(a < Y < b) = the middle part -->
+      <rect x="180" y="52" width="140" height="12" fill="rgba(13,122,110,.4)" rx="2"/>
+      <text x="250" y="106" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">P(a < Y < b) = F̄(a) − F̄(b)</text>
+      <line x1="250" y1="100" x2="250" y2="66" stroke="#0d7a6e" stroke-width="1" stroke-dasharray="3,2"/>
+    </svg>
+  </div>
+
+  <h2>The calculation</h2>
+  <div class="formula">$\bar{F}(2) = 0.79\,e^{-16} + 0.20\,e^{-24}$
+          $\approx 0.79 \times 1.13\times 10^{-7} + 0.20 \times 3.78\times 10^{-11}$
+          $\approx 8.89\times 10^{-8}$ (essentially zero)
+
+$\bar{F}(4) \approx 0$ (even smaller)
+
+$$P(2 < Y < 4) = \bar{F}(2) - \bar{F}(4) \approx 8.89\times 10^{-8} \approx 0$$</div>
+
+  <div class="callout">
+    This is the correct answer — and an important one. The owl is almost certainly heard within the first hour (S(1) = 0.015). By 2 hours, the probability of still waiting is 0.0000001. P(2 &lt; Y &lt; 4) is not zero by mistake — it reflects that the distribution puts essentially all its mass in the first hour. State this explicitly in the notebook.
+  </div>
+</section>
+
+<!-- ══ 9: Unit conversion ══ -->
+<section class="slide" data-slide="9">
+  <h1>Unit Conversion: Hours → Minutes</h1>
+  <p>The exam asks for a "minute-level histogram." Your survival function uses Y in <strong>hours</strong>. You need to convert to <strong>minutes</strong> and simulate/plot in those units.</p>
+
+  <div class="visual-center">
+    <svg width="540" height="130" viewBox="0 0 540 130" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <defs>
+        <marker id="a4" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#1a5ca8"/></marker>
+      </defs>
+      <!-- Y in hours box -->
+      <rect x="10" y="20" width="180" height="90" rx="4" fill="rgba(26,92,168,.06)" stroke="#1a5ca8" stroke-width="2"/>
+      <text x="100" y="42" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8" font-weight="bold">Y (hours)</text>
+      <text x="100" y="62" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">f_Y(y) = 6.32y·e^(−4y²)</text>
+      <text x="100" y="78" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">          + 2.40y·e^(−6y²)</text>
+      <text x="100" y="98" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">mean ≈ 0.422 h</text>
+
+      <!-- arrow + transformation -->
+      <line x1="192" y1="65" x2="340" y2="65" stroke="#1a5ca8" stroke-width="2" marker-end="url(#a4)"/>
+      <rect x="210" y="38" width="120" height="44" rx="4" fill="rgba(184,104,0,.08)" stroke="#b86800" stroke-width="1.5"/>
+      <text x="270" y="56" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#b86800" font-weight="bold">T = 60·Y</text>
+      <text x="270" y="72" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800">multiply by 60</text>
+
+      <!-- T in minutes box -->
+      <rect x="342" y="20" width="188" height="90" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
+      <text x="436" y="42" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">T (minutes)</text>
+      <text x="436" y="62" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">f_T(t) = f_Y(t/60) / 60</text>
+      <text x="436" y="80" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">mean ≈ 25.35 min</text>
+      <text x="436" y="96" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">median ≈ 23.93 min</text>
+    </svg>
+  </div>
+
+  <h2>Why f_T(t) = f_Y(t/60) / 60?</h2>
+  <p>This is the <span class="tip" data-tip-title="Change of variables" data-tip="If $T = g(Y)$ (a monotone transformation), the PDF of $T$ is $f_T(t) = f_Y(g^{-1}(t))\cdot|dg^{-1}/dt|$. Here $T = 60Y$, so $g^{-1}(t) = t/60$ and $|dg^{-1}/dt| = 1/60$, giving $f_T(t) = f_Y(t/60)/60$.">change-of-variables</span> formula. If T = 60Y, then Y = T/60, and the PDF transforms as:</p>
+  <div class="formula">$$f_T(t) = f_Y\!\left(\tfrac{t}{60}\right)\cdot\left|\frac{dY}{dT}\right| = \frac{f_Y(t/60)}{60}$$
+The /60 is the <span class="tip" data-tip-title="Jacobian" data-tip="When changing variables from $Y$ to $T = cY$, the Jacobian $|dY/dT| = 1/c$ ensures the PDF still integrates to 1. The axis stretches $c\times$ wider, so the height must shrink $c\times$ — probability in any strip stays the same.">Jacobian</span> — it keeps the PDF integrating to 1.
+(Without the ÷60, the area under the curve would become 60, not 1.)</div>
+
+  <h2>For the histogram (practical)</h2>
+  <p>In code: sample Y in hours using <span class="tip" data-tip-title="Inverse-transform sampling" data-tip="If $U \sim \text{Uniform}(0,1)$, then $Y = F^{-1}(U)$ has CDF $F$. For your distribution: draw $u$, then solve $\bar{F}(y) = 1-u$ numerically for $y$. The resulting samples have the correct distribution.">inverse-transform sampling</span> or scipy, then multiply all samples by 60 before plotting. Use bins of width 1 (one bar per minute).</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Statistic</th><th>In hours</th><th>In minutes</th></tr>
+      <tr><td>Mean E[Y]</td><td>0.422 h</td><td>25.35 min</td></tr>
+      <tr><td>SD</td><td>0.229 h</td><td>13.73 min</td></tr>
+      <tr><td>Q1 (25th %ile)</td><td>0.256 h</td><td>15.37 min</td></tr>
+      <tr><td>Median</td><td>0.399 h</td><td>23.93 min</td></tr>
+      <tr><td>Q3 (75th %ile)</td><td>0.567 h</td><td>34.02 min</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ══ 10: Unit conversion deeper ══ -->
+<section class="slide" data-slide="10" data-nav-tier="sub" data-nav-section="╰ DEEPER">
+  <span class="badge-sub">SUB-CHAPTER</span>
+  <h1>Why the Jacobian — Intuition</h1>
+  <p>The /60 factor feels mysterious. Here's why it must be there.</p>
+
+  <div class="visual-center">
+    <svg width="520" height="150" viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <!-- In hours: area of a thin slice -->
+      <rect x="10" y="20" width="220" height="120" rx="4" fill="rgba(26,92,168,.05)" stroke="#1a5ca8" stroke-width="2"/>
+      <text x="120" y="38" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">PDF in hours</text>
+      <!-- axes -->
+      <line x1="30" y1="110" x2="210" y2="110" stroke="#1c1a30" stroke-width="1.5"/>
+      <line x1="30" y1="45" x2="30" y2="110" stroke="#1c1a30" stroke-width="1.5"/>
+      <!-- a thin strip around y=0.4h, width=0.1h -->
+      <rect x="100" y="58" width="18" height="52" fill="rgba(26,92,168,.3)" stroke="#1a5ca8" stroke-width="1"/>
+      <text x="109" y="130" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">0.4h</text>
+      <text x="109" y="54" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">f(0.4)≈1.70</text>
+      <text x="120" y="140" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">width = 0.1h</text>
+      <text x="120" y="130" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">area = 1.70×0.1=0.17</text>
+
+      <!-- arrow -->
+      <text x="260" y="80" text-anchor="middle" font-family="Consolas,monospace" font-size="16" fill="#b86800">→</text>
+      <text x="260" y="95" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#b86800">×60</text>
+
+      <!-- In minutes: same strip, but 6 minutes wide -->
+      <rect x="300" y="20" width="210" height="120" rx="4" fill="rgba(13,122,110,.06)" stroke="#0d7a6e" stroke-width="2"/>
+      <text x="405" y="38" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e">PDF in minutes</text>
+      <line x1="320" y1="110" x2="500" y2="110" stroke="#1c1a30" stroke-width="1.5"/>
+      <line x1="320" y1="45" x2="320" y2="110" stroke="#1c1a30" stroke-width="1.5"/>
+      <!-- same strip but now width = 6 minutes, height = f/60 -->
+      <rect x="385" y="58" width="18" height="52" fill="rgba(13,122,110,.3)" stroke="#0d7a6e" stroke-width="1"/>
+      <text x="394" y="130" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#0d7a6e">24min</text>
+      <text x="394" y="54" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#0d7a6e">f/60=0.028</text>
+      <text x="405" y="140" font-family="Consolas,monospace" font-size="8" fill="#0d7a6e">width = 6min</text>
+      <text x="405" y="130" font-family="Consolas,monospace" font-size="8" fill="#0d7a6e">area = 0.028×6=0.17 ✓</text>
+    </svg>
+  </div>
+  <p>The probability in the strip (the area) must be the same whether you measure in hours or minutes — it's the same physical event. The strip is 6× wider in minutes, so the height must be 6× shorter (÷60). The area stays the same. That's the Jacobian.</p>
+  <div class="callout">
+    General rule: if T = c·Y, then f_T(t) = f_Y(t/c)/c. The /c compensates for the c× stretching of the axis.
+  </div>
+</section>
+
+<!-- ══ 11: Mean, variance, quartiles ══ -->
+<section class="slide" data-slide="11">
+  <h1>Mean, Variance &amp; Quartiles</h1>
+  <p>For a continuous distribution, these are integrals — but your exam expects numerical computation via scipy or numpy. The formula is the same concept as Bernoulli, just with an integral instead of a sum.</p>
+
+  <div class="formula">$$E[Y] = \int_0^\infty y \cdot f_Y(y)\,dy \qquad \text{← continuous version of } \textstyle\sum_x x\cdot P(X=x)$$
+
+$$\text{Var}(Y) = \int_0^\infty y^2 \cdot f_Y(y)\,dy \;-\; \bigl(E[Y]\bigr)^2$$
+
+Median: solve $\bar{F}(m) = 0.495$ &nbsp;&nbsp;(= 0.99/2, accounting for the gap)
+Q1:     solve $\bar{F}(q) = 0.99\times 0.75 = 0.7425$
+Q3:     solve $\bar{F}(q) = 0.99\times 0.25 = 0.2475$</div>
+
+  <h2>Your numerical results</h2>
+  <div class="visual-center">
+    <svg width="500" height="150" viewBox="0 0 500 150" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+      <!-- PDF curve again, with quartile markers -->
+      <line x1="40" y1="130" x2="490" y2="130" stroke="#1c1a30" stroke-width="1.5"/>
+      <line x1="40" y1="10" x2="40" y2="130" stroke="#1c1a30" stroke-width="1.5"/>
+      <!-- curve — reuse same path, scaled to 0-80min range → 450px -->
+      <!-- x mapping: t (minutes) 0..80 → x: 40..490, px/min = 450/80 = 5.625 -->
+      <!-- y=0min: x=40, y=15min: x=124, y=21min: x=158, y=24min: x=175, y=34min: x=231 -->
+      <path d="M40,130 C60,130 80,118 105,94 C122,78 135,60 155,56 C165,54 175,57 190,62 C210,68 235,80 270,95 C310,110 360,122 430,128 C455,129 475,130 490,130"
+            stroke="#0d7a6e" stroke-width="2" fill="rgba(13,122,110,.08)"/>
+
+      <!-- Q1 at 15.37 min → x = 40 + 15.37*5.625 = 40+86 = 126 -->
+      <line x1="126" y1="56" x2="126" y2="130" stroke="#6a5888" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="126" y="50" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Q1</text>
+      <text x="126" y="143" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">15 min</text>
+
+      <!-- Median at 23.93 min → x = 40 + 23.93*5.625 = 40+135 = 175 -->
+      <line x1="175" y1="56" x2="175" y2="130" stroke="#c42848" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="175" y="50" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">median</text>
+      <text x="175" y="143" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#c42848">24 min</text>
+
+      <!-- Mean at 25.35 min → x = 40 + 25.35*5.625 = 40+143 = 183 -->
+      <line x1="183" y1="54" x2="183" y2="130" stroke="#1a5ca8" stroke-width="2" stroke-dasharray="6,3"/>
+      <text x="193" y="40" font-family="Consolas,monospace" font-size="9" fill="#1a5ca8">mean</text>
+      <text x="183" y="143" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">25 min</text>
+
+      <!-- Q3 at 34.02 min → x = 40 + 34.02*5.625 = 40+191 = 231 -->
+      <line x1="231" y1="70" x2="231" y2="130" stroke="#6a5888" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="231" y="64" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Q3</text>
+      <text x="231" y="143" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">34 min</text>
+
+      <!-- IQR shade -->
+      <rect x="126" y="10" width="105" height="120" fill="rgba(106,88,136,.07)"/>
+      <text x="178" y="22" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">50% of observations here</text>
+    </svg>
+  </div>
+  <p class="visual-caption">Mean slightly right of median — the right tail (rare slow nights) pulls the mean up. This is characteristic of <span class="tip" data-tip-title="Right-skewed distribution" data-tip="A distribution is right-skewed (positively skewed) when its right tail is longer than its left. Signature: mean &gt; median &gt; mode. Rare high-value outcomes pull the mean up without moving the median. Common for time-to-event and income data.">right-skewed distributions</span>.</p>
+  <div class="callout">
+    The mean (25.35 min) is <em>right</em> of the median (23.93 min) because there's a long right tail — occasionally the owl takes much longer. A few slow nights pull the average up without moving the median (which only cares about the middle rank).
+  </div>
+</section>
+
+<!-- ══ 12: Python walkthrough ══ -->
+<section class="slide" data-slide="12">
+  <h1>Python Code Walkthrough</h1>
+
+  <h2>Define the functions</h2>
+  <div class="code-block"><span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">from</span> scipy <span class="k">import</span> integrate, optimize
+
+<span class="k">def</span> survival(y):
+    <span class="k">return</span> 0.79 * np.exp(-4 * y**2) + 0.20 * np.exp(-6 * y**2)
+
+<span class="k">def</span> pdf(y):                  <span class="c"># f(y) = −d/dy F̄(y)</span>
+    <span class="k">return</span> 6.32 * y * np.exp(-4 * y**2) + 2.40 * y * np.exp(-6 * y**2)</div>
+
+  <h2>Spot checks (required for "tool trust" grading criterion)</h2>
+  <div class="code-block"><span class="c"># Check: F̄(0) should be 0.99</span>
+print(f"F̄(0) = {survival(0):.4f}")   <span class="c"># → 0.9900 — flag the 0.01 gap</span>
+
+<span class="c"># Check: PDF integrates to 0.99</span>
+total, _ = integrate.quad(pdf, 0, np.inf)
+print(f"∫f(y)dy = {total:.4f}")       <span class="c"># → 0.9900 ✓ consistent with gap</span>
+
+<span class="c"># P(2 < Y < 4)</span>
+p_interval = survival(2) - survival(4)
+print(f"P(2 < Y < 4) = {p_interval:.2e}")  <span class="c"># → 8.89e-08 ≈ 0</span></div>
+
+  <h2>Mean, variance, quartiles</h2>
+  <div class="code-block">mean_Y, _ = integrate.quad(<span class="k">lambda</span> y: y * pdf(y), 0, np.inf)
+e_y2, _  = integrate.quad(<span class="k">lambda</span> y: y**2 * pdf(y), 0, np.inf)
+var_Y = e_y2 - mean_Y**2
+
+<span class="c"># Quartiles: solve F̄(q) = target numerically</span>
+median = optimize.brentq(<span class="k">lambda</span> y: survival(y) - 0.99*0.5, 0, 5)
+q1     = optimize.brentq(<span class="k">lambda</span> y: survival(y) - 0.99*0.75, 0, 5)
+q3     = optimize.brentq(<span class="k">lambda</span> y: survival(y) - 0.99*0.25, 0, 5)</div>
+
+  <h2>Histogram in minutes</h2>
+  <div class="code-block"><span class="c"># Simulate samples using inverse transform sampling</span>
+<span class="c"># Easier: scipy's rv_continuous or accept-reject. Or use:</span>
+u = np.random.uniform(0, 1, 100_000)
+<span class="c"># Invert F(y) = 1 − F̄(y): solve F̄(y) = u numerically</span>
+samples_h = np.array([optimize.brentq(<span class="k">lambda</span> y: survival(y) - ui, 0, 10)
+                       <span class="k">for</span> ui <span class="k">in</span> u])
+samples_min = samples_h * 60   <span class="c"># convert hours → minutes</span>
+plt.hist(samples_min, bins=np.arange(0, 121), density=True)</div>
+</section>
+
+<!-- ══ 13: Common pitfalls ══ -->
+<section class="slide" data-slide="13">
+  <h1>Common Pitfalls</h1>
+
+  <h2>1. Wrong sign when deriving PDF</h2>
+  <div class="warn"><strong>Wrong:</strong> f(y) = d/dy F̄(y) → negative values.<br><strong>Right:</strong> f(y) = <em>−</em>d/dy F̄(y). The survival function decreases, so its derivative is negative. You negate to get a positive PDF.</div>
+
+  <h2>2. Not flagging the 0.01 gap</h2>
+  <div class="warn"><strong>Wrong:</strong> proceeding without comment.<br><strong>Right:</strong> explicitly state F̄(0) = 0.99 ≠ 1, discuss possible causes (rounding or point mass at 0), confirm that ∫f(y)dy = 0.99 (not 1), and proceed.</div>
+
+  <h2>3. Ignoring what P(2 &lt; Y &lt; 4) ≈ 0 means</h2>
+  <div class="warn"><strong>Wrong:</strong> reporting 8.89×10⁻⁸ without comment.<br><strong>Right:</strong> state clearly that this is essentially zero, and explain why: the distribution puts almost all probability in [0, 1.5h], so the interval [2h, 4h] is in the extreme tail.</div>
+
+  <h2>4. Forgetting the /60 Jacobian</h2>
+  <div class="warn"><strong>Wrong:</strong> f_T(t) = f_Y(t/60) — no division.<br><strong>Right:</strong> f_T(t) = f_Y(t/60) / 60. Without the /60, the PDF no longer integrates to 1. In practice: if you're just plotting a histogram of simulated samples, multiply the samples by 60 and use density=True — numpy handles the normalization automatically.</div>
+
+  <h2>5. Mean ≠ mode on a skewed distribution</h2>
+  <div class="warn"><strong>Wrong:</strong> "the average wait is about 21 minutes" (that's the mode).<br><strong>Right:</strong> mode ≈ 21 min, mean ≈ 25.35 min, median ≈ 23.93 min. All three differ on a right-skewed distribution. Annotate all three on the PDF plot.</div>
+</section>
+
+<!-- ══ 14: Quiz ══ -->
+<section class="slide" data-slide="14">
+  <h1>Quick-Fire Quiz</h1>
+
+  <h2>Q1</h2>
+  <p>F̄(0.5) = 0.335. What does this mean in plain English?</p>
+  <details>
+    <summary>Reveal answer</summary>
+    <p>33.5% of owls have NOT been heard by the 30-minute mark. Equivalently, 66.5% have already called within 30 minutes. It's the probability of still waiting at t=30 min.</p>
+  </details>
+
+  <h2>Q2</h2>
+  <p>Why is f_Y(0) = 0? Shouldn't there be some probability of hearing the owl immediately?</p>
+  <details>
+    <summary>Reveal answer</summary>
+    <p>The PDF being zero at y=0 doesn't mean it's impossible to hear the owl early — it means the density is zero exactly at the single point y=0. This is the typical shape for a time-to-event distribution that models a physical process: the owl isn't instantaneously guaranteed to call. The density builds up as time passes, peaks (most likely around 21 min), then falls off. The probability of hearing within the first 5 minutes is the area under f from 0 to 5/60 — which is non-zero even though f(0) = 0.</p>
+  </details>
+
+  <h2>Q3</h2>
+  <p>Your friend says: "The mean wait is 25 minutes, so if I wait 25 minutes and haven't heard the owl, something unusual is happening." Are they right?</p>
+  <details>
+    <summary>Reveal answer</summary>
+    <p>No. F̄(25/60) = F̄(0.417) ≈ S(0.417) ≈ 0.25 — about 25% of observers will still be waiting at the 25-minute mark. That's completely normal, not unusual. The mean doesn't mean "50% chance you've heard it by now" — that's the median (≈24 min, close here but not the same). In right-skewed distributions, the mean overstates the "typical" wait. A quarter of the time you're still waiting at 25 minutes.</p>
+  </details>
+</section>
+
+<!-- ══ 15: Quest Complete ══ -->
+<section class="slide" data-slide="15">
+  <h1>Quest Complete</h1>
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3" y="1" width="1" height="2" fill="#706090"/><rect x="12" y="1" width="1" height="2" fill="#706090"/>
+      <rect x="3" y="3" width="10" height="9" fill="#8870a0"/><rect x="4" y="4" width="3" height="3" fill="#f0e8d8"/>
+      <rect x="9" y="4" width="3" height="3" fill="#f0e8d8"/><rect x="5" y="5" width="1" height="1" fill="#3a3040"/>
+      <rect x="10" y="5" width="1" height="1" fill="#3a3040"/><rect x="7" y="7" width="2" height="1" fill="#d4a060"/>
+      <rect x="5" y="8" width="6" height="3" fill="#c8a870"/><rect x="5" y="12" width="2" height="1" fill="#d4a060"/>
+      <rect x="9" y="12" width="2" height="1" fill="#d4a060"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Hootsworth:</span> You can now read a survival curve, derive the PDF, flag the parameter inconsistency, explain why P(2&lt;Y&lt;4)≈0, and convert units correctly. Go fill in that notebook!
+    </div>
+  </div>
+  <h2>Concepts mastered</h2>
+  <ul class="checkpoint">
+    <li>Survival function F̄(y) = P(still waiting at time y) — reads off the curve directly</li>
+    <li>CDF and survival are mirror images: F̄(y) = 1 − F(y)</li>
+    <li>PDF = negative derivative of survival: f(y) = −d/dy F̄(y)</li>
+    <li>Chain rule for differentiating e^(−ay²): derivative = −2ay · e^(−ay²)</li>
+    <li>Mixture = weighted blend of two component distributions</li>
+    <li>P(a &lt; Y &lt; b) = F̄(a) − F̄(b) — survival function subtraction</li>
+    <li>Unit conversion T = 60Y: f_T(t) = f_Y(t/60)/60</li>
+    <li>Mean right of median = right skew (rare long waits pull mean up)</li>
+  </ul>
+  <h2>Notebook checklist</h2>
+  <ul class="checkpoint">
+    <li>Branch resolution: ξ4 = 3 stated, correct F̄(y) formula used</li>
+    <li>0.01 gap flagged, discussed, and both explanations offered</li>
+    <li>PDF derived step by step with chain rule shown</li>
+    <li>∫f(y)dy = 0.99 verified as spot check</li>
+    <li>P(2 &lt; Y &lt; 4) ≈ 8.89×10⁻⁸ computed and discussed</li>
+    <li>PDF plotted in hours with mode, mean, median, Q1, Q3 annotated</li>
+    <li>Histogram in minutes (samples × 60), bins = 1 minute</li>
+    <li>All 6 section headers present</li>
+  </ul>
+</section>
+
+</div><!-- /deck -->
+
+<nav class="deck-controls">
+  <button type="button" id="prev">◀ PREV</button>
+  <span id="counter">1 / 16</span>
+  <button type="button" id="next">NEXT ▶</button>
+</nav>
+
+<script>
+  const slides = [...document.querySelectorAll(".slide")];
+  const sideNavList = document.getElementById("side-nav-list");
+  const navButtons = [];
+  let mainNum = 0, subParentNum = 0, subIndex = 0;
+  const sectionHeadersAdded = new Set();
+  slides.forEach((slide, j) => {
+    const tier = slide.dataset.navTier || "core";
+    let displayNum;
+    if (tier === "core") { mainNum++; subParentNum = mainNum; subIndex = 0; displayNum = String(mainNum); }
+    else if (tier.startsWith("sub")) {
+      const sectionLabel = slide.dataset.navSection || "╰ DETAILS";
+      if (!sectionHeadersAdded.has(sectionLabel)) {
+        const head = document.createElement("p"); head.className = "side-nav-section"; head.textContent = sectionLabel;
+        sideNavList.appendChild(head); sectionHeadersAdded.add(sectionLabel);
+      }
+      subIndex++; displayNum = `${subParentNum}.${subIndex}`;
+    } else { displayNum = String(j + 1); }
+    const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+    const btn = document.createElement("button"); btn.type = "button";
+    const isSub = tier.startsWith("sub");
+    btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+    btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
+    btn.addEventListener("click", () => show(j));
+    sideNavList.appendChild(btn); navButtons.push(btn);
+  });
+  const headCore = document.createElement("p"); headCore.className = "side-nav-section"; headCore.textContent = "360° PATH — start here";
+  sideNavList.insertBefore(headCore, sideNavList.firstChild);
+  let i = 0;
+  const counter = document.getElementById("counter");
+  function show(n) {
+    i = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach((s, j) => s.classList.toggle("active", j === i));
+    navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+    counter.textContent = `${i + 1} / ${slides.length}`;
+    navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  document.getElementById("prev").onclick = () => show(i - 1);
+  document.getElementById("next").onclick = () => show(i + 1);
+  document.addEventListener("keydown", e => { if (e.key === "ArrowRight") show(i+1); if (e.key === "ArrowLeft") show(i-1); });
+  show(0);
+</script>
+
+<div id="laser-dot"></div>
+<script>
+(function(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var PALETTE=['#1a5ca8','#c42848','#b86800','#0d7a6e','#6a5888','#f5c842','#e87060','#a8d870'];
+  var PETAL=['#c42848','#b86800','#f5c842','#6a5888','#1a5ca8','#e87060','#0d7a6e'];
+  var PISTIL=['#f5c842','#1c1a30','#c42848'],LEAF=['#a8d870','#4a9a40','#7bc860','#e8a040','#c84828'],STAR=['#1a5ca8','#b86800','#c42848','#0d7a6e'];
+  var CAP=40,last=0,cnt=0,laser=document.getElementById('laser-dot');
+  function pick(a){return a[Math.floor(Math.random()*a.length)];}
+  function rnd(a,b){return a+Math.random()*(b-a);}
+  function flower(){var c=pick(PETAL),p=pick(PISTIL),NS='http://www.w3.org/2000/svg',s=document.createElementNS(NS,'svg');s.setAttribute('viewBox','0 0 16 16');s.setAttribute('width','14');s.setAttribute('height','14');var g=document.createElementNS(NS,'g');g.setAttribute('transform','translate(8,8)');for(var k=0;k<5;k++){var pe=document.createElementNS(NS,'ellipse');pe.setAttribute('cx','0');pe.setAttribute('cy','-4');pe.setAttribute('rx','2.5');pe.setAttribute('ry','4');pe.setAttribute('fill',c);pe.setAttribute('opacity','0.9');if(k>0)pe.setAttribute('transform','rotate('+(k*72)+')');g.appendChild(pe);}var pi=document.createElementNS(NS,'circle');pi.setAttribute('cx','0');pi.setAttribute('cy','0');pi.setAttribute('r','2.5');pi.setAttribute('fill',p);g.appendChild(pi);s.appendChild(g);return s;}
+  function leaf(){var c=pick(LEAF),a=Math.floor(rnd(0,360)),NS='http://www.w3.org/2000/svg',s=document.createElementNS(NS,'svg');s.setAttribute('viewBox','0 0 16 16');s.setAttribute('width','14');s.setAttribute('height','14');var e=document.createElementNS(NS,'ellipse');e.setAttribute('cx','8');e.setAttribute('cy','8');e.setAttribute('rx','3.5');e.setAttribute('ry','6.5');e.setAttribute('fill',c);e.setAttribute('transform','rotate('+a+',8,8)');var l=document.createElementNS(NS,'line');l.setAttribute('x1','8');l.setAttribute('y1','2');l.setAttribute('x2','8');l.setAttribute('y2','14');l.setAttribute('stroke','#2a5a20');l.setAttribute('stroke-width','0.8');l.setAttribute('transform','rotate('+a+',8,8)');s.appendChild(e);s.appendChild(l);return s;}
+  function star(){var c=pick(STAR),NS='http://www.w3.org/2000/svg',s=document.createElementNS(NS,'svg');s.setAttribute('viewBox','0 0 16 16');s.setAttribute('width','14');s.setAttribute('height','14');var p=document.createElementNS(NS,'polygon');p.setAttribute('points','8,1 9.5,6.5 15,8 9.5,9.5 8,15 6.5,9.5 1,8 6.5,6.5');p.setAttribute('fill',c);s.appendChild(p);return s;}
+  document.addEventListener('mousemove',function(e){
+    if(laser){laser.style.left=e.clientX+'px';laser.style.top=e.clientY+'px';}
+    var now=Date.now();if(now-last<30||cnt>=CAP)return;last=now;
+    var sz=4+Math.floor(rnd(0,3)),el=document.createElement('div');el.className='fd-particle';
+    el.style.cssText=['width:'+sz+'px','height:'+sz+'px','background:'+pick(PALETTE),'border-radius:0','left:'+(e.clientX+rnd(-6,6)-sz/2)+'px','top:'+(e.clientY+rnd(-6,6)-sz/2)+'px'].join(';');
+    document.body.appendChild(el);cnt++;
+    var ty=-rnd(20,40);el.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY('+ty+'px)'}],{duration:rnd(600,800),easing:'ease-out',fill:'forwards'}).addEventListener('finish',function(){el.remove();cnt--;});
+  });
+  document.addEventListener('click',function(e){
+    var themes=['flower','leaf','star'],theme=themes[Math.floor(Math.random()*3)];
+    for(var k=0,n=12+Math.floor(rnd(0,5));k<n;k++){
+      var ang=rnd(0,360)*Math.PI/180,dist=rnd(40,80),dx=Math.cos(ang)*dist,dy=Math.sin(ang)*dist,rot=rnd(0,360),el;
+      if(theme==='flower')el=flower();else if(theme==='leaf')el=leaf();else el=star();
+      el.setAttribute('class','fd-petal');el.style.cssText=['left:'+(e.clientX-7)+'px','top:'+(e.clientY-7)+'px','transform:rotate('+rot+'deg)'].join(';');
+      document.body.appendChild(el);
+      (function(el,rot,dx,dy){el.animate([{opacity:1,transform:'rotate('+rot+'deg) translate(0,0)'},{opacity:0,transform:'rotate('+(rot+180)+'deg) translate('+dx+'px,'+dy+'px)'}],{duration:rnd(700,900),easing:'ease-out',fill:'forwards'}).addEventListener('finish',function(){el.remove();});}(el,rot,dx,dy));
+    }
+  });
+}());
+</script>
+<script>
+(function () {
+  var box = document.createElement('div');
+  box.id = 'tip-box';
+  document.body.appendChild(box);
+  document.querySelectorAll('.tip').forEach(function (el) {
+    el.addEventListener('mouseenter', function (e) {
+      var lbl = el.dataset.tipTitle ? '<span class="tip-label">' + el.dataset.tipTitle + '</span>' : '';
+      box.innerHTML = lbl + (el.dataset.tip || '');
+      if (window.renderMathInElement) renderMathInElement(box, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+      box.style.display = 'block'; move(e);
+    });
+    el.addEventListener('mousemove', move);
+    el.addEventListener('mouseleave', function () { box.style.display = 'none'; });
+  });
+  function move(e) {
+    var x = e.clientX + 14, y = e.clientY + 14;
+    if (x + 310 > window.innerWidth)  x = e.clientX - 316;
+    if (y + 200 > window.innerHeight) y = e.clientY - 206;
+    box.style.left = x + 'px'; box.style.top = y + 'px';
+  }
+}());
+</script>
+</body>
+</html>

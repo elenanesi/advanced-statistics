@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>XGBoost — Advanced Stats Quest</title>
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="2" width="2" height="3" fill="#c4919e"/><rect x="11" y="2" width="2" height="3" fill="#c4919e"/><rect x="3" y="5" width="10" height="8" fill="#f0dcc0"/><rect x="5" y="7" width="1" height="2" fill="#3a3040"/><rect x="10" y="7" width="1" height="2" fill="#3a3040"/><rect x="7" y="9" width="2" height="1" fill="#c4919e"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:     #f0ebe0;
+      --card:   #fffef8;
+      --accent: #1a5ca8;
+      --rose:   #c42848;
+      --honey:  #b86800;
+      --text:   #1c1a30;
+      --mist:   #6a5888;
+      --teal:   #0d7a6e;
+      --slate:  #3a4d7a;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 720px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    .side-nav {
+      position: fixed; left: 0; top: 0; bottom: 52px; width: 212px;
+      padding: 16px 10px 16px 12px; background: var(--card);
+      border-right: 2px solid #ccc4e0; box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto; z-index: 9;
+    }
+    .side-nav-title { font-family: "DotGothic16", monospace; font-size: 8px; color: var(--mist); margin-bottom: 12px; letter-spacing: 1px; }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex; gap: 8px; align-items: flex-start; width: 100%; text-align: left;
+      font-family: Consolas, "Courier New", monospace; font-size: 11px; line-height: 1.35;
+      padding: 8px; border: 2px solid transparent; background: transparent; color: var(--text); cursor: pointer;
+    }
+    .side-nav-btn:hover { background: rgba(26,92,168,.06); border-color: #ccc4e0; }
+    .side-nav-btn.active { background: rgba(26,92,168,.1); border-color: var(--accent); color: var(--accent); font-weight: bold; }
+    .side-nav-num { flex-shrink: 0; color: var(--mist); font-size: 10px; min-width: 1.2em; }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace; font-size: 9px; color: var(--mist);
+      margin: 10px 0 4px; padding-top: 10px; border-top: 1px solid #d0c8e0; letter-spacing: 1px; line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+    .badge-sub { border: 2px solid var(--slate); color: var(--slate); font-size: 10px; padding: 4px 8px; margin-bottom: 12px; display: inline-block; }
+
+    .slide { display: none; background: var(--card); border: 2px solid #ccc4e0; box-shadow: 4px 4px 0 rgba(80,60,140,.18); padding: 24px; margin-bottom: 16px; }
+    .slide.active { display: block; }
+
+    h1 { font-family: "DotGothic16", monospace; font-size: 13px; color: var(--accent); margin: 0 0 16px; letter-spacing: .5px; }
+    h2 { font-family: Consolas, "Courier New", monospace; font-size: 11px; color: var(--honey); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin: 18px 0 8px; }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+    .buddy-speech { flex: 1; background: #fff8f2; border: 2px solid var(--rose); padding: 12px; position: relative; }
+    .buddy-speech::before { content: ""; position: absolute; left: -11px; top: 14px; border: 7px solid transparent; border-right-color: var(--rose); }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    .formula { font-family: Consolas, "Courier New", monospace; font-size: 12px; color: var(--accent); background: rgba(26,92,168,.06); padding: 14px 16px; border: 2px solid rgba(26,92,168,.3); margin: 12px 0; overflow-x: auto; line-height: 1.8; }
+    .formula em { color: var(--honey); font-style: normal; }
+
+    .tip { border-bottom: 2px dashed var(--honey); cursor: help; }
+    #tip-box { position: fixed; display: none; background: #fff8f2; border: 2px solid var(--honey); box-shadow: 4px 4px 0 rgba(80,60,140,.22); padding: 10px 14px; max-width: 300px; font-size: 11px; z-index: 99998; color: var(--text); line-height: 1.6; pointer-events: none; }
+    .tip-label { font-weight: bold; color: var(--honey); display: block; margin-bottom: 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 8px; }
+
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+
+    .callout { border-left: 4px solid var(--teal); padding: 10px 14px; background: rgba(13,122,110,.06); margin: 12px 0; }
+    .callout-warn { border-left: 4px solid var(--rose); padding: 10px 14px; background: rgba(196,40,72,.05); margin: 12px 0; }
+    .callout-amber { border-left: 4px solid var(--honey); padding: 10px 14px; background: rgba(184,104,0,.06); margin: 12px 0; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0; }
+    .box { border: 2px solid #ccc4e0; padding: 10px 12px; }
+    .box-title { font-size: 10px; color: var(--mist); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+    th { background: rgba(26,92,168,.08); border: 1px solid #ccc4e0; padding: 6px 10px; color: var(--accent); text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    td { border: 1px solid #ccc4e0; padding: 6px 10px; }
+    tr:nth-child(even) td { background: rgba(80,60,140,.03); }
+
+    nav.deck-controls {
+      position: fixed; bottom: 0; left: 212px; right: 0; display: flex;
+      justify-content: center; align-items: center; gap: 16px; padding: 12px;
+      background: rgba(240,235,224,.97); border-top: 3px solid var(--honey); z-index: 10;
+    }
+    #counter { font-family: "DotGothic16", monospace; font-size: 9px; color: var(--mist); }
+    button { font-family: "DotGothic16", monospace; font-size: 9px; padding: 10px 16px; background: var(--accent); color: #fffef8; border: 2px solid #0d3d7a; box-shadow: 3px 3px 0 rgba(26,92,168,.25); cursor: pointer; }
+    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+
+    .fd-particle, .fd-petal { position: fixed; z-index: 99999; pointer-events: none; }
+    body { cursor: none; }
+    button, a, summary, [role="button"], .side-nav, .side-nav-btn, details { cursor: none !important; }
+    #laser-dot {
+      position: fixed; width: 12px; height: 12px; border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, #c42848 45%, transparent 70%);
+      box-shadow: 0 0 6px 2px #c42848, 0 0 14px 4px #c4284855;
+      pointer-events: none; z-index: 99999; transform: translate(-50%, -50%); transition: transform 0.05s ease;
+    }
+    @media (prefers-reduced-motion: reduce) { #laser-dot { display: none; } body { cursor: auto; } }
+
+    /* Tree diagram helpers */
+    .tree-svg { width: 100%; max-width: 520px; display: block; margin: 12px auto; }
+  </style>
+</head>
+<body>
+<aside class="side-nav" aria-label="Slide contents">
+  <p class="side-nav-title">CONTENTS</p>
+  <div id="side-nav-list" class="side-nav-list"></div>
+</aside>
+
+<div class="deck" id="deck">
+
+<!-- ── SLIDE 0: Title ── -->
+<section class="slide" data-slide="0">
+  <h1>XGBoost — eXtreme Gradient Boosting</h1>
+  <div class="buddy-row">
+    <!-- Forge the Bear — warm grey, cream snout -->
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="2" height="3" fill="#b0a898"/>
+      <rect x="11" y="1" width="2" height="3" fill="#b0a898"/>
+      <rect x="2"  y="4" width="12" height="9" fill="#c8bfb0"/>
+      <rect x="5"  y="6" width="2" height="2" fill="#3a3040"/>
+      <rect x="9"  y="6" width="2" height="2" fill="#3a3040"/>
+      <rect x="6"  y="9" width="4" height="2" fill="#e8dcc8"/>
+      <rect x="7"  y="10" width="2" height="1" fill="#8a7870"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Forge:</span> I build things — one tree at a time. Let me show you how stacking small corrections beats one big guess.
+    </div>
+  </div>
+  <p>XGBoost is the workhorse of structured-data ML: used in 80%+ of Kaggle competition-winning solutions since 2016.</p>
+  <p>By the end of this deck you'll understand <strong>what it is</strong>, <strong>how it works</strong>, and see a real example predicting <strong>offline revenue from online leads</strong> using the <span class="tip" data-tip="tweedie">Tweedie loss function</span>.</p>
+  <p style="color:var(--mist); font-size:11px; margin-top:16px;">Press → or use NEXT to move forward.</p>
+</section>
+
+<!-- ── SLIDE 1: The big picture ── -->
+<section class="slide" data-slide="1">
+  <h1>The Big Picture — What XGBoost Is</h1>
+  <div class="callout">
+    <strong>One-sentence definition:</strong> XGBoost builds many small decision trees in sequence, where each tree corrects the mistakes of all the trees before it — then adds them all together.
+  </div>
+
+  <h2>Two things to separate in your head</h2>
+  <div class="two-col">
+    <div class="box">
+      <div class="box-title">Decision Tree</div>
+      A flowchart of if/then rules. Fast to build, interpretable, but weak alone (high variance or high bias).
+    </div>
+    <div class="box">
+      <div class="box-title">Ensemble</div>
+      Combine many weak models into one strong one. XGBoost is an ensemble of trees.
+    </div>
+  </div>
+
+  <h2>Where does "boosting" fit?</h2>
+  <p>There are three main ways to combine trees:</p>
+  <table>
+    <thead><tr><th>Method</th><th>Trees built how?</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Bagging</strong></td><td>In parallel, on random subsets</td><td>Random Forest</td></tr>
+      <tr><td><strong>Boosting</strong></td><td>In sequence, each correcting the last</td><td>XGBoost, LightGBM</td></tr>
+      <tr><td><strong>Stacking</strong></td><td>Separate models whose outputs feed a meta-model</td><td>Blended ensembles</td></tr>
+    </tbody>
+  </table>
+  <p>XGBoost = <strong>gradient boosting</strong> done with mathematical precision and engineering tricks that make it very fast and hard to overfit.</p>
+</section>
+
+<!-- ── SLIDE 2: Boosting intuition ── -->
+<section class="slide" data-slide="2">
+  <h1>Boosting — The Correction Game</h1>
+
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="48" height="48" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="2" height="3" fill="#b0a898"/>
+      <rect x="11" y="1" width="2" height="3" fill="#b0a898"/>
+      <rect x="2"  y="4" width="12" height="9" fill="#c8bfb0"/>
+      <rect x="5"  y="6" width="2" height="2" fill="#3a3040"/>
+      <rect x="9"  y="6" width="2" height="2" fill="#3a3040"/>
+      <rect x="6"  y="9" width="4" height="2" fill="#e8dcc8"/>
+      <rect x="7"  y="10" width="2" height="1" fill="#8a7870"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Forge:</span> Imagine you're estimating the price of a house. Your first guess is rough. Boosting is like asking a friend to estimate only your error — then adding their correction to your guess, then repeating.
+    </div>
+  </div>
+
+  <h2>Step by step</h2>
+  <ol>
+    <li><strong>Tree 1</strong> makes a prediction $\hat{y}^{(1)}$ for every data point.</li>
+    <li>Compute the <span class="tip" data-tip="residual">residual</span> — how far off each prediction is: $r_i = y_i - \hat{y}^{(1)}_i$</li>
+    <li><strong>Tree 2</strong> is trained to predict those residuals (the errors), not the original target.</li>
+    <li>New combined prediction: $\hat{y}^{(2)}_i = \hat{y}^{(1)}_i + \eta \cdot f_2(x_i)$, where $\eta$ (eta) is the <span class="tip" data-tip="lr">learning rate</span> — how much we trust each correction.</li>
+    <li>Repeat for Tree 3, 4, … up to $T$ trees total.</li>
+  </ol>
+
+  <div class="callout-amber">
+    <strong>Why shrink by $\eta$?</strong> Adding the full correction each time overfits. $\eta &lt; 1$ (e.g. 0.1) makes each tree contribute a small nudge — more trees, more gradual improvement.
+  </div>
+
+  <!-- inline SVG: boosting diagram -->
+  <svg class="tree-svg" viewBox="0 0 520 130" xmlns="http://www.w3.org/2000/svg" style="margin-top:16px;">
+    <rect x="0" y="0" width="520" height="130" fill="none"/>
+    <!-- boxes -->
+    <rect x="10" y="30" width="90" height="40" fill="#fffef8" stroke="#1a5ca8" stroke-width="2"/>
+    <text x="55" y="55" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">Tree 1</text>
+    <rect x="140" y="30" width="90" height="40" fill="#fffef8" stroke="#1a5ca8" stroke-width="2"/>
+    <text x="185" y="55" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">Tree 2</text>
+    <rect x="270" y="30" width="90" height="40" fill="#fffef8" stroke="#1a5ca8" stroke-width="2"/>
+    <text x="315" y="55" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">Tree 3</text>
+    <text x="395" y="55" text-anchor="middle" font-family="Consolas,monospace" font-size="14" fill="#6a5888">…</text>
+    <rect x="420" y="30" width="90" height="40" fill="#fffef8" stroke="#0d7a6e" stroke-width="2"/>
+    <text x="465" y="55" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e">Final Sum</text>
+    <!-- arrows -->
+    <line x1="100" y1="50" x2="140" y2="50" stroke="#ccc4e0" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="230" y1="50" x2="270" y2="50" stroke="#ccc4e0" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="360" y1="50" x2="395" y2="50" stroke="#ccc4e0" stroke-width="2" marker-end="url(#arr)"/>
+    <line x1="415" y1="50" x2="420" y2="50" stroke="#ccc4e0" stroke-width="2" marker-end="url(#arr)"/>
+    <!-- labels -->
+    <text x="55" y="85" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800">predict y</text>
+    <text x="185" y="85" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800">predict errors</text>
+    <text x="315" y="85" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800">predict errors²</text>
+    <!-- arrow marker -->
+    <defs>
+      <marker id="arr" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#ccc4e0"/>
+      </marker>
+    </defs>
+  </svg>
+</section>
+
+<!-- ── SLIDE 3: What XGBoost adds over basic boosting ── -->
+<section class="slide" data-slide="3">
+  <h1>What XGBoost Adds Over Basic Gradient Boosting</h1>
+  <p>Vanilla gradient boosting (introduced by Friedman, 1999) has real weaknesses. XGBoost (Chen &amp; Guestrin, 2016) fixes them systematically.</p>
+
+  <h2>The four key upgrades</h2>
+  <table>
+    <thead><tr><th>Vanilla Boosting</th><th>XGBoost Fix</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Uses first-order gradients only</td>
+        <td><strong>Second-order gradients</strong> (Newton's method)</td>
+        <td>Faster convergence, better step directions</td>
+      </tr>
+      <tr>
+        <td>No regularization in tree objective</td>
+        <td><strong>L1 + L2 reg</strong> on leaf weights built into the loss</td>
+        <td>Directly penalizes overfitting during tree construction</td>
+      </tr>
+      <tr>
+        <td>Sequential, slow</td>
+        <td><strong>Parallel</strong> feature pre-sorting + column sub-sampling</td>
+        <td>10–100× faster on large datasets</td>
+      </tr>
+      <tr>
+        <td>Can't handle missing values natively</td>
+        <td><strong>Sparsity-aware</strong> split finding (learns best direction for NaN)</td>
+        <td>No imputation needed; handles sparse data</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>The objective XGBoost minimizes</h2>
+  <div class="formula">
+    $$\mathcal{L} = \underbrace{\sum_{i=1}^{n} \ell(y_i, \hat{y}_i)}_{\text{loss: how wrong?}} + \underbrace{\sum_{k=1}^{T} \Omega(f_k)}_{\text{regularization: how complex?}}$$
+    <br>where $\Omega(f) = \gamma T_{leaves} + \frac{1}{2}\lambda \|w\|^2$ &nbsp; ($\gamma$=leaf penalty, $\lambda$=L2 on leaf weights)
+  </div>
+
+  <div class="callout">
+    <strong>Key insight:</strong> the loss function $\ell(y_i, \hat{y}_i)$ is <em>pluggable</em> — swap it out to solve completely different problems. This is where Tweedie comes in.
+  </div>
+</section>
+
+<!-- ── SLIDE 4: How a single tree is built ── -->
+<section class="slide" data-slide="4" data-nav-tier="sub" data-nav-section="╰ UNDER THE HOOD">
+  <span class="badge-sub">SUB-CHAPTER</span>
+  <h1>How XGBoost Builds One Tree</h1>
+  <p>Each tree is built by greedily finding the best splits. XGBoost uses the second-order Taylor expansion of the loss:</p>
+
+  <div class="formula">
+    $$\tilde{\mathcal{L}}^{(t)} \approx \sum_{i=1}^{n} \left[ g_i f_t(x_i) + \frac{1}{2} h_i f_t(x_i)^2 \right] + \Omega(f_t)$$
+    <br>$g_i = \partial_{\hat{y}} \ell(y_i, \hat{y}_i)$ &nbsp; <em>(first derivative — gradient)</em>
+    <br>$h_i = \partial^2_{\hat{y}} \ell(y_i, \hat{y}_i)$ &nbsp; <em>(second derivative — hessian)</em>
+  </div>
+
+  <h2>Optimal leaf weight formula</h2>
+  <p>For a leaf $j$ containing data points in set $I_j$:</p>
+  <div class="formula">
+    $$w_j^* = -\frac{\sum_{i \in I_j} g_i}{\sum_{i \in I_j} h_i + \lambda}$$
+  </div>
+  <p>This is the closed-form solution — no iterative optimization needed per leaf. <strong>This is why XGBoost is fast.</strong></p>
+
+  <h2>Gain from a split</h2>
+  <div class="formula">
+    $$\text{Gain} = \frac{1}{2}\left[\frac{G_L^2}{H_L+\lambda} + \frac{G_R^2}{H_R+\lambda} - \frac{(G_L+G_R)^2}{H_L+H_R+\lambda}\right] - \gamma$$
+  </div>
+  <p>$G = \sum g_i$, $H = \sum h_i$ over left (L) and right (R) child nodes. XGBoost only makes a split if Gain &gt; 0 (i.e., worth the $\gamma$ leaf penalty).</p>
+
+  <div class="callout-amber">
+    <strong>Why second-order?</strong> The gradient alone tells you which direction to move. The hessian tells you how fast the loss curves — so you know how big a step to take. Better steps = fewer trees needed.
+  </div>
+</section>
+
+<!-- ── SLIDE 5: Loss functions ── -->
+<section class="slide" data-slide="5">
+  <h1>Loss Functions — Choosing What to Optimize</h1>
+  <p>The loss $\ell(y, \hat{y})$ defines what "wrong" means. XGBoost supports many out-of-the-box:</p>
+
+  <table>
+    <thead><tr><th>Loss</th><th>Use when…</th><th>Distribution assumed</th></tr></thead>
+    <tbody>
+      <tr><td>MSE (reg:squarederror)</td><td>Continuous target, symmetric errors OK</td><td>Gaussian</td></tr>
+      <tr><td>Logistic (binary:logistic)</td><td>Binary classification</td><td>Bernoulli</td></tr>
+      <tr><td>Poisson (count:poisson)</td><td>Count data (always ≥ 0, integer-ish)</td><td>Poisson</td></tr>
+      <tr><td><strong>Tweedie (reg:tweedie)</strong></td><td>Positive, right-skewed, often zero-inflated</td><td>Tweedie (compound Poisson-Gamma)</td></tr>
+      <tr><td>Gamma (reg:gamma)</td><td>Always positive, multiplicative errors</td><td>Gamma</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Pattern:</strong> your loss choice should match the <em>data-generating process</em> of your target variable. Getting this right matters more than hyperparameter tuning in many real-world cases.
+  </div>
+
+  <h2>Why MSE fails for revenue</h2>
+  <ul>
+    <li>MSE penalizes under- and over-predictions equally — but revenue is bounded below at 0.</li>
+    <li>MSE treats a €1,000 error on a €1,000 deal the same as on a €100,000 deal — percentage errors matter more than absolute ones in revenue contexts.</li>
+    <li>MSE struggles when most leads generate £0 (zero mass) and a few generate large positive values (heavy right tail).</li>
+  </ul>
+</section>
+
+<!-- ── SLIDE 6: Tweedie distribution ── -->
+<section class="slide" data-slide="6">
+  <h1>The Tweedie Distribution — Intuition</h1>
+
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="48" height="48" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="2" height="3" fill="#b0a898"/>
+      <rect x="11" y="1" width="2" height="3" fill="#b0a898"/>
+      <rect x="2"  y="4" width="12" height="9" fill="#c8bfb0"/>
+      <rect x="5"  y="6" width="2" height="2" fill="#3a3040"/>
+      <rect x="9"  y="6" width="2" height="2" fill="#3a3040"/>
+      <rect x="6"  y="9" width="4" height="2" fill="#e8dcc8"/>
+      <rect x="7"  y="10" width="2" height="1" fill="#8a7870"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Forge:</span> Think of it as the best of two worlds: Poisson counts the number of claims (or conversions), Gamma models the size of each one. Tweedie combines both into a single distribution.
+    </div>
+  </div>
+
+  <h2>Where Tweedie sits in the exponential family</h2>
+  <!-- SVG number line -->
+  <svg viewBox="0 0 520 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:520px;display:block;margin:12px auto;">
+    <line x1="30" y1="40" x2="490" y2="40" stroke="#ccc4e0" stroke-width="2"/>
+    <!-- ticks -->
+    <line x1="30" y1="35" x2="30" y2="45" stroke="#1a5ca8" stroke-width="2"/>
+    <text x="30" y="58" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">p=0</text>
+    <text x="30" y="70" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Gaussian</text>
+
+    <line x1="160" y1="35" x2="160" y2="45" stroke="#0d7a6e" stroke-width="2"/>
+    <text x="160" y="58" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e">p=1</text>
+    <text x="160" y="70" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Poisson</text>
+
+    <!-- Tweedie zone -->
+    <rect x="160" y="32" width="200" height="16" fill="rgba(184,104,0,.15)" rx="2"/>
+    <text x="260" y="25" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#b86800">Tweedie zone (1&lt;p&lt;2)</text>
+
+    <line x1="360" y1="35" x2="360" y2="45" stroke="#c42848" stroke-width="2"/>
+    <text x="360" y="58" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848">p=2</text>
+    <text x="360" y="70" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Gamma</text>
+
+    <line x1="490" y1="35" x2="490" y2="45" stroke="#6a5888" stroke-width="2"/>
+    <text x="490" y="58" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">p=3</text>
+    <text x="490" y="70" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Inverse-G</text>
+  </svg>
+
+  <h2>Tweedie variance function</h2>
+  <div class="formula">
+    $$\text{Var}(Y) = \phi \cdot \mu^p$$
+    <br>$\mu$ = mean &nbsp;·&nbsp; $\phi$ = dispersion (scale of noise) &nbsp;·&nbsp; $p$ = power parameter
+  </div>
+
+  <p><strong>What $p$ controls:</strong> when $1 &lt; p &lt; 2$ the distribution has a probability mass at zero <em>and</em> a continuous positive tail. This exactly describes: insurance claims, transaction amounts, offline revenue from leads.</p>
+
+  <div class="callout-amber">
+    <strong>Why variance grows with the mean:</strong> Var $\propto \mu^p$ means a lead worth €50k has much more variance than one worth €500. Errors scale with the size of the prediction — very natural for money.
+  </div>
+</section>
+
+<!-- ── SLIDE 7: Tweedie loss ── -->
+<section class="slide" data-slide="7" data-nav-tier="sub" data-nav-section="╰ TWEEDIE DETAILS">
+  <span class="badge-sub">SUB-CHAPTER</span>
+  <h1>The Tweedie Loss Function</h1>
+
+  <h2>Log-likelihood → deviance loss</h2>
+  <p>XGBoost minimizes the <strong>Tweedie deviance</strong>, which is the negative log-likelihood of the Tweedie distribution (up to a constant):</p>
+
+  <div class="formula">
+    $$\ell_{\text{Tweedie}}(y_i, \hat{y}_i) = -y_i \cdot \frac{\hat{y}_i^{1-p}}{1-p} + \frac{\hat{y}_i^{2-p}}{2-p}$$
+    <br><em>XGBoost predicts $\hat{y} = e^{\text{raw output}}$ (log-link), so $\hat{y}$ is always positive.</em>
+  </div>
+
+  <h2>Gradients and Hessians for XGBoost</h2>
+  <div class="formula">
+    $$g_i = -y_i \cdot \hat{y}_i^{-p} + \hat{y}_i^{1-p}$$
+    $$h_i = y_i \cdot p \cdot \hat{y}_i^{-p-1} + (1-p) \cdot \hat{y}_i^{-p}$$
+  </div>
+
+  <p>These are what XGBoost uses to compute leaf weights and split gains — you don't need to derive them by hand, but knowing they exist helps you debug when training goes wrong.</p>
+
+  <h2>Key parameter to tune: tweedie_variance_power</h2>
+  <table>
+    <thead><tr><th>Value</th><th>Behavior</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr><td>p → 1</td><td>Like Poisson</td><td>Many zeros, target is count-like</td></tr>
+      <tr><td>p = 1.5</td><td>Default / balanced</td><td>Good starting point for revenue</td></tr>
+      <tr><td>p → 2</td><td>Like Gamma</td><td>Very few zeros, purely positive target</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>How to choose p in practice:</strong> fit with p=1.2, 1.5, 1.8 — pick the one with the lowest out-of-sample Tweedie deviance. Or use a GLM (Generalized Linear Model — a statistical model where the mean is linked to a linear combination of features) to estimate p before boosting.
+  </div>
+</section>
+
+<!-- ── SLIDE 8: Real example setup ── -->
+<section class="slide" data-slide="8">
+  <h1>Real Example — Online Leads → Offline Revenue</h1>
+
+  <h2>The business problem</h2>
+  <p>You run a B2B platform. Users fill in a contact form online (<em>a lead</em>). Your sales team then calls them. Some convert, some don't. You want to predict: <strong>how much revenue will each lead generate offline?</strong></p>
+
+  <div class="callout-warn">
+    <strong>Why this is hard with standard regression:</strong><br>
+    • 60–80% of leads generate €0 (no conversion) — large mass at zero<br>
+    • The 20–40% who convert generate right-skewed values (a few huge deals)<br>
+    • You want <em>multiplicative</em> errors (50% off a €1k deal = same relative badness as 50% off a €100k deal)<br>
+    → <strong>MSE fails all three conditions. Tweedie handles all three.</strong>
+  </div>
+
+  <h2>Sample data shape</h2>
+  <table>
+    <thead><tr><th>lead_id</th><th>source</th><th>page_depth</th><th>form_score</th><th>company_size</th><th>revenue_offline (€)</th></tr></thead>
+    <tbody>
+      <tr><td>101</td><td>google_cpc</td><td>5</td><td>72</td><td>SMB</td><td>0</td></tr>
+      <tr><td>102</td><td>organic</td><td>12</td><td>88</td><td>Enterprise</td><td>24,000</td></tr>
+      <tr><td>103</td><td>email</td><td>3</td><td>45</td><td>SMB</td><td>0</td></tr>
+      <tr><td>104</td><td>direct</td><td>9</td><td>91</td><td>Mid-market</td><td>8,500</td></tr>
+      <tr><td>105</td><td>social</td><td>2</td><td>33</td><td>SMB</td><td>0</td></tr>
+      <tr><td>106</td><td>organic</td><td>14</td><td>95</td><td>Enterprise</td><td>156,000</td></tr>
+    </tbody>
+  </table>
+
+  <p>Most rows: €0. A few: large positive. Exactly the Tweedie regime ($1 &lt; p &lt; 2$).</p>
+</section>
+
+<!-- ── SLIDE 9: Code ── -->
+<section class="slide" data-slide="9">
+  <h1>XGBoost + Tweedie — The Code</h1>
+
+  <div class="formula" style="color:var(--text); background:#f5f3ee; border-color:#ccc4e0; font-size:11px; line-height:1.9;">
+<span style="color:#6a5888">import</span> xgboost <span style="color:#6a5888">as</span> xgb
+<span style="color:#6a5888">from</span> sklearn.model_selection <span style="color:#6a5888">import</span> train_test_split
+<span style="color:#6a5888">import</span> pandas <span style="color:#6a5888">as</span> pd, numpy <span style="color:#6a5888">as</span> np
+
+<span style="color:#0d7a6e"># 1. Prepare data</span>
+X = df[[<span style="color:#b86800">'page_depth'</span>, <span style="color:#b86800">'form_score'</span>, <span style="color:#b86800">'company_size_enc'</span>, <span style="color:#b86800">'source_enc'</span>]]
+y = df[<span style="color:#b86800">'revenue_offline'</span>]   <span style="color:#0d7a6e"># contains zeros and large positives</span>
+
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=<span style="color:#1a5ca8">0.2</span>, random_state=<span style="color:#1a5ca8">42</span>)
+
+<span style="color:#0d7a6e"># 2. Build DMatrix (XGBoost's efficient data format)</span>
+dtrain = xgb.DMatrix(X_train, label=y_train)
+dval   = xgb.DMatrix(X_val,   label=y_val)
+
+<span style="color:#0d7a6e"># 3. Config — key part is objective + tweedie_variance_power</span>
+params = {
+    <span style="color:#b86800">'objective'</span>:              <span style="color:#b86800">'reg:tweedie'</span>,
+    <span style="color:#b86800">'tweedie_variance_power'</span>: <span style="color:#1a5ca8">1.5</span>,   <span style="color:#0d7a6e"># tune between 1 and 2</span>
+    <span style="color:#b86800">'learning_rate'</span>:          <span style="color:#1a5ca8">0.05</span>,
+    <span style="color:#b86800">'max_depth'</span>:              <span style="color:#1a5ca8">6</span>,
+    <span style="color:#b86800">'subsample'</span>:              <span style="color:#1a5ca8">0.8</span>,
+    <span style="color:#b86800">'colsample_bytree'</span>:       <span style="color:#1a5ca8">0.8</span>,
+    <span style="color:#b86800">'reg_lambda'</span>:             <span style="color:#1a5ca8">1.0</span>,   <span style="color:#0d7a6e"># L2 regularization</span>
+    <span style="color:#b86800">'reg_alpha'</span>:              <span style="color:#1a5ca8">0.1</span>,   <span style="color:#0d7a6e"># L1 regularization</span>
+}
+
+<span style="color:#0d7a6e"># 4. Train with early stopping</span>
+model = xgb.train(
+    params, dtrain,
+    num_boost_round=<span style="color:#1a5ca8">1000</span>,
+    evals=[(dval, <span style="color:#b86800">'val'</span>)],
+    early_stopping_rounds=<span style="color:#1a5ca8">50</span>,   <span style="color:#0d7a6e"># stop if no improvement for 50 rounds</span>
+    verbose_eval=<span style="color:#1a5ca8">100</span>
+)
+
+<span style="color:#0d7a6e"># 5. Predict — output is on the log scale internally, but XGBoost</span>
+<span style="color:#0d7a6e">#    automatically exponentiates for reg:tweedie</span>
+preds = model.predict(dval)   <span style="color:#0d7a6e"># always positive, even for zero-heavy targets</span>
+  </div>
+</section>
+
+<!-- ── SLIDE 10: Interpreting outputs ── -->
+<section class="slide" data-slide="10">
+  <h1>What the Model Learns & How to Use It</h1>
+
+  <h2>What the prediction means</h2>
+  <p>The model outputs $\hat{y}_i = e^{\text{raw score}}$ — the <strong>expected revenue</strong> for lead $i$ under the Tweedie distribution.</p>
+
+  <div class="callout-amber">
+    <strong>Not a probability, not a certainty — an expectation.</strong> For a lead with $\hat{y} = 1200$, the most likely outcome is still €0 (no conversion), but on average across many similar leads you'd expect €1,200. This is how actuaries think about insurance premiums.
+  </div>
+
+  <h2>Feature importance example</h2>
+  <!-- SVG bar chart -->
+  <svg viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:480px;display:block;margin:12px auto;">
+    <text x="10" y="14" font-family="Consolas,monospace" font-size="9" fill="#6a5888">FEATURE IMPORTANCE (gain)</text>
+    <!-- bars -->
+    <rect x="120" y="22" width="320" height="18" fill="#1a5ca8" opacity=".85"/>
+    <text x="110" y="35" text-anchor="end" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">form_score</text>
+    <text x="445" y="35" font-family="Consolas,monospace" font-size="9" fill="#1a5ca8">100</text>
+
+    <rect x="120" y="46" width="240" height="18" fill="#1a5ca8" opacity=".7"/>
+    <text x="110" y="59" text-anchor="end" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">company_size</text>
+    <text x="365" y="59" font-family="Consolas,monospace" font-size="9" fill="#1a5ca8">75</text>
+
+    <rect x="120" y="70" width="170" height="18" fill="#0d7a6e" opacity=".8"/>
+    <text x="110" y="83" text-anchor="end" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">page_depth</text>
+    <text x="295" y="83" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">53</text>
+
+    <rect x="120" y="94" width="100" height="18" fill="#0d7a6e" opacity=".6"/>
+    <text x="110" y="107" text-anchor="end" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">source</text>
+    <text x="225" y="107" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">31</text>
+
+    <rect x="120" y="118" width="50" height="18" fill="#6a5888" opacity=".6"/>
+    <text x="110" y="131" text-anchor="end" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">other</text>
+    <text x="175" y="131" font-family="Consolas,monospace" font-size="9" fill="#6a5888">16</text>
+  </svg>
+
+  <h2>Business applications</h2>
+  <ul>
+    <li><strong>Lead scoring:</strong> rank leads by $\hat{y}$ → sales team calls highest-expected-revenue first</li>
+    <li><strong>Budget allocation:</strong> bid higher on Google Ads for segments with high predicted $\hat{y}$</li>
+    <li><strong>Forecasting:</strong> sum $\hat{y}$ over all active leads = expected pipeline revenue</li>
+  </ul>
+</section>
+
+<!-- ── SLIDE 11: Evaluation ── -->
+<section class="slide" data-slide="11" data-nav-tier="sub" data-nav-section="╰ EVALUATION">
+  <span class="badge-sub">SUB-CHAPTER</span>
+  <h1>Evaluating a Tweedie Model</h1>
+
+  <p>Don't use R² or RMSE as your primary metric — they're optimized for Gaussian residuals and will mislead you.</p>
+
+  <h2>The right metrics</h2>
+  <table>
+    <thead><tr><th>Metric</th><th>Formula / idea</th><th>Good for</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Tweedie deviance</strong></td>
+        <td>$2\sum [y\log(y/\hat{y}) - (y - \hat{y})]$ (approx for p=1)</td>
+        <td>Primary loss — lower is better</td>
+      </tr>
+      <tr>
+        <td><strong>Gini coefficient</strong></td>
+        <td>How well do predictions rank-order leads?</td>
+        <td>Business ranking quality</td>
+      </tr>
+      <tr>
+        <td><strong>Lift curve</strong></td>
+        <td>Top 10% of predicted leads → what % of actual revenue?</td>
+        <td>Sales team prioritization value</td>
+      </tr>
+      <tr>
+        <td><strong>RMSLE</strong></td>
+        <td>$\sqrt{\text{mean}(\log(y+1) - \log(\hat{y}+1))^2}$</td>
+        <td>Relative (percentage) errors</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="formula" style="color:var(--text); background:#f5f3ee; border-color:#ccc4e0; font-size:11px; line-height:1.9;">
+<span style="color:#0d7a6e"># Tweedie deviance in sklearn</span>
+<span style="color:#6a5888">from</span> sklearn.metrics <span style="color:#6a5888">import</span> mean_tweedie_deviance
+score = mean_tweedie_deviance(y_val, preds, power=<span style="color:#1a5ca8">1.5</span>)
+print(<span style="color:#b86800">f"Tweedie deviance (p=1.5): {score:.4f}"</span>)
+  </div>
+
+  <div class="callout">
+    <strong>Baseline to beat:</strong> always compare against a simple model that predicts the training-set mean for every lead. If your XGBoost doesn't beat this by a meaningful margin, the features aren't informative enough — not a tuning problem.
+  </div>
+</section>
+
+<!-- ── SLIDE 12: Watch out ── -->
+<section class="slide" data-slide="12">
+  <h1>Watch Out — Common Mistakes</h1>
+
+  <div class="callout-warn" style="margin-bottom:14px;">
+    <strong>1. Negative or zero targets with Tweedie</strong><br>
+    Tweedie requires $y \geq 0$. If your revenue column has negatives (refunds), clip to 0 or transform first. XGBoost will silently produce NaN gradients otherwise.
+  </div>
+
+  <div class="callout-warn" style="margin-bottom:14px;">
+    <strong>2. Comparing Tweedie deviance across different $p$ values</strong><br>
+    The deviance scale changes with $p$. Don't use deviance to compare models trained with different variance powers — use a fixed external metric like RMSLE instead.
+  </div>
+
+  <div class="callout-warn" style="margin-bottom:14px;">
+    <strong>3. Interpreting predictions as conversion probability</strong><br>
+    $\hat{y} = 500$ does NOT mean "50% chance of converting." It means "expected revenue is €500." These are very different. Use a separate binary classifier if you need conversion probability.
+  </div>
+
+  <div class="callout-warn" style="margin-bottom:14px;">
+    <strong>4. Not scaling learning rate with number of trees</strong><br>
+    If you increase num_boost_round from 300 to 1000, reduce learning_rate proportionally (e.g. 0.1 → 0.03). Forgetting this causes overfitting even with early stopping.
+  </div>
+
+  <div class="callout-warn">
+    <strong>5. Thinking XGBoost extrapolates</strong><br>
+    It's tree-based — it cannot predict values outside the range seen in training. If your biggest training revenue is €200k, the model will never predict €300k. For extrapolation, use a log-linear GLM on top.
+  </div>
+</section>
+
+<!-- ── SLIDE 13: Quiz ── -->
+<section class="slide" data-slide="13">
+  <h1>Quiz — Check Your Understanding</h1>
+
+  <p><strong>Q1.</strong> You're training an XGBoost model with Tweedie loss (p=1.5). Your validation Tweedie deviance goes down for the first 200 rounds, then rises. What should you do?</p>
+  <details>
+    <summary>Reveal answer</summary>
+    <p>Use <strong>early stopping</strong> — set early_stopping_rounds=50 and let it stop at the best round. The model is starting to overfit after round 200. Also consider increasing reg_lambda or decreasing max_depth.</p>
+  </details>
+
+  <p style="margin-top:20px;"><strong>Q2.</strong> A lead has $\hat{y} = 3500$. Your colleague says "great, it's very likely to convert." What's wrong with this interpretation?</p>
+  <details>
+    <summary>Reveal answer</summary>
+    <p>$\hat{y}$ is an <strong>expected revenue</strong>, not a probability. A Tweedie model outputs $E[Y]$, which blends the probability of conversion with the expected deal size given conversion. A lead worth €3,500 in expectation could still be unlikely to convert if the typical deal size is €100k. To get conversion probability, you'd need a separate binary classifier.</p>
+  </details>
+
+  <p style="margin-top:20px;"><strong>Q3.</strong> Why does XGBoost use both the gradient AND the Hessian (second derivative) to find the optimal leaf value?</p>
+  <details>
+    <summary>Reveal answer</summary>
+    <p>The gradient alone tells you the direction of steepest descent. The Hessian tells you how curved the loss is — i.e., how large a step is safe to take. Together they give the closed-form optimal leaf weight $w^* = -G / (H + \lambda)$, which is a Newton step. This is why XGBoost converges faster than methods that only use first-order gradient information.</p>
+  </details>
+</section>
+
+<!-- ── SLIDE 14: Quest complete ── -->
+<section class="slide" data-slide="14">
+  <h1>Quest Complete — XGBoost & Tweedie</h1>
+  <div class="buddy-row">
+    <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3"  y="1" width="2" height="3" fill="#b0a898"/>
+      <rect x="11" y="1" width="2" height="3" fill="#b0a898"/>
+      <rect x="2"  y="4" width="12" height="9" fill="#c8bfb0"/>
+      <rect x="5"  y="6" width="2" height="2" fill="#3a3040"/>
+      <rect x="9"  y="6" width="2" height="2" fill="#3a3040"/>
+      <rect x="6"  y="9" width="4" height="2" fill="#e8dcc8"/>
+      <rect x="7"  y="10" width="2" height="1" fill="#8a7870"/>
+    </svg>
+    <div class="buddy-speech">
+      <span class="speaker">Forge:</span> One tree at a time, error by error — that's how you build something strong. Now go score those leads!
+    </div>
+  </div>
+  <ul class="checkpoint">
+    <li>XGBoost = sequential ensemble of shallow trees, each correcting the last</li>
+    <li>Adds second-order gradients + L1/L2 regularization over basic boosting</li>
+    <li>Loss function is pluggable — Tweedie is right for zero-heavy, right-skewed continuous targets</li>
+    <li>Tweedie variance grows with the mean ($\text{Var} \propto \mu^p$) — perfect for revenue data</li>
+    <li>Predictions are expected values, not probabilities — evaluate with Tweedie deviance or RMSLE</li>
+    <li>XGBoost cannot extrapolate beyond its training range — a known limitation</li>
+  </ul>
+</section>
+
+</div><!-- end .deck -->
+
+<nav class="deck-controls">
+  <button type="button" id="prev">◀ PREV</button>
+  <span id="counter">1 / 15</span>
+  <button type="button" id="next">NEXT ▶</button>
+</nav>
+
+<div id="tip-box"><span class="tip-label">term</span><span id="tip-body"></span></div>
+
+<script>
+  const TIPS = {
+    tweedie: "Tweedie: a distribution family that interpolates between Poisson (p=1) and Gamma (p=2). Has a point mass at zero plus a continuous positive tail.",
+    residual: "Residual: the difference between the actual value and the model's prediction. y − ŷ. The next tree tries to predict these residuals.",
+    lr: "Learning rate (η, eta): a shrinkage factor applied to each tree's contribution. Smaller η = more trees needed but better regularization. Typical range: 0.01–0.3."
+  };
+  document.querySelectorAll('.tip').forEach(el => {
+    el.addEventListener('mouseenter', e => {
+      const box = document.getElementById('tip-box');
+      document.querySelector('.tip-label').textContent = el.dataset.tip;
+      document.getElementById('tip-body').textContent = TIPS[el.dataset.tip] || '';
+      box.style.display = 'block';
+      box.style.left = Math.min(e.clientX + 14, window.innerWidth - 320) + 'px';
+      box.style.top = (e.clientY + 14) + 'px';
+    });
+    el.addEventListener('mouseleave', () => { document.getElementById('tip-box').style.display = 'none'; });
+  });
+
+  const slides = [...document.querySelectorAll(".slide")];
+  const sideNavList = document.getElementById("side-nav-list");
+  const navButtons = [];
+  let mainNum = 0, subParentNum = 0, subIndex = 0;
+  const sectionHeadersAdded = new Set();
+
+  slides.forEach((slide, j) => {
+    const tier = slide.dataset.navTier || "core";
+    let displayNum;
+    if (tier === "core") {
+      mainNum++; subParentNum = mainNum; subIndex = 0;
+      displayNum = String(mainNum);
+    } else if (tier.startsWith("sub")) {
+      const sectionLabel = slide.dataset.navSection || "╰ DETAILS";
+      if (!sectionHeadersAdded.has(sectionLabel)) {
+        const head = document.createElement("p");
+        head.className = "side-nav-section";
+        head.textContent = sectionLabel;
+        sideNavList.appendChild(head);
+        sectionHeadersAdded.add(sectionLabel);
+      }
+      subIndex++;
+      displayNum = `${subParentNum}.${subIndex}`;
+    } else {
+      displayNum = String(j + 1);
+    }
+    const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    const isSub = tier.startsWith("sub");
+    btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+    btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
+    btn.addEventListener("click", () => show(j));
+    sideNavList.appendChild(btn);
+    navButtons.push(btn);
+  });
+  const headCore = document.createElement("p");
+  headCore.className = "side-nav-section";
+  headCore.textContent = "360° PATH — start here";
+  sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
+  let i = 0;
+  const counter = document.getElementById("counter");
+  function show(n) {
+    i = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach((s, j) => s.classList.toggle("active", j === i));
+    navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+    counter.textContent = `${i + 1} / ${slides.length}`;
+    navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  document.getElementById("prev").onclick = () => show(i - 1);
+  document.getElementById("next").onclick = () => show(i + 1);
+  document.addEventListener("keydown", e => {
+    if (e.key === "ArrowRight") show(i + 1);
+    if (e.key === "ArrowLeft") show(i - 1);
+  });
+  show(0);
+</script>
+
+<div id="laser-dot"></div>
+<script>
+(function () {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var PALETTE = ['#1a5ca8','#c42848','#b86800','#0d7a6e','#6a5888','#f5c842','#e87060','#a8d870'];
+  var laser = document.getElementById('laser-dot');
+  document.addEventListener('mousemove', function(e) {
+    laser.style.left = e.clientX + 'px';
+    laser.style.top = e.clientY + 'px';
+    if (Date.now() - lastSpawn > 30 && particleCount < 40) {
+      lastSpawn = Date.now();
+      spawnDot(e.clientX, e.clientY);
+    }
+  });
+  var lastSpawn = 0, particleCount = 0;
+  function spawnDot(x, y) {
+    particleCount++;
+    var d = document.createElement('div');
+    d.className = 'fd-particle';
+    d.style.cssText = 'width:5px;height:5px;border-radius:50%;background:' + PALETTE[Math.floor(Math.random()*PALETTE.length)] + ';left:' + (x-2) + 'px;top:' + (y-2) + 'px;opacity:1;transition:all 0.6s ease-out;';
+    document.body.appendChild(d);
+    requestAnimationFrame(function() {
+      var dx = (Math.random()-0.5)*40, dy = (Math.random()-0.5)*40;
+      d.style.transform = 'translate('+dx+'px,'+dy+'px)';
+      d.style.opacity = '0';
+    });
+    setTimeout(function() { d.remove(); particleCount--; }, 650);
+  }
+  document.addEventListener('click', function(e) {
+    for (var k=0;k<10;k++) spawnDot(e.clientX, e.clientY);
+  });
+})();
+</script>
+</body>
+</html>

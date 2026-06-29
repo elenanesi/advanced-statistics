@@ -6,7 +6,12 @@
   <title>CONCEPT TITLE — Advanced Stats Quest</title>
   <!-- Technique C pixel-art favicon: mochi cat face -->
   <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="2" width="2" height="3" fill="%23c4919e"/><rect x="11" y="2" width="2" height="3" fill="%23c4919e"/><rect x="3" y="5" width="10" height="8" fill="%23f0dcc0"/><rect x="5" y="7" width="1" height="2" fill="%233a3040"/><rect x="10" y="7" width="1" height="2" fill="%233a3040"/><rect x="7" y="9" width="2" height="1" fill="%23c4919e"/></svg>' />
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <!-- KaTeX — proper math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
   <style>
     :root {
       --bg:     #f0ebe0;   /* warm parchment */
@@ -49,7 +54,7 @@
       z-index: 9;
     }
     .side-nav-title {
-      font-family: "Press Start 2P", monospace;
+      font-family: "DotGothic16", monospace;
       font-size: 8px;
       color: var(--mist);
       margin-bottom: 12px;
@@ -123,9 +128,8 @@
       margin-bottom: 16px;
     }
     .slide.active { display: block; }
-    /* Press Start 2P only for h1 — iconic pixel title, short text only */
     h1 {
-      font-family: "Press Start 2P", monospace;
+      font-family: "DotGothic16", monospace;
       font-size: 13px;
       color: var(--accent);
       margin: 0 0 16px;
@@ -172,11 +176,32 @@
       font-size: 12px;
       color: var(--accent);
       background: rgba(26,92,168,.06);
-      padding: 12px;
+      padding: 14px 16px;
       border: 2px solid rgba(26,92,168,.3);
       margin: 12px 0;
+      overflow-x: auto;
+      line-height: 1.8;
     }
     .formula em { color: var(--honey); font-style: normal; }
+    .formula .katex { font-size: 1.08em; }
+    .formula .katex-display { margin: 6px 0; }
+
+    /* ── hover tooltips for jargon terms ── */
+    .tip { border-bottom: 2px dashed var(--honey); cursor: help; }
+    #tip-box {
+      position: fixed; display: none;
+      background: #fff8f2;
+      border: 2px solid var(--honey);
+      box-shadow: 4px 4px 0 rgba(80,60,140,.22);
+      padding: 10px 14px; max-width: 300px;
+      font-size: 11px; z-index: 99998;
+      color: var(--text); line-height: 1.6; pointer-events: none;
+    }
+    .tip-label {
+      font-weight: bold; color: var(--honey); display: block;
+      margin-bottom: 4px; font-size: 10px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
 
     details { margin-top: 16px; }
     summary { cursor: pointer; color: var(--rose); font-size: 13px; }
@@ -200,12 +225,12 @@
       z-index: 10;
     }
     #counter {
-      font-family: "Press Start 2P", monospace;
+      font-family: "DotGothic16", monospace;
       font-size: 9px;
       color: var(--mist);
     }
     button {
-      font-family: "Press Start 2P", monospace;
+      font-family: "DotGothic16", monospace;
       font-size: 9px;
       padding: 10px 16px;
       background: var(--accent);
@@ -697,6 +722,33 @@
         }(el, rotate, dx, dy));
       }
     });
+  }());
+  </script>
+  <script>
+  /* ── hover tooltip engine ── */
+  (function () {
+    var box = document.createElement('div');
+    box.id = 'tip-box';
+    document.body.appendChild(box);
+    document.querySelectorAll('.tip').forEach(function (el) {
+      el.addEventListener('mouseenter', function (e) {
+        var lbl = el.dataset.tipTitle ? '<span class="tip-label">' + el.dataset.tipTitle + '</span>' : '';
+        box.innerHTML = lbl + (el.dataset.tip || '');
+        if (window.renderMathInElement) renderMathInElement(box, {
+          delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+          throwOnError: false
+        });
+        box.style.display = 'block'; move(e);
+      });
+      el.addEventListener('mousemove', move);
+      el.addEventListener('mouseleave', function () { box.style.display = 'none'; });
+    });
+    function move(e) {
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 310 > window.innerWidth)  x = e.clientX - 316;
+      if (y + 200 > window.innerHeight) y = e.clientY - 206;
+      box.style.left = x + 'px'; box.style.top = y + 'px';
+    }
   }());
   </script>
 </body>

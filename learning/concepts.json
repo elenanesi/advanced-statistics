@@ -11,7 +11,7 @@
     "owl-sprite": {
       "name": "Hootsworth",
       "animal": "owl",
-      "role": "Continuous waiting times & survival",
+      "role": "Continuous waiting times, survival, and foundational concepts",
       "sprite_style": "pixel-16",
       "palette": ["#8870a0", "#c8a870", "#d4a060"]
     },
@@ -46,26 +46,40 @@
   },
   "concepts": [
     {
-      "id": "bernoulli-expectation",
-      "title": "Bernoulli trial & expectation",
+      "id": "stats-probability-foundations",
+      "title": "Statistics vs Probability — Foundations",
       "mastery": "developing",
       "prerequisites": [],
+      "related_exam_tasks": [1, 2, 3, 4, 5, 6],
+      "course_book": ["Unit 1 — 1.1", "Unit 1 — 1.2", "Unit 1 — 1.3"],
+      "buddy_id": "owl-sprite",
+      "slide_path": "slides/intro-stats-probability/index.html",
+      "slide_status": "ready",
+      "notes": "Created 2026-06-24. Covers: stats vs probability (two directions), what a distribution is, E[X] from dice analogy, variance, PMF vs PDF, Bernoulli, distribution roadmap for all 6 tasks, Normal and Gamma intros. Prerequisite for task1-bernoulli and all other task decks."
+    },
+    {
+      "id": "bernoulli-expectation",
+      "title": "Bernoulli trial & expectation",
+      "mastery": "solid",
+      "prerequisites": ["stats-probability-foundations"],
       "related_exam_tasks": [1],
       "course_book": ["Unit 1 — 1.3"],
       "buddy_id": "coin-sprite",
-      "slide_path": "slides/bernoulli-expectation/index.html",
-      "slide_status": "none"
+      "slide_path": "slides/task1-bernoulli/index.html",
+      "slide_status": "ready",
+      "notes": "Deck extended 2026-06-24. Covers probability space, random variable (label gun + why 'random'), measurability, integrability, E[X] (seesaw), PMF, formal proof block, Python code, pitfalls, quiz. Assumes stats-probability-foundations done first."
     },
     {
       "id": "continuous-survival-pdf",
       "title": "Survival function → PDF",
       "mastery": "novice",
-      "prerequisites": ["bernoulli-expectation"],
+      "prerequisites": ["stats-probability-foundations"],
       "related_exam_tasks": [2],
       "course_book": ["Unit 3 — 3.3"],
       "buddy_id": "owl-sprite",
-      "slide_path": "slides/continuous-survival-pdf/index.html",
-      "slide_status": "none"
+      "slide_path": "slides/task2-survival/index.html",
+      "slide_status": "unknown",
+      "notes": "slides/task2-survival/ may exist — check status before creating. Task 2 survival function: F̄(y) = 0.79·exp(−4y²) + 0.20·exp(−6y²). Flag: ξ5+ξ7=0.99 ≠ 1 (document in notebook)."
     },
     {
       "id": "gamma-sum-mle",
@@ -82,7 +96,7 @@
       "id": "hypothesis-test-mean",
       "title": "Testing mean / variance claims",
       "mastery": "novice",
-      "prerequisites": [],
+      "prerequisites": ["stats-probability-foundations"],
       "related_exam_tasks": [4],
       "course_book": ["Unit 7 — 7.1", "Unit 7 — 7.2"],
       "buddy_id": "hammer-sprite",
@@ -104,7 +118,7 @@
       "id": "gamma-conjugate-bayes",
       "title": "Gamma conjugate posterior",
       "mastery": "novice",
-      "prerequisites": [],
+      "prerequisites": ["gamma-sum-mle"],
       "related_exam_tasks": [6],
       "course_book": ["Unit 4 — 4.3"],
       "buddy_id": "prior-sprite",

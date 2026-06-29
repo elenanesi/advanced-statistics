@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "intro-stats",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8341", "--directory", "/Users/elenanesi/Workspace/advanced-statistics"],
+      "port": 8341
+    }
+  ]
+}

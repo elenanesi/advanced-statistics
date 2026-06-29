@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wickes — Value-Based Bidding Architecture</title>
+  <style>
+    :root {
+      --green-950: #0A2116;
+      --green-900: #1A4731;
+      --green-700: #276346;
+      --green-500: #39B54A;
+      --green-200: #A8D5B5;
+      --green-50:  #EAF7EC;
+      --white: #FFFFFF;
+      --gray-50:  #F8FAFC;
+      --gray-100: #F1F5F9;
+      --gray-200: #E2E8F0;
+      --gray-400: #94A3B8;
+      --gray-600: #475569;
+      --gray-800: #1E293B;
+      --amber-500: #F59E0B;
+      --amber-100: #FEF3C7;
+      --red-50:   #FEF2F2;
+      --red-500:  #EF4444;
+      --blue-50:  #EFF6FF;
+      --blue-500: #3B82F6;
+
+      --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mono: "SF Mono", "Fira Code", Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      font-family: var(--font);
+      background: var(--gray-800);
+      color: var(--gray-800);
+      overflow: hidden;
+    }
+
+    /* ── Deck shell ───────────────────────────────────────────────── */
+    #deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      background: var(--white);
+      opacity: 0;
+      transition: opacity .28s ease;
+    }
+    .slide.active { display: flex; opacity: 1; }
+    .slide.entering { opacity: 0; }
+
+    /* ── Navigation bar (bottom) ──────────────────────────────────── */
+    #nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 52px;
+      background: var(--green-950);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      z-index: 100;
+    }
+    #nav button {
+      background: none;
+      border: 1px solid var(--green-700);
+      color: var(--white);
+      font: 13px/1 var(--font);
+      padding: 6px 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    #nav button:hover { background: var(--green-700); }
+    #nav button:disabled { opacity: .3; cursor: default; }
+    #slide-counter { color: var(--green-200); font-size: 13px; letter-spacing: .03em; }
+    .dot-nav { display: flex; gap: 8px; align-items: center; }
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green-700);
+      cursor: pointer;
+      transition: background .15s, transform .15s;
+    }
+    .dot.active { background: var(--green-500); transform: scale(1.3); }
+
+    /* ── Shared slide layout ──────────────────────────────────────── */
+    .slide-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 56px 72px 72px;
+    }
+    .slide-header {
+      padding: 0 72px;
+      padding-top: 36px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .slide-header .badge {
+      background: var(--green-50);
+      color: var(--green-700);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--green-200);
+      white-space: nowrap;
+    }
+    .slide-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--gray-800);
+      line-height: 1.2;
+    }
+
+    /* ── Typography ───────────────────────────────────────────────── */
+    h1 { font-size: 40px; font-weight: 800; line-height: 1.1; }
+    h2 { font-size: 22px; font-weight: 700; line-height: 1.2; }
+    h3 { font-size: 15px; font-weight: 600; }
+    p  { font-size: 14px; line-height: 1.65; color: var(--gray-600); }
+    ul { font-size: 14px; line-height: 1.65; color: var(--gray-600); padding-left: 20px; }
+    li { margin-bottom: 6px; }
+    code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: var(--gray-100);
+      color: var(--green-700);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    /* ── Utilities ────────────────────────────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    .stack   { display: flex; flex-direction: column; gap: 12px; }
+    .row     { display: flex; align-items: center; gap: 12px; }
+    .spacer  { flex: 1; }
+    .divider { height: 1px; background: var(--gray-200); margin: 20px 0; }
+    .mt8  { margin-top: 8px; }
+    .mt16 { margin-top: 16px; }
+    .mt24 { margin-top: 24px; }
+
+    /* ── Card ─────────────────────────────────────────────────────── */
+    .card {
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 20px 22px;
+      background: var(--white);
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    /* ── Callout ──────────────────────────────────────────────────── */
+    .callout {
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .callout strong { display: block; margin-bottom: 4px; font-size: 13px; }
+    .callout.info    { background: var(--blue-50);   color: var(--blue-500); border-left: 3px solid var(--blue-500); }
+    .callout.success { background: var(--green-50);  color: var(--green-700); border-left: 3px solid var(--green-500); }
+    .callout.warning { background: var(--amber-100); color: #92400E; border-left: 3px solid var(--amber-500); }
+    .callout.danger  { background: var(--red-50);    color: var(--red-500); border-left: 3px solid var(--red-500); }
+
+    /* ── Stat block ───────────────────────────────────────────────── */
+    .stat-block {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--gray-800);
+    }
+    .stat-value.green { color: var(--green-700); }
+    .stat-label {
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    /* ── Badge ────────────────────────────────────────────────────── */
+    .badge-sm {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .badge-sm.green  { background: var(--green-50);  color: var(--green-700); border: 1px solid var(--green-200); }
+    .badge-sm.neutral{ background: var(--gray-100);  color: var(--gray-600);  border: 1px solid var(--gray-200); }
+    .badge-sm.warn   { background: var(--amber-100); color: #92400E; border: 1px solid var(--amber-500); }
+
+    /* ── Table ────────────────────────────────────────────────────── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--gray-200);
+      background: var(--gray-50);
+    }
+    .data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-600);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr.highlight td { background: var(--green-50); }
+    .data-table .th-wrap { border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; }
+
+    /* ── Flow diagram ─────────────────────────────────────────────── */
+    .flow-wrap { display: flex; flex-direction: column; align-items: center; gap: 0; }
+    .flow-node {
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: 1px solid var(--gray-200);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-800);
+      text-align: center;
+      min-width: 220px;
+      background: var(--gray-50);
+    }
+    .flow-node.server  { background: #EEF2FF; border-color: #A5B4FC; color: #3730A3; }
+    .flow-node.client  { background: var(--gray-50); }
+    .flow-node.external{ background: var(--green-50); border-color: var(--green-200); color: var(--green-700); }
+    .flow-node.accent  { background: var(--green-900); border-color: var(--green-900); color: var(--white); }
+    .flow-sub {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--gray-400);
+      margin-top: 3px;
+    }
+    .flow-node.server .flow-sub  { color: #6366F1; }
+    .flow-node.external .flow-sub{ color: var(--green-500); }
+    .flow-node.accent .flow-sub  { color: var(--green-200); }
+    .flow-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      padding: 2px 0;
+    }
+    .flow-arrow-line {
+      width: 1.5px;
+      height: 22px;
+      background: var(--gray-300);
+    }
+    .flow-arrow-label {
+      font-size: 10px;
+      color: var(--gray-400);
+      white-space: nowrap;
+      margin: 1px 0;
+    }
+    .flow-arrow-head {
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 7px solid var(--gray-300);
+    }
+
+    /* ── Title slide ──────────────────────────────────────────────── */
+    .slide-title {
+      background: var(--green-900);
+      color: var(--white);
+    }
+    .title-inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 80px 80px;
+    }
+    .title-eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--green-200);
+      margin-bottom: 24px;
+    }
+    .title-inner h1 { color: var(--white); font-size: 46px; }
+    .title-inner h1 span { color: var(--green-500); }
+    .title-sub {
+      font-size: 18px;
+      color: var(--green-200);
+      margin-top: 16px;
+      line-height: 1.5;
+      max-width: 640px;
+    }
+    .title-meta {
+      display: flex;
+      gap: 32px;
+      margin-top: 52px;
+      border-top: 1px solid var(--green-700);
+      padding-top: 28px;
+    }
+    .title-meta-item { font-size: 13px; }
+    .title-meta-item .label { color: var(--green-500); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .title-meta-item .value { color: var(--white); }
+
+    /* ── Checklist ────────────────────────────────────────────────── */
+    .checklist { list-style: none; padding: 0; }
+    .checklist li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 13px;
+      color: var(--gray-600);
+      line-height: 1.5;
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .check-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gray-300);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .check-icon.done { border-color: var(--green-500); background: var(--green-500); }
+
+    /* ── Question list ────────────────────────────────────────────── */
+    .q-category { font-size: 12px; font-weight: 700; color: var(--green-700); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; margin-top: 16px; }
+    .q-list { list-style: none; padding: 0; }
+    .q-list li { font-size: 13px; color: var(--gray-600); line-height: 1.5; padding: 5px 0 5px 20px; position: relative; border-bottom: 1px solid var(--gray-100); }
+    .q-list li:last-child { border-bottom: none; }
+    .q-list li::before { content: counter(q-counter) "."; counter-increment: q-counter; position: absolute; left: 0; color: var(--gray-400); font-size: 12px; }
+    .q-list { counter-reset: q-counter; }
+
+    /* ── Option comparison ────────────────────────────────────────── */
+    .option-card {
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .option-card.recommended { border-color: var(--green-500); }
+    .option-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: var(--gray-50);
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .option-card.recommended .option-header { background: var(--green-50); border-bottom-color: var(--green-200); }
+    .option-title { font-size: 14px; font-weight: 700; color: var(--gray-800); }
+    .option-body { padding: 16px 18px; }
+    .option-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .option-row-label { font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: .05em; min-width: 72px; padding-top: 2px; }
+    .option-row-val { font-size: 13px; color: var(--gray-600); line-height: 1.5; }
+    .pro-con-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .pro-con-block { background: var(--gray-50); border-radius: 6px; padding: 10px 12px; }
+    .pro-con-block.pro { background: var(--green-50); }
+    .pro-con-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .pro-con-block.pro .pro-con-label { color: var(--green-700); }
+    .pro-con-block .pro-con-label { color: var(--red-500); }
+    .pro-con-block ul { font-size: 12.5px; color: var(--gray-600); padding-left: 16px; }
+
+    /* ── Decision tree / flowchart ────────────────────────────────── */
+    .decision-tree { display: flex; flex-direction: column; gap: 0; align-items: flex-start; }
+    .dt-row { display: flex; align-items: center; gap: 12px; }
+    .dt-box {
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1.5px solid;
+    }
+    .dt-box.question { background: var(--blue-50); border-color: var(--blue-500); color: #1E40AF; }
+    .dt-box.yes      { background: var(--green-50); border-color: var(--green-500); color: var(--green-700); }
+    .dt-box.no       { background: var(--amber-100); border-color: var(--amber-500); color: #92400E; }
+    .dt-connector { display: flex; flex-direction: column; align-items: center; height: 28px; }
+    .dt-connector .dt-line { width: 1.5px; flex: 1; background: var(--gray-300); }
+    .dt-label { font-size: 11px; color: var(--gray-400); padding: 3px 8px; }
+    .dt-branch { display: flex; gap: 60px; margin-left: 40px; margin-top: 10px; }
+    .dt-branch-col { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+    /* ─── Timeline / steps ─────────────────────────────────────────── */
+    .steps { display: flex; gap: 0; }
+    .step { flex: 1; position: relative; }
+    .step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: 20px;
+      right: 0;
+      width: 100%;
+      height: 1.5px;
+      background: var(--gray-200);
+      z-index: 0;
+    }
+    .step-num {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--green-900);
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 12px;
+    }
+    .step-title { font-size: 13px; font-weight: 600; color: var(--gray-800); margin-bottom: 4px; }
+    .step-body  { font-size: 12px; color: var(--gray-600); line-height: 1.5; padding-right: 20px; }
+    .step-week  { font-size: 11px; color: var(--green-500); font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+
+    /* ── Appendix ─────────────────────────────────────────────────── */
+    .badge.appendix {
+      background: var(--gray-100);
+      color: var(--gray-600);
+      border-color: var(--gray-200);
+    }
+    .doc-list { list-style: none; padding: 0; }
+    .doc-list li {
+      font-size: 12.5px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--gray-100);
+      line-height: 1.45;
+    }
+    .doc-list li:last-child { border-bottom: none; }
+    .doc-list a { color: var(--green-700); text-decoration: none; font-weight: 500; }
+    .doc-list a:hover { text-decoration: underline; }
+    .doc-list .doc-desc { color: var(--gray-400); font-size: 11.5px; display: block; margin-top: 2px; }
+    .endpoint-block {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: var(--gray-800);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .flow-step-num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--green-900);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .appendix-note {
+      font-size: 12px;
+      color: var(--gray-400);
+      font-style: italic;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="deck">
+
+  <!-- ═══ SLIDE 1: TITLE ══════════════════════════════════════════════════════ -->
+  <div class="slide slide-title active" id="s1">
+    <div class="title-inner">
+      <div class="title-eyebrow">Value-Based Bidding · Architecture Proposal</div>
+      <h1>Acquia CDP <span>×</span> sGTM<br>VBB Strategy</h1>
+      <p class="title-sub">Moving beyond conversion volume optimisation to true strategic customer value — activating existing Acquia pCLV predictions in Google Ads Smart Bidding.</p>
+      <div class="title-meta">
+        <div class="title-meta-item">
+          <div class="label">Client</div>
+          <div class="value">Wickes</div>
+        </div>
+        <div class="title-meta-item">
+          <div class="label">Date</div>
+          <div class="value">June 2026</div>
+        </div>
+        <div class="title-meta-item">
+          <div class="label">Scope</div>
+          <div class="value">Architecture Feasibility</div>
+        </div>
+        <div class="title-meta-item">
+          <div class="label">Primary Platform</div>
+          <div class="value">Acquia CDP + Google sGTM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 2: THE OPPORTUNITY ══════════════════════════════════════════ -->
+  <div class="slide" id="s2">
+    <div class="slide-header">
+      <span class="badge">Context</span>
+      <h2>The VBB Opportunity</h2>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2" style="align-items:start; gap:36px;">
+        <div class="stack">
+          <h3>From volume to value</h3>
+          <p>Standard conversion tracking tells Google Ads that all conversions are equal. Value-Based Bidding tells the algorithm <em>how much</em> each conversion is worth — so it spends more to win the customers that generate disproportionate long-term revenue.</p>
+          <div class="divider"></div>
+          <h3>What VBB unlocks</h3>
+          <ul>
+            <li><strong>Attract high-LTV customers</strong> — Smart Bidding bids more aggressively for users Acquia has identified as high predicted CLV</li>
+            <li><strong>Reduce waste on low-value segments</strong> — bid less for users unlikely to return or spend further</li>
+            <li><strong>Optimise across both online and offline conversions</strong> — assign value to lead events, trade account registrations, and in-store sales linked by CRM data</li>
+          </ul>
+          <div class="callout success mt16">
+            <strong>Your advantage: predictions already exist</strong>
+            Acquia CDP already holds pre-computed Predicted Customer Lifetime Value (pCLV) scores. The challenge is not building predictions — it is activating them inside Google Ads bidding in real time.
+          </div>
+        </div>
+        <div class="stack">
+          <div class="grid-2" style="gap:16px;">
+            <div class="stat-block">
+              <div class="stat-value green">pCLV</div>
+              <div class="stat-label">Value signal source (Acquia CDP)</div>
+            </div>
+            <div class="stat-block">
+              <div class="stat-value">sGTM</div>
+              <div class="stat-label">Middleware layer (server-side GTM)</div>
+            </div>
+            <div class="stat-block">
+              <div class="stat-value green">CAPI</div>
+              <div class="stat-label">Google Conversion API delivery</div>
+            </div>
+            <div class="stat-block">
+              <div class="stat-value">ROAS</div>
+              <div class="stat-label">Primary optimisation objective</div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <h3>Conversion types to enrich</h3>
+          <ul>
+            <li><strong>Online</strong> — checkout completions, trade account registrations, quote requests</li>
+            <li><strong>Offline</strong> — in-store purchases linked via CRM email match, phone calls converted to orders</li>
+            <li><strong>Lead milestones</strong> — appointment bookings, brochure requests, design consultations</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 3: CURRENT STACK ══════════════════════════════════════════════ -->
+  <div class="slide" id="s3">
+    <div class="slide-header">
+      <span class="badge">Context</span>
+      <h2>Your Current Technology Stack</h2>
+    </div>
+    <div class="slide-body">
+      <p style="margin-bottom:28px;">You already have the three foundational layers in place. The missing connection is the bridge from Acquia's predictive intelligence to Google's bidding algorithm.</p>
+      <div class="grid-3" style="margin-bottom:32px;">
+        <div class="card">
+          <div class="card-title row">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--green-500);flex-shrink:0;"></div>
+            Acquia CDP
+          </div>
+          <div class="stack" style="gap:8px;">
+            <p>Unified customer profiles with pre-computed pCLV scores, value tiers, and behavioural segments.</p>
+            <ul style="margin-top:4px;">
+              <li>Predictive CLV scores per customer</li>
+              <li>Segment membership (tier labels)</li>
+              <li>Real-Time Profile API available</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title row">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--green-500);flex-shrink:0;"></div>
+            Server-Side GTM
+          </div>
+          <div class="stack" style="gap:8px;">
+            <p>Deployed sGTM container acting as serverless middleware for all conversion and tracking tag logic.</p>
+            <ul style="margin-top:4px;">
+              <li>Receives all web conversion events</li>
+              <li>Custom variable templates supported</li>
+              <li>Outbound HTTP request capability</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title row">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--green-500);flex-shrink:0;"></div>
+            Google Ads
+          </div>
+          <div class="stack" style="gap:8px;">
+            <p>Active campaigns with Smart Bidding strategies. Conversion API (CAPI) integration via sGTM.</p>
+            <ul style="margin-top:4px;">
+              <li>Target CPA / Target ROAS campaigns</li>
+              <li>Enhanced Conversions configured</li>
+              <li>CAPI receiving signals via sGTM</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="callout warning">
+        <strong>The gap</strong>
+        Despite having all three layers, there is currently no mechanism translating Acquia's pCLV knowledge into the conversion value parameter sent to Google Ads. Every conversion today signals the same value — Google cannot differentiate between a one-time buyer and a predicted £2,000 LTV customer.
+      </div>
+      <div class="divider" style="margin-top:24px;"></div>
+      <div class="row" style="gap:20px;margin-top:20px;flex-wrap:wrap;">
+        <div class="row" style="gap:8px;">
+          <div class="flow-node client" style="min-width:auto;padding:8px 14px;font-size:12px;">Browser Event</div>
+          <div style="font-size:18px;color:var(--gray-300);">→</div>
+          <div class="flow-node server" style="min-width:auto;padding:8px 14px;font-size:12px;">sGTM Container</div>
+          <div style="font-size:18px;color:var(--gray-300);">→</div>
+          <div class="flow-node" style="min-width:auto;padding:8px 14px;font-size:12px;background:var(--amber-100);border-color:var(--amber-500);color:#92400E;">value = 1 (hardcoded)</div>
+          <div style="font-size:18px;color:var(--gray-300);">→</div>
+          <div class="flow-node external" style="min-width:auto;padding:8px 14px;font-size:12px;">Google CAPI</div>
+        </div>
+        <span style="font-size:13px;color:var(--gray-400);">Current (no value enrichment)</span>
+      </div>
+      <div class="row" style="gap:20px;margin-top:12px;flex-wrap:wrap;">
+        <div class="row" style="gap:8px;">
+          <div class="flow-node client" style="min-width:auto;padding:8px 14px;font-size:12px;">Browser Event</div>
+          <div style="font-size:18px;color:var(--gray-300);">→</div>
+          <div class="flow-node server" style="min-width:auto;padding:8px 14px;font-size:12px;">sGTM Container</div>
+          <div style="font-size:18px;color:var(--gray-300);">→</div>
+          <div class="flow-node accent" style="min-width:auto;padding:8px 14px;font-size:12px;">value = £{pCLV}</div>
+          <div style="font-size:18px;color:var(--gray-300);">→</div>
+          <div class="flow-node external" style="min-width:auto;padding:8px 14px;font-size:12px;">Google CAPI</div>
+        </div>
+        <span style="font-size:13px;color:var(--green-700);font-weight:600;">Target (with VBB enrichment)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 4: HOW VBB ACTUALLY WORKS ═══════════════════════════════════ -->
+  <div class="slide" id="s4">
+    <div class="slide-header">
+      <span class="badge">Concepts</span>
+      <h2>How Value-Based Bidding Actually Works — Two Separate Models</h2>
+    </div>
+    <div class="slide-body">
+      <p style="margin-bottom:20px;">A common misconception is that pCLV is fed directly into Google's auction engine in real time. It isn't. VBB works through <strong>two distinct systems</strong> that operate at different moments.</p>
+      <div class="grid-2" style="gap:24px;margin-bottom:24px;">
+        <div class="card" style="border-color:var(--green-500);">
+          <div class="card-title">Model 1 — Your value label (at conversion time)</div>
+          <div class="stack" style="gap:10px;">
+            <p><strong>When:</strong> At the moment a conversion happens (checkout, lead form, trade account signup).</p>
+            <p><strong>What you send:</strong> A numeric <code>conversion_value</code> attached to that specific conversion event via sGTM → Google Ads CAPI.</p>
+            <p><strong>What it can be:</strong> Transaction revenue, gross margin, Acquia pCLV score, or a tier-mapped value (Gold = £200).</p>
+            <p><strong>What it is NOT:</strong> A live bid instruction. Google does not re-run your Acquia or Vertex model at auction time.</p>
+            <div class="callout success" style="font-size:12px;">
+              <strong>Role: outcome labelling</strong>
+              You are teaching Google: "conversions that look like <em>this</em> were worth £X to our business."
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Model 2 — Google Smart Bidding (at auction time)</div>
+          <div class="stack" style="gap:10px;">
+            <p><strong>When:</strong> Every time your ad is eligible to appear in an auction — before any conversion has happened.</p>
+            <p><strong>What Google uses:</strong> Historical conversion values you reported, plus Google's own real-time signals: query, device, location, time, audience lists, remarketing membership, and cross-session behaviour (where permitted).</p>
+            <p><strong>What it does:</strong> Predicts whether <em>this</em> click is likely to produce a high-value conversion, and sets the bid accordingly.</p>
+            <div class="callout info" style="font-size:12px;">
+              <strong>Role: bid optimisation</strong>
+              Google's model already integrates browser and auction-time behaviour. What it cannot infer is your offline CRM data, trade account value, or long-term margin logic.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="th-wrap" style="margin-bottom:20px;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Question</th>
+              <th>Answer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="highlight">
+              <td><strong>Why send pCLV at conversion time?</strong></td>
+              <td>Because that's the only moment you can attach an accurate value label to a confirmed outcome. Google stores this label and uses it as training feedback for future auctions.</td>
+            </tr>
+            <tr>
+              <td><strong>Does Google re-run your pCLV model when bidding?</strong></td>
+              <td>No. Google learns statistical associations: "traffic patterns like this historically produced high reported values." Your model defines the label; Google's model learns when to bid up.</td>
+            </tr>
+            <tr class="highlight">
+              <td><strong>How "recent" must the prediction be?</strong></td>
+              <td>Accurate at <em>conversion labelling</em> time — not millisecond-fresh at auction time. A score updated daily in Acquia and looked up at checkout is usually sufficient. Staleness only matters if a customer's tier changes frequently and you miss that at label time.</td>
+            </tr>
+            <tr>
+              <td><strong>Is skipping Vertex AI safe?</strong></td>
+              <td>Yes, for strategic customer-level value. Google already handles session/auction behaviour internally. Acquia's advantage is CRM, offline, and trade-account data Google never sees — not sub-second browser signals.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warning" style="font-size:12.5px;">
+        <strong>Implication for Wickes</strong>
+        Sending Acquia pCLV at conversion time is not about real-time bid steering — it is about giving Google a richer definition of "value" that incorporates offline sales, trade accounts, and margin logic. That is the gap Google's own model cannot fill, regardless of Phoebe.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 5: PHOEBE EXPLAINED ═══════════════════════════════════════════ -->
+  <div class="slide" id="s5">
+    <div class="slide-header">
+      <span class="badge">Concepts</span>
+      <h2>What Phoebe Actually Does — and What It Doesn't</h2>
+    </div>
+    <div class="slide-body">
+      <p style="margin-bottom:20px;">Phoebe is often misunderstood. It is <strong>not</strong> a Google proprietary prediction engine that ingests secret browser signals. It is plumbing: an sGTM variable template that calls <em>your own</em> model hosted in Vertex AI, with features <em>you</em> configure.</p>
+      <div class="grid-2" style="gap:24px;margin-bottom:24px;">
+        <div class="card">
+          <div class="card-title">What Phoebe sends to Vertex AI</div>
+          <ul style="margin-top:8px;">
+            <li><strong>Event data from the current session</strong> — basket items, transaction value, product categories, quantities (from the GTM data layer)</li>
+            <li><strong>Optionally: Firestore profile data</strong> — via Artemis (purchase history, segment membership)</li>
+            <li><strong>Optionally: reCAPTCHA score</strong> — via Cerberus (bot/fraud signal)</li>
+            <li><strong>Any custom fields you map</strong> — in the Phoebe "Request Data" table in sGTM</li>
+          </ul>
+          <p style="margin-top:12px;font-size:13px;"><strong>Not included:</strong> Google's auction-time signals, cross-site browsing graphs, or any Google-proprietary data. Those stay inside Google's Smart Bidding model and are never exposed to Phoebe.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Acquia pCLV vs Phoebe+Vertex — different questions</div>
+          <div class="th-wrap" style="margin-top:8px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Dimension</th>
+                  <th>Acquia pCLV</th>
+                  <th>Phoebe + Vertex AI</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Question answered</strong></td>
+                  <td>"How valuable is this <em>customer</em> long-term?"</td>
+                  <td>"How valuable is <em>this specific conversion event</em> right now?"</td>
+                </tr>
+                <tr>
+                  <td><strong>Typical features</strong></td>
+                  <td>CRM history, offline store visits, trade account status, category affinity, recency/frequency</td>
+                  <td>Current basket, session products viewed, cart value, item mix in this transaction</td>
+                </tr>
+                <tr>
+                  <td><strong>Data Wickes has</strong></td>
+                  <td>Rich — offline + online + trade</td>
+                  <td>Would need building — session features only unless combined with Artemis</td>
+                </tr>
+                <tr>
+                  <td><strong>Relative strength</strong></td>
+                  <td>Stronger for strategic CLV and offline value</td>
+                  <td>Stronger for transaction-level/session nuance</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="callout info" style="font-size:12.5px;margin-bottom:16px;">
+        <strong>Could Acquia be "weaker" than Phoebe for session behaviour?</strong>
+        Possibly — if Acquia's model doesn't weight current-session basket context heavily. But Google Smart Bidding already captures much of that session signal at auction time independently. The bigger gap is strategic business value (offline, trade, margin) — where Acquia is likely stronger, not weaker.
+      </div>
+      <div class="callout success" style="font-size:12.5px;">
+        <strong>Verdict for Wickes</strong>
+        Phoebe is not redundant because Acquia is "better at everything." It is redundant because Wickes already has a prediction engine, and the incremental gain from a second session-level Vertex model is small relative to the MLOps cost — especially since Google already handles auction-time behaviour. Use Acquia for what Google cannot see.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 6: THE ARCHITECTURAL CHALLENGE ════════════════════════════════ -->
+  <div class="slide" id="s6">
+    <div class="slide-header">
+      <span class="badge">Architecture</span>
+      <h2>Standard Pantheon Tools vs. Your Situation</h2>
+    </div>
+    <div class="slide-body">
+      <p style="margin-bottom:24px;">Google's open-source sGTM Pantheon framework offers two standard routes to VBB. Neither maps cleanly to Wickes' situation because Acquia already holds strategic customer-level predictions — the main gap Google cannot fill on its own.</p>
+      <div class="grid-2" style="gap:24px;margin-bottom:28px;">
+        <div class="card">
+          <div class="card-title">Pantheon Route 1: Phoebe (Vertex AI)</div>
+          <div class="stack">
+            <p><strong>Designed for:</strong> Clients with no existing prediction infrastructure who want session-level value scoring. Phoebe calls <em>your own</em> Vertex AI model using event data you configure (basket items, session context, optional Firestore profile).</p>
+            <p><strong>Why it doesn't fit Wickes:</strong> Acquia already answers the strategic value question with richer CRM/offline data. A new Vertex model would mostly re-predict session context that Google Smart Bidding already handles at auction time — adding MLOps cost for marginal gain.</p>
+            <div class="callout danger" style="font-size:12px;margin-top:8px;">
+              <strong>Verdict: Low marginal value</strong>
+              Not because Acquia is universally stronger — but because the incremental session-level signal Phoebe would add overlaps with what Google already models internally.
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Pantheon Route 2: Artemis + Firestore</div>
+          <div class="stack">
+            <p><strong>Designed for:</strong> Clients with pre-computed scores that need ultra-fast (&lt;5ms) lookup at conversion time. Artemis reads from Google Firestore, which receives regular exports of value scores from the source system.</p>
+            <p><strong>Why it doesn't fit Wickes cleanly:</strong> Using Artemis requires building a new data sync pipeline from Acquia to Firestore, duplicating profile data across two platforms, and accepting data freshness lag equal to the export interval.</p>
+            <div class="callout warning" style="font-size:12px;margin-top:8px;">
+              <strong>Verdict: Over-engineered for this case</strong>
+              Valid as a high-volume fallback, but introduces unnecessary complexity when Acquia already has a live API.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="callout success">
+        <strong>The adapted approach: Artemis-inspired custom lookup against Acquia's own API</strong>
+        Since Acquia exposes a Real-Time Profile API, we can build a custom sGTM Variable Template that queries Acquia directly at conversion time — eliminating the Firestore sync pipeline while preserving the same Soteria value-injection pattern. The key feasibility question is API latency.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 7: OPTION A ═══════════════════════════════════════════════════ -->
+  <div class="slide" id="s7">
+    <div class="slide-header">
+      <span class="badge">Architecture Option A</span>
+      <h2>Direct sGTM → Acquia API Integration &nbsp;<span class="badge-sm green">Recommended</span></h2>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2" style="gap:40px;align-items:start;">
+        <div>
+          <div class="flow-wrap">
+            <div class="flow-node client">
+              Browser / Checkout Page
+              <div class="flow-sub">Conversion event fires with hashed email</div>
+            </div>
+            <div class="flow-arrow">
+              <div class="flow-arrow-line"></div>
+              <div class="flow-arrow-label">HTTPS POST (conversion event)</div>
+              <div class="flow-arrow-line" style="height:8px;"></div>
+              <div class="flow-arrow-head"></div>
+            </div>
+            <div class="flow-node server">
+              sGTM Server Container
+              <div class="flow-sub">Receives event, evaluates tags and variables</div>
+            </div>
+            <div class="flow-arrow">
+              <div class="flow-arrow-line"></div>
+              <div class="flow-arrow-label">custom variable evaluation</div>
+              <div class="flow-arrow-line" style="height:8px;"></div>
+              <div class="flow-arrow-head"></div>
+            </div>
+            <div class="flow-node accent">
+              Custom Variable Template
+              <div class="flow-sub" style="color:var(--green-200);">sendHttpRequest → Acquia API (≤150ms)</div>
+            </div>
+            <div class="flow-arrow">
+              <div class="flow-arrow-line"></div>
+              <div class="flow-arrow-label">GET /profiles/{hashed-email} · pCLV returned</div>
+              <div class="flow-arrow-line" style="height:8px;"></div>
+              <div class="flow-arrow-head"></div>
+            </div>
+            <div class="flow-node server">
+              Soteria Variable
+              <div class="flow-sub">Applies value caps and fallback default</div>
+            </div>
+            <div class="flow-arrow">
+              <div class="flow-arrow-line"></div>
+              <div class="flow-arrow-label">value injected into conversion tag</div>
+              <div class="flow-arrow-line" style="height:8px;"></div>
+              <div class="flow-arrow-head"></div>
+            </div>
+            <div class="flow-node external">
+              Google Ads Tag → CAPI
+              <div class="flow-sub">Value-enriched bidding signal delivered</div>
+            </div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="option-card recommended">
+            <div class="option-header">
+              <span class="option-title">How it works</span>
+              <span class="badge-sm green">Recommended</span>
+            </div>
+            <div class="option-body">
+              <div class="option-row">
+                <div class="option-row-label">Template</div>
+                <div class="option-row-val">Custom sGTM Variable Template using <code>sendHttpRequest</code> to query Acquia's Profile API with the user's hashed email as identifier</div>
+              </div>
+              <div class="option-row">
+                <div class="option-row-label">Response</div>
+                <div class="option-row-val">Acquia returns the pCLV score or tier attribute; the template resolves to a numeric £ value</div>
+              </div>
+              <div class="option-row">
+                <div class="option-row-label">Injection</div>
+                <div class="option-row-val">Soteria picks up the custom variable's resolved value and injects it into the Google Ads conversion tag</div>
+              </div>
+              <div class="option-row">
+                <div class="option-row-label">Auth</div>
+                <div class="option-row-val">API credentials stored as sGTM server-side environment variables — never exposed to the client browser</div>
+              </div>
+            </div>
+          </div>
+          <div class="pro-con-grid">
+            <div class="pro-con-block pro">
+              <div class="pro-con-label">Pros</div>
+              <ul>
+                <li>No extra data pipelines or sync jobs</li>
+                <li>No data duplication across platforms</li>
+                <li>Always uses Acquia's latest scores</li>
+                <li>Credentials fully server-side</li>
+              </ul>
+            </div>
+            <div class="pro-con-block">
+              <div class="pro-con-label">Cons</div>
+              <ul>
+                <li>API latency must be benchmarked</li>
+                <li>Runtime dependency on Acquia API</li>
+                <li>Requires fallback logic for timeouts</li>
+                <li>Rate limit exposure at peak traffic</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 8: OPTION B ═══════════════════════════════════════════════════ -->
+  <div class="slide" id="s8">
+    <div class="slide-header">
+      <span class="badge">Architecture Option B</span>
+      <h2>Acquia → Firestore → Artemis &nbsp;<span class="badge-sm neutral">High-Volume Fallback</span></h2>
+    </div>
+    <div class="slide-body">
+      <p style="margin-bottom:20px;">Acquia has <strong>no native Firestore connector</strong>. Official export paths deliver flat files to cloud storage (or Snowflake); a custom GCP ingestion job loads Firestore. At conversion, Artemis reads Firestore only — not the 360 Profile API. Details: <strong>Appendix A3</strong>.</p>
+      <div class="grid-2" style="gap:40px;align-items:start;">
+        <div class="stack">
+          <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:16px 18px;">
+            <div style="font-size:12px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">Phase 1 — Offline Async Sync</div>
+            <div class="flow-wrap">
+              <div class="flow-node external" style="min-width:200px;">
+                Acquia CDP
+                <div class="flow-sub">Computes pCLV on schedule</div>
+              </div>
+              <div class="flow-arrow">
+                <div class="flow-arrow-line"></div>
+                <div class="flow-arrow-label">Cloud Data Export → GCS (CSV/JSON)</div>
+                <div class="flow-arrow-line" style="height:8px;"></div>
+                <div class="flow-arrow-head"></div>
+              </div>
+              <div class="flow-node server" style="min-width:200px;">
+                GCS bucket
+                <div class="flow-sub">customersummary + pCLV attributes</div>
+              </div>
+              <div class="flow-arrow">
+                <div class="flow-arrow-line"></div>
+                <div class="flow-arrow-label">custom GCP ingest (Cloud Function / Dataflow)</div>
+                <div class="flow-arrow-line" style="height:8px;"></div>
+                <div class="flow-arrow-head"></div>
+              </div>
+              <div class="flow-node server" style="min-width:200px;">
+                Google Firestore
+                <div class="flow-sub">Key: SourceCustomerNumber · Value: pCLV</div>
+              </div>
+            </div>
+          </div>
+          <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:16px 18px;">
+            <div style="font-size:12px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">Phase 2 — Online Per-Conversion Lookup</div>
+            <div class="flow-wrap">
+              <div class="flow-node client" style="min-width:200px;">
+                Browser / Checkout Page
+                <div class="flow-sub">Conversion event fires</div>
+              </div>
+              <div class="flow-arrow">
+                <div class="flow-arrow-line"></div>
+                <div class="flow-arrow-head"></div>
+              </div>
+              <div class="flow-node server" style="min-width:200px;">
+                Artemis Template
+                <div class="flow-sub">Firestore key-value lookup (&lt;5ms)</div>
+              </div>
+              <div class="flow-arrow">
+                <div class="flow-arrow-line"></div>
+                <div class="flow-arrow-head"></div>
+              </div>
+              <div class="flow-node external" style="min-width:200px;">
+                Soteria → Google Ads → CAPI
+                <div class="flow-sub">Value-enriched signal delivered</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="option-card">
+            <div class="option-header">
+              <span class="option-title">How it works</span>
+              <span class="badge-sm neutral">Fallback</span>
+            </div>
+            <div class="option-body">
+              <div class="option-row">
+                <div class="option-row-label">Sync</div>
+                <div class="option-row-val">Acquia <strong>Cloud Data Export</strong> (or Interactive Query Export / Snowflake Data Share) writes <code>customersummary</code> attributes to GCS on a schedule — then a custom GCP pipeline loads into Firestore</div>
+              </div>
+              <div class="option-row">
+                <div class="option-row-label">Lookup</div>
+                <div class="option-row-val">At conversion time, native Artemis template performs a Firestore key-value lookup (&lt;5ms) — no runtime Acquia API call</div>
+              </div>
+              <div class="option-row">
+                <div class="option-row-label">Injection</div>
+                <div class="option-row-val">Soteria injects the Firestore-fetched value into the Google Ads conversion tag — identical to Option A's final step</div>
+              </div>
+            </div>
+          </div>
+          <div class="pro-con-grid">
+            <div class="pro-con-block pro">
+              <div class="pro-con-label">Pros</div>
+              <ul>
+                <li>Negligible lookup latency (&lt;5ms)</li>
+                <li>Native Pantheon Artemis pattern</li>
+                <li>No API rate limit on conversion path</li>
+                <li>Handles large volume spikes cleanly</li>
+              </ul>
+            </div>
+            <div class="pro-con-block">
+              <div class="pro-con-label">Cons</div>
+              <ul>
+                <li>New Acquia→Firestore pipeline needed</li>
+                <li>Scores may be stale by hours/days</li>
+                <li>Data duplicated across platforms</li>
+                <li>Additional GCP Firestore cost</li>
+              </ul>
+            </div>
+          </div>
+          <div class="callout warning" style="font-size:12.5px;">
+            <strong>Use this route if:</strong>
+            Acquia API P95 latency cannot be confirmed below 150ms in production, or if monthly conversion volume exceeds Acquia API rate limits during peak periods.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 9: COMPARISON ══════════════════════════════════════════════════ -->
+  <div class="slide" id="s9">
+    <div class="slide-header">
+      <span class="badge">Architecture</span>
+      <h2>Side-by-Side Comparison</h2>
+    </div>
+    <div class="slide-body">
+      <div class="th-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Option A — Direct Acquia API <span class="badge-sm green" style="margin-left:6px;">Recommended</span></th>
+              <th>Option B — Firestore / Artemis <span class="badge-sm neutral" style="margin-left:6px;">Fallback</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="highlight">
+              <td><strong>Lookup latency</strong></td>
+              <td>50–150ms P95 (API call, must be benchmarked)</td>
+              <td>&lt;5ms (Firestore key-value)</td>
+            </tr>
+            <tr>
+              <td><strong>Pipeline complexity</strong></td>
+              <td>Low — no additional sync jobs</td>
+              <td>High — Acquia-to-Firestore export pipeline required</td>
+            </tr>
+            <tr class="highlight">
+              <td><strong>Value freshness</strong></td>
+              <td>Always current (live Acquia profile at call time)</td>
+              <td>Bounded by export schedule (may be stale by hours/days)</td>
+            </tr>
+            <tr>
+              <td><strong>Data duplication</strong></td>
+              <td>None — single source of truth in Acquia</td>
+              <td>pCLV data duplicated into Firestore</td>
+            </tr>
+            <tr class="highlight">
+              <td><strong>Pantheon component</strong></td>
+              <td>Soteria (custom lookup variable template)</td>
+              <td>Artemis + Soteria (native Pantheon pattern)</td>
+            </tr>
+            <tr>
+              <td><strong>Runtime dependency</strong></td>
+              <td>Acquia API availability on conversion path</td>
+              <td>Firestore availability (GCP-managed, 99.99% SLA)</td>
+            </tr>
+            <tr class="highlight">
+              <td><strong>API credentials</strong></td>
+              <td>Acquia credentials in sGTM env vars (server-side only)</td>
+              <td>GCP service account for Firestore (managed by GCP)</td>
+            </tr>
+            <tr>
+              <td><strong>Infrastructure cost</strong></td>
+              <td>Acquia API calls only (within existing plan)</td>
+              <td>Acquia API calls + Firestore storage + export compute</td>
+            </tr>
+            <tr class="highlight">
+              <td><strong>Implementation effort</strong></td>
+              <td>~2–3 weeks (custom template + Soteria config)</td>
+              <td>~5–7 weeks (custom template + sync pipeline + Firestore schema)</td>
+            </tr>
+            <tr>
+              <td><strong>Critical risk</strong></td>
+              <td>Acquia API latency &gt;150ms → fallback to Option B</td>
+              <td>Export pipeline failure → stale or missing values</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 10: FEASIBILITY GATES ═════════════════════════════════════════ -->
+  <div class="slide" id="s10">
+    <div class="slide-header">
+      <span class="badge">Feasibility</span>
+      <h2>Critical Gates Before We Can Confirm the Route</h2>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2" style="gap:32px;align-items:start;">
+        <div class="stack">
+          <h3>Route decision: the latency test</h3>
+          <p>Whether we use Option A or default to Option B depends on a single benchmark: can Acquia's Profile API respond within 150ms at P95 under production load?</p>
+          <div style="margin-top:16px;">
+            <div style="border:1px solid var(--gray-200);border-radius:8px;overflow:hidden;">
+              <div style="background:var(--blue-50);border-bottom:1px solid var(--gray-200);padding:12px 16px;font-size:13px;font-weight:600;color:#1E40AF;">
+                Is Acquia Profile API P95 latency &lt; 150ms under production load?
+              </div>
+              <div class="grid-2" style="gap:0;">
+                <div style="padding:16px;border-right:1px solid var(--gray-200);">
+                  <div style="font-size:12px;font-weight:700;color:var(--green-700);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Yes</div>
+                  <p style="font-size:13px;">Proceed with <strong>Option A</strong> — Direct sGTM → Acquia API. Build custom Variable Template with 150ms timeout and Soteria injection.</p>
+                </div>
+                <div style="padding:16px;">
+                  <div style="font-size:12px;font-weight:700;color:var(--amber-500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">No / Uncertain</div>
+                  <p style="font-size:13px;">Fall back to <strong>Option B</strong> — build Acquia→Firestore export pipeline and use Artemis for sub-ms lookup.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <h3>Additional gates</h3>
+          <ul style="margin-top:4px;">
+            <li><strong>API accessibility</strong> — Acquia endpoint reachable from sGTM container egress IP without VPN</li>
+            <li><strong>Authentication method</strong> — 360 Profile User service account; bearer token via HTTP Basic Auth</li>
+            <li><strong>Profile schema</strong> — pCLV attribute key confirmed and populated in production profiles</li>
+            <li><strong>Identifier at conversion time</strong> — hashed email in sGTM data layer at checkout / form submit</li>
+            <li><strong>Consent review</strong> — GDPR Art. 22 review completed for automated value-based decisions</li>
+          </ul>
+        </div>
+        <div class="stack">
+          <h3>Edge case handling (Option A)</h3>
+          <div class="th-wrap" style="margin-top:8px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Scenario</th>
+                  <th>Handling</th>
+                  <th>Risk</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Anonymous user (no identifier)</td>
+                  <td>Return configured default value — always fire conversion tag</td>
+                  <td><span class="badge-sm green">Low</span></td>
+                </tr>
+                <tr>
+                  <td>API timeout (&gt;150ms)</td>
+                  <td>Catch timeout, use fallback value, log to monitoring</td>
+                  <td><span class="badge-sm neutral">Medium</span></td>
+                </tr>
+                <tr>
+                  <td>API 5xx error</td>
+                  <td>Catch non-2xx, apply fallback, preserve conversion signal</td>
+                  <td><span class="badge-sm neutral">Medium</span></td>
+                </tr>
+                <tr>
+                  <td>Rate limit — 429</td>
+                  <td>Fallback to default; alert monitoring; review Option B</td>
+                  <td><span class="badge-sm warn">High</span></td>
+                </tr>
+                <tr>
+                  <td>Profile not found (404)</td>
+                  <td>Use category-median value; flag ingestion gap</td>
+                  <td><span class="badge-sm green">Low</span></td>
+                </tr>
+                <tr>
+                  <td>Consent not given</td>
+                  <td>Fire tag with neutral value=1, no enrichment</td>
+                  <td><span class="badge-sm green">Low</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout info" style="font-size:12.5px;">
+            <strong>Golden rule</strong>
+            The conversion tag must always fire — even with a fallback value. Dropping a conversion event is far more costly to Smart Bidding quality than sending an un-enriched signal.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 11: DISCOVERY Q&A ══════════════════════════════════════════════ -->
+  <div class="slide" id="s11">
+    <div class="slide-header">
+      <span class="badge">Discovery</span>
+      <h2>What We Need to Confirm with Your Team</h2>
+    </div>
+    <div class="slide-body">
+      <p style="margin-bottom:20px;">The following questions cover the critical unknowns. We suggest a short technical discovery call with your Acquia and data engineering teams to work through Sections A and B, which are the feasibility-critical items.</p>
+      <div class="grid-2" style="gap:24px;align-items:start;">
+        <div>
+          <div class="q-category">A. Acquia CDP API Capability (Critical Path)</div>
+          <ol class="q-list">
+            <li>Is a Real-Time Profile API endpoint available? What is its base URL?</li>
+            <li>What authentication method does the Profile API use? (OAuth2 / API key / JWT?)</li>
+            <li>What identifier is used for profile lookups? (SHA-256 email / cookie GUID / user ID?)</li>
+            <li>What are the P50 / P95 latencies under production load? Can you share load-test results?</li>
+            <li>What rate limits apply? (requests/second, burst allowance?)</li>
+          </ol>
+          <div class="q-category">B. Predictive Value &amp; Scoring</div>
+          <ol class="q-list">
+            <li>What profile attribute key stores the pCLV score? (e.g. <code>predicted_ltv_gbp</code>)</li>
+            <li>Are scores numeric (£ monetary) or categorical (tier labels)?</li>
+            <li>At what frequency are scores updated? (real-time / daily / weekly?)</li>
+            <li>Is there a confirmed tier-to-value mapping? (Gold = £200, Silver = £100, Bronze = £50?)</li>
+          </ol>
+          <div class="q-category">C. Conversion Events &amp; Identifiers</div>
+          <ol class="q-list">
+            <li>Which conversion events should carry dynamic value? (checkout / trade account / quote?)</li>
+            <li>Is a SHA-256 hashed email in the GTM data layer at conversion time for logged-in users?</li>
+            <li>Are Enhanced Conversions already configured? Which identifier type?</li>
+          </ol>
+        </div>
+        <div>
+          <div class="q-category">D. Technical Infrastructure</div>
+          <ol class="q-list">
+            <li>On which platform is the sGTM container hosted? (Cloud Run / Stape.io / other?)</li>
+            <li>Is Acquia's API reachable from sGTM's egress IP without VPN?</li>
+            <li>What Google Ads bidding strategy is currently active per campaign?</li>
+            <li>What is the approximate monthly conversion volume across target campaigns?</li>
+          </ol>
+          <div class="q-category">E. Data Governance &amp; Privacy</div>
+          <ol class="q-list">
+            <li>Is pCLV data classified as sensitive PII under your data governance policy?</li>
+            <li>Is Consent Mode v2 implemented? Would consent signals restrict value-enriched signals to Google?</li>
+            <li>Has legal reviewed the use of predictive scores for automated bidding under GDPR Art. 22?</li>
+          </ol>
+          <div class="callout success" style="margin-top:20px;">
+            <strong>Minimum viable answers to unblock scoping</strong>
+            Sections A and B are the critical path. If we can confirm API accessibility, a latency benchmark, and the attribute key schema, we can fully scope Option A and provide a firm implementation estimate within one week.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SLIDE 12: NEXT STEPS ════════════════════════════════════════════════ -->
+  <div class="slide" id="s12">
+    <div class="slide-header">
+      <span class="badge">Next Steps</span>
+      <h2>Proposed Roadmap to Implementation</h2>
+    </div>
+    <div class="slide-body">
+      <div class="steps" style="margin-bottom:36px;">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-week">Week 1</div>
+          <div class="step-title">API Discovery Call</div>
+          <div class="step-body">Joint technical session with Wickes Acquia and data engineering teams. Confirm API endpoint, auth method, profile schema, and rate limits. Collect load-test results if available.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-week">Week 1–2</div>
+          <div class="step-title">Latency Benchmark</div>
+          <div class="step-body">Run load test against Acquia Profile API from sGTM-equivalent infrastructure. Confirm P95 latency under 150ms at expected peak conversion volume. Determines Option A vs Option B route.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-week">Week 2</div>
+          <div class="step-title">Value Mapping Agreement</div>
+          <div class="step-body">Define and confirm the conversion value mapping — either a numeric pCLV £ score passed directly, or a tier-to-value lookup table (Gold = £X, Silver = £Y, Bronze = £Z). Agree fallback default.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-week">Week 3–4</div>
+          <div class="step-title">Prototype &amp; QA</div>
+          <div class="step-body">Build custom sGTM Variable Template in staging container. Validate Acquia API call, value resolution, Soteria injection, and fallback logic. QA in Google Tag Assistant and confirm CAPI payload.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-week">Week 5–6</div>
+          <div class="step-title">Staged Rollout</div>
+          <div class="step-body">Deploy to production on a subset of campaigns. Monitor Smart Bidding signals in Google Ads. Validate value distribution, conversion rate, and API error rate in monitoring dashboards.</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="grid-2" style="gap:24px;margin-top:20px;">
+        <div>
+          <h3 style="margin-bottom:12px;">Client action items before we can scope</h3>
+          <ul class="checklist">
+            <li><div class="check-icon"></div>Share Acquia CDP API documentation and endpoint details</li>
+            <li><div class="check-icon"></div>Provision a sandbox API credential for initial testing</li>
+            <li><div class="check-icon"></div>Confirm pCLV attribute key names in production profile schema</li>
+            <li><div class="check-icon"></div>Run or share Acquia API load-test results (P50/P95 latency)</li>
+            <li><div class="check-icon"></div>Confirm hashed email availability in sGTM data layer at checkout</li>
+            <li><div class="check-icon"></div>Schedule data governance/GDPR Art. 22 review with legal team</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="margin-bottom:12px;">We will deliver</h3>
+          <ul class="checklist">
+            <li><div class="check-icon done" style="background:var(--green-500);border-color:var(--green-500);"></div>Architecture blueprint and option comparison (this deck)</li>
+            <li><div class="check-icon"></div>Custom sGTM Variable Template (Acquia Profile API lookup)</li>
+            <li><div class="check-icon"></div>Soteria configuration with value caps and fallback logic</li>
+            <li><div class="check-icon"></div>Acquia→Firestore export pipeline spec (if Option B required)</li>
+            <li><div class="check-icon"></div>Monitoring dashboard template (API error rate, fallback triggers)</li>
+            <li><div class="check-icon"></div>Post-launch performance review against baseline ROAS</li>
+          </ul>
+          <p class="appendix-note" style="margin-top:16px;">Technical reference: Appendix A1–A2 (360 Profile API for Option A); Appendix A3 (Acquia export paths to Firestore for Option B).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ APPENDIX A1: ACQUIA API REFERENCE ═══════════════════════════════════ -->
+  <div class="slide" id="s13">
+    <div class="slide-header">
+      <span class="badge appendix">Appendix A1</span>
+      <h2>Acquia CDP 360 Profile API — Reference</h2>
+    </div>
+    <div class="slide-body">
+      <p style="margin-bottom:18px;">For Option A (Direct sGTM → Acquia), we propose Acquia CDP's <strong>360 Profile API</strong> — the downstream <em>read</em> API for unified customer profiles. This is distinct from the Tracker API (upstream ingest) and WebTag (browser pixel).</p>
+      <div class="grid-2" style="gap:24px;align-items:start;">
+        <div>
+          <h3 style="margin-bottom:10px;">What it is / isn't</h3>
+          <div class="th-wrap">
+            <table class="data-table">
+              <tbody>
+                <tr class="highlight">
+                  <td><strong>360 Profile API</strong></td>
+                  <td>Read unified profiles — search or direct GET by customer ID. Returns <code>customersummary</code> including predictive analytics and custom calculations.</td>
+                </tr>
+                <tr>
+                  <td><strong>Tracker API</strong></td>
+                  <td>Push events <em>into</em> CDP. Not used for VBB value lookup.</td>
+                </tr>
+                <tr>
+                  <td><strong>WebTag</strong></td>
+                  <td>Browser-side capture pixel. Not used for server-side VBB.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout success" style="font-size:12px;margin-top:14px;">
+            <strong>Official precedent</strong>
+            Acquia documents real-time 360 API lookups for call-center and CRM embedding — the same pattern as sGTM lookup at conversion time.
+          </div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:10px;">Official documentation</h3>
+          <ul class="doc-list">
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/customer-360-profiles-api" target="_blank" rel="noopener">Customer 360 Profiles API</a>
+              <span class="doc-desc">Main API reference — search, profile GET, fields parameter, authentication</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/api-authentication-process" target="_blank" rel="noopener">API authentication process</a>
+              <span class="doc-desc">360 Profile User role, bearer token, Postman library</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/integration-and-data-collection/api-integration/api-authentication-mechanism" target="_blank" rel="noopener">API authentication mechanism</a>
+              <span class="doc-desc">Token endpoint details and request headers</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/customer-data-platform-product-guide-new-packages" target="_blank" rel="noopener">CDP product guide — APIs</a>
+              <span class="doc-desc">360 API vs Tracker API vs WebTag overview</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/call-centers-salesforce-service-cloud" target="_blank" rel="noopener">Call centers + 360 API use case</a>
+              <span class="doc-desc">Real-time profile lookup in operational systems</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/custom-attributes" target="_blank" rel="noopener">Custom attributes</a>
+              <span class="doc-desc">Custom fields surfaced in 360 Profiles</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/using-near-real-time-pipeline" target="_blank" rel="noopener">Near real-time pipeline</a>
+              <span class="doc-desc">Profile update latency expectations (~1–2 min for events)</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ APPENDIX A2: PROPOSED FLOW & CAVEATS ═══════════════════════════════ -->
+  <div class="slide" id="s14">
+    <div class="slide-header">
+      <span class="badge appendix">Appendix A2</span>
+      <h2>Proposed sGTM Integration Flow &amp; Feasibility Caveats</h2>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2" style="gap:28px;align-items:start;">
+        <div class="stack" style="gap:14px;">
+          <h3>Proposed API flow</h3>
+          <div class="row" style="align-items:flex-start;gap:10px;">
+            <div class="flow-step-num">0</div>
+            <div>
+              <strong style="font-size:13px;">Authenticate</strong> (server-side, token cached in sGTM)
+              <div class="endpoint-block" style="margin-top:6px;">GET https://{auth-host}/token
+Authorization: Basic {base64(username:password)}
+→ Bearer access_token (reuse across requests)</div>
+            </div>
+          </div>
+          <div class="row" style="align-items:flex-start;gap:10px;">
+            <div class="flow-step-num">1</div>
+            <div>
+              <strong style="font-size:13px;">Preferred — direct profile by ID</strong> (Acquia best practice)
+              <div class="endpoint-block" style="margin-top:6px;">GET https://{api-host}/v2/{tenant-id}/dw/a360/customers/{SourceCustomerNumber}
+    ?fields=["customersummary"]
+Authorization: Bearer {access_token}</div>
+            </div>
+          </div>
+          <div class="row" style="align-items:flex-start;gap:10px;">
+            <div class="flow-step-num">1b</div>
+            <div>
+              <strong style="font-size:13px;">Fallback — search by email</strong> (if no source ID)
+              <div class="endpoint-block" style="margin-top:6px;">GET .../dw/a360/customers
+    ?fq=[{"email":["eq","user@example.com"]}]&limit=1</div>
+            </div>
+          </div>
+          <div class="row" style="align-items:flex-start;gap:10px;">
+            <div class="flow-step-num">2</div>
+            <div>
+              <strong style="font-size:13px;">Extract pCLV</strong> from <code>customersummary</code> response → Soteria caps/fallback → Google Ads CAPI <code>conversion_value</code>
+            </div>
+          </div>
+          <h3 style="margin-top:8px;">Lookup decision tree</h3>
+          <div class="th-wrap">
+            <table class="data-table" style="font-size:12px;">
+              <tbody>
+                <tr class="highlight">
+                  <td>Known customer ID in data layer</td>
+                  <td>Direct GET by <code>SourceCustomerNumber</code> — fastest, one hop</td>
+                </tr>
+                <tr>
+                  <td>Plaintext email in sGTM (server-side)</td>
+                  <td>Search by email → extract <code>customersummary</code></td>
+                </tr>
+                <tr>
+                  <td>Only hashed email available</td>
+                  <td>Confirm with Acquia if searchable; else default value or Firestore ID map</td>
+                </tr>
+                <tr>
+                  <td>Anonymous / no identifier</td>
+                  <td>Configured default value — always fire conversion tag</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="stack" style="gap:14px;">
+          <h3>Why we believe this will work</h3>
+          <ul style="font-size:13px;">
+            <li>Official downstream read API designed for real-time profile access at interaction time</li>
+            <li><code>customersummary</code> includes predictive analytics and custom calculations (where surfaced via CDP Studio)</li>
+            <li><code>fields=["customersummary"]</code> limits payload size — Acquia-documented performance best practice</li>
+            <li>sGTM keeps credentials server-side; value is attached as a conversion label, not a live bid instruction</li>
+            <li>Same pattern Acquia documents for call-center / CRM embedding</li>
+          </ul>
+          <h3>Feasibility caveats (must confirm with Wickes)</h3>
+          <div class="th-wrap">
+            <table class="data-table" style="font-size:12px;">
+              <thead>
+                <tr><th>Caveat</th><th>Impact</th></tr>
+              </thead>
+              <tbody>
+                <tr class="highlight">
+                  <td><strong>Latency not documented</strong></td>
+                  <td>No published P95 SLA. Load test from sGTM infra required (&lt;150ms target).</td>
+                </tr>
+                <tr>
+                  <td><strong>Hashed email not documented</strong></td>
+                  <td>Docs show plaintext <code>email</code> search. SHA-256 may not work unless Acquia stores hashes.</td>
+                </tr>
+                <tr>
+                  <td><strong>Email search = two hops</strong></td>
+                  <td>Search + profile GET adds latency vs direct ID lookup.</td>
+                </tr>
+                <tr>
+                  <td><strong>pCLV field name is client-specific</strong></td>
+                  <td>Must confirm exact <code>customersummary</code> attribute key in production.</td>
+                </tr>
+                <tr>
+                  <td><strong>Token reuse required</strong></td>
+                  <td>360 users limited to 10 tokens — sGTM must cache bearer token, not auth per request.</td>
+                </tr>
+                <tr>
+                  <td><strong>Score freshness</strong></td>
+                  <td>Batch pCLV (daily) is usually fine for conversion labelling; confirm model refresh cadence.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warning" style="font-size:12px;">
+            <strong>Authentication note</strong>
+            Acquia 360 API uses HTTP Basic Auth to obtain a bearer token — not OAuth2 client credentials. Provision a dedicated <strong>360 Profile User</strong> service account for sGTM.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ APPENDIX A3: ACQUIA EXPORT → FIRESTORE ═════════════════════════════ -->
+  <div class="slide" id="s15">
+    <div class="slide-header">
+      <span class="badge appendix">Appendix A3</span>
+      <h2>Option B — Official Acquia Export Paths to Firestore</h2>
+    </div>
+    <div class="slide-body">
+      <div class="callout warning" style="font-size:13px;margin-bottom:18px;">
+        <strong>No direct Acquia → Firestore integration</strong>
+        Acquia CDP exports to cloud storage, Snowflake, or SFTP — not to Firestore. Populating Firestore requires a custom GCP component (Cloud Function, Cloud Run, or Dataflow) triggered when new files land in GCS. The 360 Profile API is for per-profile reads (Option A), not bulk Firestore sync.
+      </div>
+      <div class="th-wrap" style="margin-bottom:20px;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Export path</th>
+              <th>Acquia mechanism</th>
+              <th>Destination</th>
+              <th>Freshness</th>
+              <th>Fit for Wickes (GCP)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="highlight">
+              <td><strong>1. Cloud Data Export</strong></td>
+              <td>UI-scheduled export of <code>customersummary</code> columns (incl. custom attributes / ML outputs)</td>
+              <td>GCS via Google Cloud Storage connector (CSV or JSON)</td>
+              <td>Schedule in CDP UI; <code>customersummary</code> fully re-exported each run (daily CDP processing)</td>
+              <td><strong>Recommended</strong> — native GCP path</td>
+            </tr>
+            <tr>
+              <td><strong>2. Interactive Query Export</strong></td>
+              <td>SQL in CDP IDE → unload results (e.g. <code>SourceCustomerNumber</code> + pCLV field only)</td>
+              <td>GCS (also S3, Azure Blob)</td>
+              <td>On-demand or scheduled query runs</td>
+              <td>Good for lean files / custom filters</td>
+            </tr>
+            <tr>
+              <td><strong>3. Snowflake Data Share</strong></td>
+              <td>Secure share of CDP tables incl. Customer Summary + All ML Tables</td>
+              <td>Client Snowflake warehouse</td>
+              <td>Minute / hour / day (Private Listings); Acquia-preferred if already on Snowflake</td>
+              <td>Only if Wickes uses Snowflake — then export to GCS → Firestore</td>
+            </tr>
+            <tr>
+              <td><strong>4. SFTP CSV output</strong></td>
+              <td>SFTP CSV output connector</td>
+              <td>Client SFTP server</td>
+              <td>Per connector schedule</td>
+              <td>Legacy / non-GCP — extra hop to Firestore</td>
+            </tr>
+            <tr>
+              <td><strong>5. 360 Profile API</strong></td>
+              <td>Per-customer GET at read time</td>
+              <td>N/A (not a bulk export)</td>
+              <td>Live at query</td>
+              <td><strong>Not for Option B sync</strong> — use for Option A only</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid-2" style="gap:24px;align-items:start;">
+        <div>
+          <h3 style="margin-bottom:10px;">Recommended pipeline (Cloud Data Export → GCS → Firestore)</h3>
+          <ol style="font-size:13px;padding-left:20px;line-height:1.65;color:var(--gray-600);">
+            <li>Enable <strong>Data Cloud Export</strong> add-on (contact CVM).</li>
+            <li>Request GCS connector from Acquia Support (API key + bucket name).</li>
+            <li>Create Data Export request: entity <code>customersummary</code>, select identifier (<code>SourceCustomerNumber</code>, <code>email</code>) + pCLV / custom calculation columns.</li>
+            <li>Schedule export (daily minimum — <code>customersummary</code> is fully exported each run per Acquia docs).</li>
+            <li>GCS object finalize triggers Cloud Function / Dataflow → upsert Firestore docs keyed by <code>SourceCustomerNumber</code>.</li>
+            <li>Artemis reads Firestore at conversion; Soteria injects value into Google Ads tag.</li>
+          </ol>
+          <div class="callout info" style="font-size:12px;margin-top:14px;">
+            <strong>Identity key for Firestore</strong>
+            Acquia recommends <code>SourceCustomerNumber</code> over <code>MasterCustomerID</code> for stable cross-period identification — use the same key sGTM can resolve at conversion time.
+          </div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:10px;">Official documentation</h3>
+          <ul class="doc-list">
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/data-export-mapping" target="_blank" rel="noopener">Data export mapping overview</a>
+              <span class="doc-desc">Three export modules: Cloud Data Export, Snowflake Data Share, Interactive Query Unload</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/cdp-add-ons" target="_blank" rel="noopener">CDP add-ons</a>
+              <span class="doc-desc">Data Cloud Export and Interactive Queries Export to GCS / S3 / Azure</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/using-cloud-data-export" target="_blank" rel="noopener">Using Cloud Data Export</a>
+              <span class="doc-desc">UI workflow, scheduling, <code>customersummary</code> full-export behaviour</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/connectors/cloud-storage/google-cloud-storage" target="_blank" rel="noopener">Google Cloud Storage connector</a>
+              <span class="doc-desc">GCS bucket setup via Support/CVM; CSV/JSON output formats</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/integration-and-data-collection/data-export/cloud-data-export/available" target="_blank" rel="noopener">Available entities for Data Export</a>
+              <span class="doc-desc"><code>customersummary</code> — master customer records post de-dupe</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/add-ons/data-export/available-attributes" target="_blank" rel="noopener">Available attributes for Data Export</a>
+              <span class="doc-desc">Standard ML attrs (Propensity*, clusters); custom attributes exportable per tenant</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/interactive-queries" target="_blank" rel="noopener">Interactive Queries</a>
+              <span class="doc-desc">SQL export to GCS for filtered / custom column sets</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/integration-and-data-collection/data-export/snowflake-data-share" target="_blank" rel="noopener">Snowflake Data Share</a>
+              <span class="doc-desc">Customer Summary + ML tables; minute/hour/day scheduling</span>
+            </li>
+            <li>
+              <a href="https://docs.acquia.com/customer-data-platform/using-output-connectors" target="_blank" rel="noopener">Output connectors (SFTP)</a>
+              <span class="doc-desc">Alternative file-based export path</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #deck -->
+
+<!-- ── Navigation ─────────────────────────────────────────────────────────── -->
+<div id="nav">
+  <button id="btn-prev" onclick="navigate(-1)" disabled>&#8592; Prev</button>
+  <div class="dot-nav" id="dots"></div>
+  <span id="slide-counter">1 / 15</span>
+  <button id="btn-next" onclick="navigate(1)">Next &#8594;</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll(".slide");
+  const total  = slides.length;
+  let current  = 0;
+
+  const dotsEl   = document.getElementById("dots");
+  const counter  = document.getElementById("slide-counter");
+  const btnPrev  = document.getElementById("btn-prev");
+  const btnNext  = document.getElementById("btn-next");
+
+  // Build dots
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement("div");
+    d.className = "dot" + (i === 0 ? " active" : "");
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  }
+
+  function goTo(idx) {
+    slides[current].classList.remove("active");
+    const allDots = dotsEl.querySelectorAll(".dot");
+    allDots[current].classList.remove("active");
+    current = idx;
+    slides[current].classList.add("active");
+    allDots[current].classList.add("active");
+    counter.textContent = `${current + 1} / ${total}`;
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === total - 1;
+  }
+
+  function navigate(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) goTo(next);
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") navigate(1);
+    if (e.key === "ArrowLeft"  || e.key === "ArrowUp")   navigate(-1);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stats & Probability: The Foundations — Advanced Stats Quest</title>
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="1" width="1" height="2" fill="%23706090"/><rect x="12" y="1" width="1" height="2" fill="%23706090"/><rect x="3" y="3" width="10" height="9" fill="%238870a0"/><rect x="4" y="4" width="3" height="3" fill="%23f0e8d8"/><rect x="9" y="4" width="3" height="3" fill="%23f0e8d8"/><rect x="5" y="5" width="1" height="1" fill="%233a3040"/><rect x="10" y="5" width="1" height="1" fill="%233a3040"/><rect x="7" y="7" width="2" height="1" fill="%23d4a060"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:     #f0ebe0;
+      --card:   #fffef8;
+      --accent: #1a5ca8;
+      --rose:   #c42848;
+      --honey:  #b86800;
+      --text:   #1c1a30;
+      --mist:   #6a5888;
+      --teal:   #0d7a6e;
+      --slate:  #3a4d7a;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 720px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    .side-nav {
+      position: fixed; left: 0; top: 0; bottom: 52px; width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto; z-index: 9;
+    }
+    .side-nav-title { font-family: "DotGothic16", monospace; font-size: 8px; color: var(--mist); margin-bottom: 12px; letter-spacing: 1px; }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex; gap: 8px; align-items: flex-start; width: 100%;
+      text-align: left; font-family: Consolas, "Courier New", monospace;
+      font-size: 11px; line-height: 1.35; padding: 8px;
+      border: 2px solid transparent; background: transparent;
+      color: var(--text); cursor: pointer; box-shadow: none;
+    }
+    .side-nav-btn:hover { background: rgba(26,92,168,.06); border-color: #ccc4e0; }
+    .side-nav-btn.active { background: rgba(26,92,168,.1); border-color: var(--accent); color: var(--accent); font-weight: bold; }
+    .side-nav-num { flex-shrink: 0; color: var(--mist); font-size: 10px; min-width: 1.2em; }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace; font-size: 9px;
+      color: var(--mist); margin: 10px 0 4px; padding-top: 10px;
+      border-top: 1px solid #d0c8e0; letter-spacing: 1px; line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+
+    .slide { display: none; background: var(--card); border: 2px solid #ccc4e0; box-shadow: 4px 4px 0 rgba(80,60,140,.18); padding: 24px; margin-bottom: 16px; }
+    .slide.active { display: block; }
+    h1 { font-family: "DotGothic16", monospace; font-size: 13px; color: var(--accent); margin: 0 0 16px; letter-spacing: .5px; }
+    h2 { font-family: Consolas, "Courier New", monospace; font-size: 11px; color: var(--honey); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin: 18px 0 8px; }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+    .buddy-speech { flex: 1; background: #fff8f2; border: 2px solid var(--rose); padding: 12px; position: relative; }
+    .buddy-speech::before { content: ""; position: absolute; left: -11px; top: 14px; border: 7px solid transparent; border-right-color: var(--rose); }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    .formula { font-family: Consolas, "Courier New", monospace; font-size: 12px; color: var(--accent); background: rgba(26,92,168,.06); padding: 14px 16px; border: 2px solid rgba(26,92,168,.3); margin: 12px 0; overflow-x: auto; line-height: 1.8; }
+    .formula em { color: var(--honey); font-style: normal; }
+    .formula .katex { font-size: 1.08em; }
+    .formula .katex-display { margin: 6px 0; }
+    .tip { border-bottom: 2px dashed var(--honey); cursor: help; }
+    #tip-box { position: fixed; display: none; background: #fff8f2; border: 2px solid var(--honey); box-shadow: 4px 4px 0 rgba(80,60,140,.22); padding: 10px 14px; max-width: 300px; font-size: 11px; z-index: 99998; color: var(--text); line-height: 1.6; pointer-events: none; }
+    .tip-label { font-weight: bold; color: var(--honey); display: block; margin-bottom: 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+    .callout { background: rgba(13,122,110,.08); border: 2px solid var(--teal); padding: 12px; margin: 12px 0; color: var(--teal); }
+    .warn { background: rgba(196,40,72,.06); border: 2px solid var(--rose); padding: 12px; margin: 12px 0; }
+    .warn strong { color: var(--rose); }
+    .info { background: rgba(26,92,168,.06); border: 2px solid var(--accent); padding: 12px; margin: 12px 0; color: var(--accent); }
+
+    .visual-center { display: flex; justify-content: center; margin: 16px 0; }
+    .visual-row { display: flex; gap: 24px; align-items: flex-start; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+    .visual-label { text-align: center; font-size: 11px; color: var(--mist); margin-top: 6px; }
+    .visual-caption { text-align: center; font-size: 11px; color: var(--mist); font-style: italic; margin-top: 4px; }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 8px; }
+
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+
+    .badge-intro { border: 2px solid var(--mist); color: var(--mist); font-size: 10px; padding: 4px 8px; margin-bottom: 12px; display: inline-block; }
+    .badge-sub { border: 2px solid var(--slate); color: var(--slate); font-size: 10px; padding: 4px 8px; margin-bottom: 12px; display: inline-block; }
+    .badge-key { border: 2px solid var(--honey); color: var(--honey); font-size: 10px; padding: 4px 8px; margin-bottom: 12px; display: inline-block; }
+
+    .dist-card { border: 2px solid #ccc4e0; padding: 12px; background: rgba(26,92,168,.03); flex: 1; min-width: 140px; }
+    .dist-card h3 { font-family: Consolas, monospace; font-size: 11px; color: var(--accent); font-weight: bold; margin-bottom: 6px; }
+    .dist-card .task-tag { font-size: 9px; color: var(--honey); display: block; margin-top: 4px; }
+
+    nav.deck-controls {
+      position: fixed; bottom: 0; left: 212px; right: 0;
+      display: flex; justify-content: center; align-items: center;
+      gap: 16px; padding: 12px;
+      background: rgba(240,235,224,.97); border-top: 3px solid var(--honey); z-index: 10;
+    }
+    #counter { font-family: "DotGothic16", monospace; font-size: 9px; color: var(--mist); }
+    button { font-family: "DotGothic16", monospace; font-size: 9px; padding: 10px 16px; background: var(--accent); color: #fffef8; border: 2px solid #0d3d7a; box-shadow: 3px 3px 0 rgba(26,92,168,.25); cursor: pointer; }
+    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+
+    .fd-particle, .fd-petal { position: fixed; z-index: 99999; pointer-events: none; }
+    body { cursor: none; }
+    button, a, summary, [role="button"], .side-nav, .side-nav-btn, details { cursor: none !important; }
+    #laser-dot {
+      position: fixed; width: 12px; height: 12px; border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, #c42848 45%, transparent 70%);
+      box-shadow: 0 0 6px 2px #c42848, 0 0 14px 4px #c4284855;
+      pointer-events: none; z-index: 99999;
+      transform: translate(-50%, -50%); transition: transform 0.05s ease;
+    }
+    @media (prefers-reduced-motion: reduce) { #laser-dot { display: none; } body { cursor: auto; } }
+  </style>
+</head>
+<body>
+  <aside class="side-nav" aria-label="Slide contents">
+    <p class="side-nav-title">CONTENTS</p>
+    <div id="side-nav-list" class="side-nav-list"></div>
+  </aside>
+
+  <div class="deck" id="deck">
+
+  <!-- ══ 0: Title ══ -->
+  <section class="slide active" data-slide="0">
+    <span class="badge-intro">FOUNDATIONS · START HERE BEFORE TASK 1</span>
+    <h1>Stats &amp; Probability: The Foundations</h1>
+    <div class="buddy-row">
+      <!-- Hootsworth the Owl -->
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+        <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+        <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+        <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+        <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+        <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+        <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Hootsworth:</span> Before you touch the Task 1 deck, spend 10 minutes here. I'll give you the mental models you need — what a distribution IS, and where all the distributions you'll meet in this exam come from.
+      </div>
+    </div>
+    <h2>What you'll understand after this deck</h2>
+    <ul>
+      <li>The difference between Statistics and Probability — and which one Task 1 is</li>
+      <li>What a "distribution" actually is (not just a word)</li>
+      <li>Bernoulli + a roadmap of every distribution in your exam</li>
+    </ul>
+    <p style="margin-top:16px; color: var(--mist); font-size:11px;">→ When you're done, open <strong>Task 1: Bernoulli Vote</strong> for the task-specific application.</p>
+  </section>
+
+  <!-- ══ 1: Statistics vs Probability ══ -->
+  <section class="slide" data-slide="1">
+    <h1>Statistics vs Probability — Two Directions</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+        <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+        <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+        <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+        <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+        <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+        <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Hootsworth:</span> These two words get used interchangeably, but they're actually opposite directions on the same road.
+      </div>
+    </div>
+
+    <!-- two-direction road diagram -->
+    <div class="visual-center">
+      <svg width="580" height="200" viewBox="0 0 580 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <defs>
+          <marker id="arr-r" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#0d7a6e"/></marker>
+          <marker id="arr-l" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto"><path d="M8,0 L8,6 L0,3 z" fill="#c42848"/></marker>
+        </defs>
+
+        <!-- MODEL box -->
+        <rect x="10" y="60" width="170" height="80" rx="4" fill="rgba(26,92,168,.07)" stroke="#1a5ca8" stroke-width="2"/>
+        <text x="95" y="90" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#1a5ca8" font-weight="bold">MODEL</text>
+        <text x="95" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">(theory, parameters)</text>
+        <text x="95" y="126" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">e.g. "p = 0.58"</text>
+
+        <!-- DATA box -->
+        <rect x="400" y="60" width="170" height="80" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
+        <text x="485" y="90" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#0d7a6e" font-weight="bold">DATA</text>
+        <text x="485" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e">(observations)</text>
+        <text x="485" y="126" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">e.g. 580 "for" / 1000</text>
+
+        <!-- PROBABILITY arrow: model → data -->
+        <line x1="184" y1="88" x2="396" y2="88" stroke="#0d7a6e" stroke-width="2.5" marker-end="url(#arr-r)"/>
+        <text x="290" y="80" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e" font-weight="bold">PROBABILITY</text>
+        <text x="290" y="72" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">model → predicts data</text>
+
+        <!-- STATISTICS arrow: data → model -->
+        <line x1="396" y1="112" x2="184" y2="112" stroke="#c42848" stroke-width="2.5" marker-end="url(#arr-l)"/>
+        <text x="290" y="130" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#c42848" font-weight="bold">STATISTICS</text>
+        <text x="290" y="144" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">data → infers model</text>
+
+        <!-- Your exam labels -->
+        <rect x="60" y="155" width="460" height="36" rx="3" fill="rgba(184,104,0,.07)" stroke="#b86800" stroke-width="1.5"/>
+        <text x="95" y="168" font-family="Consolas,monospace" font-size="9" fill="#b86800" font-weight="bold">YOUR EXAM:</text>
+        <text x="168" y="168" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">Task 1 = PROBABILITY (p given, describe distribution)</text>
+        <text x="168" y="182" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">Tasks 3, 4, 6 = STATISTICS (observe data, estimate/test model)</text>
+      </svg>
+    </div>
+
+    <div class="callout">
+      <strong>Simple test:</strong> if you're told the parameter and asked to describe outcomes → probability. If you're given data and asked to find the parameter → statistics. Task 1 gives you p = 0.58 and asks you to describe the distribution. That's probability.
+    </div>
+  </section>
+
+  <!-- ══ 2: What is a distribution? ══ -->
+  <section class="slide" data-slide="2">
+    <h1>What IS a Distribution?</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+        <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+        <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+        <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+        <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+        <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+        <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Hootsworth:</span> A distribution is a complete portrait of a random variable. It tells you every possible value and exactly how likely each one is. It's the full answer to the question: "what will this variable do?"
+      </div>
+    </div>
+
+    <!-- die roll histogram building up -->
+    <div class="visual-center">
+      <svg width="560" height="210" viewBox="0 0 560 210" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <!-- Analogy: roll a die 6000 times -->
+        <!-- Left: single roll -->
+        <rect x="10" y="10" width="240" height="190" rx="4" fill="rgba(196,40,72,.05)" stroke="#c42848" stroke-width="2"/>
+        <text x="130" y="32" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">ONE ROLL — unpredictable</text>
+        <!-- single die face -->
+        <rect x="80" y="50" width="100" height="100" rx="8" fill="white" stroke="#c42848" stroke-width="2.5"/>
+        <circle cx="110" cy="80" r="7" fill="#c42848"/>
+        <circle cx="130" cy="100" r="7" fill="#c42848"/>
+        <circle cx="150" cy="120" r="7" fill="#c42848"/>
+        <text x="130" y="175" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848">could be 1, 2, 3, 4, 5, or 6</text>
+        <text x="130" y="191" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848">no idea in advance</text>
+
+        <!-- Right: many rolls — reveals the distribution -->
+        <rect x="275" y="10" width="275" height="190" rx="4" fill="rgba(13,122,110,.05)" stroke="#0d7a6e" stroke-width="2"/>
+        <text x="412" y="32" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">6000 ROLLS — pattern emerges</text>
+        <!-- bar chart: uniform distribution -->
+        <line x1="295" y1="165" x2="540" y2="165" stroke="#1c1a30" stroke-width="1.5"/>
+        <line x1="295" y1="50" x2="295" y2="165" stroke="#1c1a30" stroke-width="1.5"/>
+        <!-- 6 bars, each ~1000 rolls, height ~90px for 1000/6000 = ~1/6 -->
+        <rect x="300" y="75" width="30" height="90" fill="#0d7a6e" opacity="0.65"/>
+        <rect x="337" y="76" width="30" height="89" fill="#0d7a6e" opacity="0.65"/>
+        <rect x="374" y="74" width="30" height="91" fill="#0d7a6e" opacity="0.65"/>
+        <rect x="411" y="77" width="30" height="88" fill="#0d7a6e" opacity="0.65"/>
+        <rect x="448" y="75" width="30" height="90" fill="#0d7a6e" opacity="0.65"/>
+        <rect x="485" y="74" width="30" height="91" fill="#0d7a6e" opacity="0.65"/>
+        <!-- x labels -->
+        <text x="315" y="179" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">1</text>
+        <text x="352" y="179" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">2</text>
+        <text x="389" y="179" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">3</text>
+        <text x="426" y="179" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">4</text>
+        <text x="463" y="179" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">5</text>
+        <text x="500" y="179" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">6</text>
+        <text x="412" y="196" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">equal bars → uniform distribution</text>
+      </svg>
+    </div>
+
+    <p>After many rolls, the histogram <em>converges to</em> the distribution. The distribution is the theoretical shape the histogram is trying to reach. It tells you:</p>
+    <ul>
+      <li>What values are possible</li>
+      <li>How probable each value is</li>
+      <li>Everything else follows: E[X], variance, percentiles...</li>
+    </ul>
+    <div class="info">
+      <strong>Key insight:</strong> you don't need to run the experiment to know the distribution. If you know the model (fair die → each face has P = 1/6), you know the distribution exactly. That's probability.
+    </div>
+  </section>
+
+  <!-- ══ 3: E[X] — The Expected Value ══ -->
+  <section class="slide" data-slide="3">
+    <span class="badge-key">KEY CONCEPT — read this carefully</span>
+    <h1>E[X] — The Expected Value</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+        <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+        <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+        <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+        <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+        <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+        <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Hootsworth:</span> E[X] is just a weighted average. If you repeated the experiment a million times, what would the average outcome be? That number is E[X]. Let's build it from scratch with dice.
+      </div>
+    </div>
+
+    <h2>Step 1: the ordinary average</h2>
+    <p>Roll a fair die 6 times and (hypothetically) get each face exactly once. What's the average?</p>
+    <div class="formula">$$\frac{1+2+3+4+5+6}{6} = \frac{21}{6} = 3.5$$</div>
+
+    <h2>Step 2: rewrite as weighted sum</h2>
+    <p>Each face appeared exactly 1/6 of the time. So the average is:</p>
+    <div class="formula">$$1\cdot\tfrac{1}{6} + 2\cdot\tfrac{1}{6} + 3\cdot\tfrac{1}{6} + 4\cdot\tfrac{1}{6} + 5\cdot\tfrac{1}{6} + 6\cdot\tfrac{1}{6} = 3.5$$</div>
+    <p>Each value × its probability, summed. That's the definition of E[X].</p>
+
+    <div class="formula">$$E[X] = \sum_x x \cdot P(X = x)$$
+    <div style="text-align:center; font-family:Consolas,monospace; font-size:11px; color:var(--mist); margin-top:4px">each value × how likely it is, added up</div></div>
+
+    <!-- Visual: number line with balance point -->
+    <div class="visual-center">
+      <svg width="560" height="110" viewBox="0 0 560 110" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <defs>
+          <marker id="arr3" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#b86800"/></marker>
+        </defs>
+        <!-- beam -->
+        <line x1="40" y1="58" x2="540" y2="58" stroke="#1c1a30" stroke-width="2.5"/>
+        <!-- 6 equal weights -->
+        <rect x="60" y="30" width="20" height="28" fill="#8870a0" opacity="0.7"/>
+        <text x="70" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#8870a0">1/6</text>
+        <text x="70" y="72" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">1</text>
+        <rect x="140" y="30" width="20" height="28" fill="#8870a0" opacity="0.7"/>
+        <text x="150" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#8870a0">1/6</text>
+        <text x="150" y="72" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">2</text>
+        <rect x="220" y="30" width="20" height="28" fill="#8870a0" opacity="0.7"/>
+        <text x="230" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#8870a0">1/6</text>
+        <text x="230" y="72" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">3</text>
+        <rect x="300" y="30" width="20" height="28" fill="#8870a0" opacity="0.7"/>
+        <text x="310" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#8870a0">1/6</text>
+        <text x="310" y="72" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">4</text>
+        <rect x="380" y="30" width="20" height="28" fill="#8870a0" opacity="0.7"/>
+        <text x="390" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#8870a0">1/6</text>
+        <text x="390" y="72" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">5</text>
+        <rect x="460" y="30" width="20" height="28" fill="#8870a0" opacity="0.7"/>
+        <text x="470" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#8870a0">1/6</text>
+        <text x="470" y="72" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">6</text>
+        <!-- fulcrum at 3.5, which is midpoint of [1,6] = position 290 -->
+        <polygon points="290,58 274,95 306,95" fill="#b86800"/>
+        <line x1="274" y1="95" x2="306" y2="95" stroke="#b86800" stroke-width="3"/>
+        <text x="290" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#b86800" font-weight="bold">E[X] = 3.5 ← balance point</text>
+      </svg>
+    </div>
+
+    <div class="warn">
+      <strong>The big "aha":</strong> you can never roll a 3.5. E[X] = 3.5 is a property of the <em>distribution</em>, not a prediction of any single throw. It's the number the long-run average converges to after thousands of rolls. "Expected" doesn't mean "I expect to see this next time."
+    </div>
+  </section>
+
+  <!-- ══ 4: E[X] nuance ══ -->
+  <section class="slide" data-slide="4" data-nav-tier="sub" data-nav-section="╰ DEEPER">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>E[X] — What It's Not</h1>
+    <p>Three common confusions, each with a concrete counter-example:</p>
+
+    <h2>1. E[X] is NOT a prediction of one trial</h2>
+    <div class="visual-row" style="align-items:stretch">
+      <div style="flex:1; border:2px solid var(--rose); padding:10px; background:rgba(196,40,72,.04)">
+        <p style="color:var(--rose); font-weight:bold; font-size:11px;">WRONG mental model</p>
+        <p>"E[X] = 3.5, so I'll probably roll a 3 or 4 next time."</p>
+      </div>
+      <div style="flex:1; border:2px solid var(--teal); padding:10px; background:rgba(13,122,110,.04)">
+        <p style="color:var(--teal); font-weight:bold; font-size:11px;">CORRECT mental model</p>
+        <p>"After 10,000 rolls, the average will be close to 3.5. Any single roll is unpredictable."</p>
+      </div>
+    </div>
+
+    <h2>2. E[X] does NOT need to be a possible value</h2>
+    <div class="callout">
+      <strong>Average household size in Germany: 2.06 people.</strong> No household has 2.06 people. The number is real and useful for policy, but it's a property of the distribution of all households — not a description of any actual household.
+    </div>
+
+    <h2>3. E[X] is NOT the most likely value (mode)</h2>
+    <div class="formula">Bernoulli(0.58):
+  E[X] = 0.58  ← weighted average (not a possible value)
+  Mode = 1     ← most likely single outcome (since 0.58 &gt; 0.5)
+
+These happen to be close but they're different concepts.</div>
+
+    <div class="callout">
+      <strong>Insurance company logic:</strong> expected payout per customer = E[X] = €2,000/year. They price premiums above €2,000. No customer costs exactly €2,000 — some cost €0 (no claims), some cost €80,000 (big accident). But across 500,000 customers, the total payout ≈ 500,000 × €2,000. E[X] is the planning number, not the individual prediction.
+    </div>
+  </section>
+
+  <!-- ══ 5: Variance ══ -->
+  <section class="slide" data-slide="5">
+    <h1>Variance — How Spread Out Is It?</h1>
+    <p>E[X] tells you the center. Variance tells you how far values typically stray from that center.</p>
+
+    <!-- visual: two distributions same mean, different spread -->
+    <div class="visual-center">
+      <svg width="560" height="190" viewBox="0 0 560 190" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <!-- Left: low variance -->
+        <rect x="10" y="10" width="250" height="170" rx="4" fill="rgba(13,122,110,.05)" stroke="#0d7a6e" stroke-width="2"/>
+        <text x="135" y="30" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">LOW VARIANCE</text>
+        <text x="135" y="46" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">values cluster tightly around E[X]</text>
+        <!-- axes -->
+        <line x1="30" y1="140" x2="240" y2="140" stroke="#1c1a30" stroke-width="1.5"/>
+        <line x1="30" y1="60" x2="30" y2="140" stroke="#1c1a30" stroke-width="1.5"/>
+        <!-- tall narrow bell -->
+        <path d="M80,138 C100,136 115,100 130,65 C145,100 160,136 180,138" stroke="#0d7a6e" stroke-width="2.5" fill="rgba(13,122,110,.15)"/>
+        <!-- mean marker -->
+        <line x1="130" y1="62" x2="130" y2="140" stroke="#b86800" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="130" y="157" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800">E[X]</text>
+        <text x="135" y="175" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">Var[X] small</text>
+
+        <!-- Right: high variance -->
+        <rect x="295" y="10" width="255" height="170" rx="4" fill="rgba(196,40,72,.05)" stroke="#c42848" stroke-width="2"/>
+        <text x="422" y="30" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">HIGH VARIANCE</text>
+        <text x="422" y="46" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">values spread far from E[X]</text>
+        <!-- axes -->
+        <line x1="315" y1="140" x2="535" y2="140" stroke="#1c1a30" stroke-width="1.5"/>
+        <line x1="315" y1="60" x2="315" y2="140" stroke="#1c1a30" stroke-width="1.5"/>
+        <!-- wide flat bell -->
+        <path d="M320,136 C340,132 370,110 390,96 C410,110 440,128 460,136 C470,136 490,136 540,139" stroke="#c42848" stroke-width="2.5" fill="rgba(196,40,72,.12)"/>
+        <!-- mean marker -->
+        <line x1="415" y1="60" x2="415" y2="140" stroke="#b86800" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="415" y="157" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800">E[X]</text>
+        <text x="422" y="175" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">Var[X] large</text>
+      </svg>
+    </div>
+
+    <p>Both distributions above have the same E[X]. The difference is variance — how predictable individual values are.</p>
+
+    <div class="formula">$$\text{Var}[X] = E\!\left[(X - E[X])^2\right] = \sum_x (x-\mu)^2 \cdot P(X=x)$$
+    <div style="text-align:center; font-family:Consolas,monospace; font-size:11px; color:var(--mist); margin-top:4px">average squared distance from the center</div>
+    $$\text{SD}[X] = \sqrt{\text{Var}[X]} \quad \text{(same units as } X \text{)}$$</div>
+
+    <div class="callout">
+      For <strong>Bernoulli(p):</strong> Var[X] = p(1−p). This is maximized at p=0.5 (most uncertain) and goes to 0 as p→0 or p→1 (outcome almost certain). Your task: Var[X] = 0.58 × 0.42 = 0.2436.
+    </div>
+  </section>
+
+  <!-- ══ 6: PMF vs PDF ══ -->
+  <section class="slide" data-slide="6">
+    <h1>PMF vs PDF — Discrete vs Continuous</h1>
+    <p>Two types of random variables need two types of descriptions:</p>
+
+    <div class="visual-row">
+      <div>
+        <svg width="240" height="185" viewBox="0 0 240 185" xmlns="http://www.w3.org/2000/svg">
+          <rect x="5" y="5" width="230" height="175" rx="4" fill="rgba(13,122,110,.06)" stroke="#0d7a6e" stroke-width="2"/>
+          <text x="120" y="26" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">PMF — DISCRETE</text>
+          <text x="120" y="42" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Probability Mass Function</text>
+          <!-- axes -->
+          <line x1="35" y1="140" x2="220" y2="140" stroke="#1c1a30" stroke-width="1.5"/>
+          <line x1="35" y1="55" x2="35" y2="140" stroke="#1c1a30" stroke-width="1.5"/>
+          <!-- bars at isolated integer points -->
+          <rect x="55" y="100" width="28" height="40" fill="#0d7a6e" opacity="0.7"/>
+          <rect x="100" y="80" width="28" height="60" fill="#0d7a6e" opacity="0.7"/>
+          <rect x="145" y="110" width="28" height="30" fill="#0d7a6e" opacity="0.7"/>
+          <rect x="190" y="120" width="28" height="20" fill="#0d7a6e" opacity="0.7"/>
+          <!-- circles at base (isolated points) -->
+          <circle cx="69" cy="140" r="3" fill="#0d7a6e"/>
+          <circle cx="114" cy="140" r="3" fill="#0d7a6e"/>
+          <circle cx="159" cy="140" r="3" fill="#0d7a6e"/>
+          <circle cx="204" cy="140" r="3" fill="#0d7a6e"/>
+          <text x="120" y="160" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">values: 0, 1, 2, 3...</text>
+          <text x="120" y="174" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">P(X=k) = height of bar</text>
+        </svg>
+        <p class="visual-caption">Coin flips, dice, Bernoulli<br/>SUM of all bars = 1</p>
+      </div>
+      <div>
+        <svg width="240" height="185" viewBox="0 0 240 185" xmlns="http://www.w3.org/2000/svg">
+          <rect x="5" y="5" width="230" height="175" rx="4" fill="rgba(26,92,168,.05)" stroke="#1a5ca8" stroke-width="2"/>
+          <text x="120" y="26" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8" font-weight="bold">PDF — CONTINUOUS</text>
+          <text x="120" y="42" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Probability Density Function</text>
+          <!-- axes -->
+          <line x1="35" y1="140" x2="220" y2="140" stroke="#1c1a30" stroke-width="1.5"/>
+          <line x1="35" y1="55" x2="35" y2="140" stroke="#1c1a30" stroke-width="1.5"/>
+          <!-- bell curve -->
+          <path d="M40,138 C70,135 95,110 115,72 C125,58 130,55 135,55 C140,55 145,58 155,72 C175,110 200,135 230,138" stroke="#1a5ca8" stroke-width="2.5" fill="rgba(26,92,168,.12)"/>
+          <!-- shaded area between two points -->
+          <path d="M115,72 C125,58 130,55 135,55 C140,55 145,58 155,72 L155,140 L115,140 Z" fill="rgba(26,92,168,.25)"/>
+          <text x="135" y="120" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">AREA =</text>
+          <text x="135" y="132" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">P(a≤X≤b)</text>
+          <text x="120" y="160" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">values: any real number</text>
+          <text x="120" y="174" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1a5ca8">INTEGRAL under curve = 1</text>
+        </svg>
+        <p class="visual-caption">Height, weight, temperature<br/>AREA under curve = probability</p>
+      </div>
+    </div>
+
+    <div class="warn">
+      <strong>Critical distinction:</strong> For discrete (PMF), P(X=k) is a real probability. For continuous (PDF), P(X = any specific value) = 0 — probability only exists over <em>intervals</em>. Why? A continuous variable can take <span class="tip" data-tip-title="Uncountably infinite" data-tip="Countably infinite means you can list the values: 1, 2, 3, … The natural numbers are countably infinite. Uncountably infinite means no list can enumerate them — there are 'more' of them. The real numbers ℝ (and any interval like [0,1]) are uncountably infinite. This is why P(X = any one specific value) = 0 for continuous distributions.">uncountably infinite</span> values — you can't split probability 1 across infinitely many individual points without each getting 0. Bernoulli is discrete → PMF → use P(X=0) and P(X=1). Never say "density" for Bernoulli.
+    </div>
+  </section>
+
+  <!-- ══ 7: Bernoulli Distribution ══ -->
+  <section class="slide" data-slide="7">
+    <h1>The Bernoulli Distribution</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+        <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+        <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+        <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+        <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+        <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+        <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Hootsworth:</span> The simplest distribution that can exist: exactly two outcomes, one happens with probability p, the other with probability 1−p. This is your Task 1.
+      </div>
+    </div>
+
+    <div class="visual-row">
+      <!-- PMF bars -->
+      <div>
+        <svg width="210" height="165" viewBox="0 0 210 165" xmlns="http://www.w3.org/2000/svg">
+          <rect x="5" y="5" width="200" height="155" rx="4" fill="rgba(13,122,110,.06)" stroke="#0d7a6e" stroke-width="2"/>
+          <text x="105" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">Bernoulli(p) PMF</text>
+          <line x1="30" y1="128" x2="190" y2="128" stroke="#1c1a30" stroke-width="1.5"/>
+          <line x1="30" y1="40" x2="30" y2="128" stroke="#1c1a30" stroke-width="1.5"/>
+          <!-- bar at 0: height 1-p -->
+          <rect x="52" y="88" width="50" height="40" fill="#c42848" opacity="0.7"/>
+          <text x="77" y="84" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">1−p</text>
+          <text x="77" y="143" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">0</text>
+          <!-- bar at 1: height p -->
+          <rect x="120" y="60" width="50" height="68" fill="#0d7a6e" opacity="0.7"/>
+          <text x="145" y="56" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">p</text>
+          <text x="145" y="143" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">1</text>
+          <!-- y label -->
+          <text x="21" y="95" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888" transform="rotate(-90,21,95)">P(X=k)</text>
+          <text x="105" y="158" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">your task: p = 0.58</text>
+        </svg>
+        <p class="visual-caption">Only two possible values: 0 and 1</p>
+      </div>
+      <!-- Key facts -->
+      <div style="flex:1; min-width:200px">
+        <div class="formula">$$X \sim \text{Bernoulli}(p)$$
+<div style="font-family:Consolas,monospace; font-size:11px; color:var(--text); margin:8px 0 0; line-height:2">
+$P(X = 1) = p$ &nbsp;&nbsp;← "success"<br>
+$P(X = 0) = 1-p$ ← "failure"<br><br>
+$E[X] = p$ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$\text{Var}[X] = p(1-p)$
+</div>
+<div style="font-family:Consolas,monospace; font-size:11px; color:var(--honey); margin-top:8px; border-top:1px solid rgba(184,104,0,.3); padding-top:6px">
+Your task: $p = 0.58$, $E[X] = 0.58$, $\text{Var}[X] = 0.58 \times 0.42 = 0.2436$
+</div></div>
+        <div class="callout" style="margin-top:8px; font-size:11px">
+          Why does E[X] = p? Because:<br/>
+          E[X] = 0·(1−p) + 1·p = p<br/>
+          The 0 disappears; only the "for" probability contributes.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 8: Distribution Roadmap ══ -->
+  <section class="slide" data-slide="8">
+    <h1>Distribution Roadmap — Your Exam</h1>
+    <p>You will meet five distribution families across the six tasks. Here's the map so nothing comes as a surprise:</p>
+
+    <div class="visual-center">
+      <svg width="560" height="230" viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <defs>
+          <marker id="arr4" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#6a5888"/></marker>
+        </defs>
+        <!-- Bernoulli → Task 1 -->
+        <rect x="10" y="10" width="160" height="80" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
+        <text x="90" y="32" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e" font-weight="bold">Bernoulli(p)</text>
+        <text x="90" y="50" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">0 or 1 outcome</text>
+        <text x="90" y="66" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">E[X] = p</text>
+        <rect x="22" y="74" width="116" height="14" rx="2" fill="rgba(184,104,0,.15)"/>
+        <text x="80" y="85" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800" font-weight="bold">→ Task 1</text>
+
+        <!-- Binomial (Bernoulli sibling) -->
+        <rect x="10" y="110" width="160" height="80" rx="4" fill="rgba(106,88,136,.07)" stroke="#6a5888" stroke-width="2" stroke-dasharray="5,3"/>
+        <text x="90" y="132" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#6a5888" font-weight="bold">Binomial(n,p)</text>
+        <text x="90" y="150" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">count of successes</text>
+        <text x="90" y="166" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">in n Bernoulli trials</text>
+        <text x="90" y="182" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Bernoulli = Binomial(1,p)</text>
+
+        <!-- arrow: Bernoulli ← cousin → Binomial -->
+        <line x1="90" y1="92" x2="90" y2="108" stroke="#6a5888" stroke-width="1.5" marker-end="url(#arr4)"/>
+
+        <!-- Normal → Task 4 -->
+        <rect x="200" y="10" width="160" height="80" rx="4" fill="rgba(26,92,168,.07)" stroke="#1a5ca8" stroke-width="2"/>
+        <text x="280" y="32" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1a5ca8" font-weight="bold">Normal(μ, σ²)</text>
+        <text x="280" y="50" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">bell curve</text>
+        <text x="280" y="66" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">hammer weights, heights...</text>
+        <rect x="212" y="74" width="136" height="14" rx="2" fill="rgba(184,104,0,.15)"/>
+        <text x="280" y="85" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800" font-weight="bold">→ Task 4</text>
+
+        <!-- Exponential → Task 2 -->
+        <rect x="390" y="10" width="160" height="80" rx="4" fill="rgba(196,40,72,.06)" stroke="#c42848" stroke-width="2"/>
+        <text x="470" y="32" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#c42848" font-weight="bold">Exponential(λ)</text>
+        <text x="470" y="50" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">waiting time (1 event)</text>
+        <text x="470" y="66" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">E[X] = 1/λ</text>
+        <rect x="402" y="74" width="136" height="14" rx="2" fill="rgba(184,104,0,.15)"/>
+        <text x="470" y="85" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800" font-weight="bold">→ Task 2 (survival)</text>
+
+        <!-- Gamma → Tasks 3, 6 -->
+        <rect x="390" y="110" width="160" height="80" rx="4" fill="rgba(184,104,0,.07)" stroke="#b86800" stroke-width="2"/>
+        <text x="470" y="132" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#b86800" font-weight="bold">Gamma(α, θ)</text>
+        <text x="470" y="150" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">sum of α Exponentials</text>
+        <text x="470" y="166" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">routers, lifetimes</text>
+        <rect x="402" y="174" width="136" height="14" rx="2" fill="rgba(184,104,0,.15)"/>
+        <text x="470" y="185" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800" font-weight="bold">→ Tasks 3, 6</text>
+
+        <!-- arrow: Exp → Gamma (Gamma is sum of Exp) -->
+        <line x1="470" y1="92" x2="470" y2="108" stroke="#b86800" stroke-width="1.5" marker-end="url(#arr4)"/>
+
+        <!-- Polynomial / Ridge → Task 5 -->
+        <rect x="200" y="110" width="160" height="80" rx="4" fill="rgba(58,77,122,.07)" stroke="#3a4d7a" stroke-width="2"/>
+        <text x="280" y="132" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#3a4d7a" font-weight="bold">OLS / Ridge</text>
+        <text x="280" y="150" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">polynomial regression</text>
+        <text x="280" y="166" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">no distribution family</text>
+        <rect x="212" y="174" width="136" height="14" rx="2" fill="rgba(184,104,0,.15)"/>
+        <text x="280" y="185" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800" font-weight="bold">→ Task 5</text>
+
+        <!-- bottom label -->
+        <text x="280" y="218" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">solid border = continuous distribution family</text>
+        <text x="280" y="229" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">dashed = discrete</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ══ 9: Normal Distribution ══ -->
+  <section class="slide" data-slide="9" data-nav-tier="sub" data-nav-section="╰ DISTRIBUTIONS IN DEPTH">
+    <span class="badge-sub">SUB-CHAPTER · Task 4 prep</span>
+    <h1>Normal Distribution — The Bell Curve</h1>
+    <p>The most common distribution in nature. Appears whenever many small independent factors add up (<span class="tip" data-tip-title="Central Limit Theorem" data-tip="If you add $n$ independent, identically distributed random variables and scale the result, the distribution of the sum converges to a Normal as $n \to \infty$ — regardless of the original distribution. This is why the Normal appears everywhere in nature.">Central Limit Theorem</span>).</p>
+
+    <div class="visual-center">
+      <svg width="520" height="200" viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <!-- axes -->
+        <line x1="40" y1="155" x2="500" y2="155" stroke="#1c1a30" stroke-width="1.5"/>
+        <line x1="40" y1="30" x2="40" y2="155" stroke="#1c1a30" stroke-width="1.5"/>
+        <!-- bell curve centered at 270 (roughly mid) -->
+        <path d="M50,153 C100,150 150,130 195,85 C220,63 250,45 270,42 C290,45 320,63 345,85 C390,130 440,150 490,153" stroke="#1a5ca8" stroke-width="2.5" fill="rgba(26,92,168,.10)"/>
+        <!-- 68% region shading -->
+        <path d="M195,85 C220,63 250,45 270,42 C290,45 320,63 345,85 L345,155 L195,155 Z" fill="rgba(26,92,168,.20)"/>
+        <!-- 95% region shading -->
+        <path d="M140,125 C160,105 178,90 195,85 L195,155 L140,155 Z" fill="rgba(26,92,168,.10)"/>
+        <path d="M345,85 C362,90 380,105 400,125 L400,155 L345,155 Z" fill="rgba(26,92,168,.10)"/>
+        <!-- μ line -->
+        <line x1="270" y1="42" x2="270" y2="155" stroke="#b86800" stroke-width="2" stroke-dasharray="5,3"/>
+        <text x="270" y="170" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#b86800" font-weight="bold">μ = E[X]</text>
+        <!-- μ−σ and μ+σ lines -->
+        <line x1="195" y1="85" x2="195" y2="155" stroke="#6a5888" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="345" y1="85" x2="345" y2="155" stroke="#6a5888" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="195" y="170" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">μ−σ</text>
+        <text x="345" y="170" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">μ+σ</text>
+        <!-- 68% label -->
+        <text x="270" y="120" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8" font-weight="bold">68%</text>
+        <!-- 95% label -->
+        <text x="168" y="140" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">13.5%</text>
+        <text x="373" y="140" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">13.5%</text>
+        <!-- brace for 95% -->
+        <text x="270" y="192" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">←——— 95% of values within 2σ ———→</text>
+      </svg>
+    </div>
+
+    <div class="formula">$$X \sim \mathcal{N}(\mu,\, \sigma^2)$$
+<div style="font-family:Consolas,monospace; font-size:11px; color:var(--text); margin-top:8px; line-height:2">
+$\mu = E[X]$ &nbsp;&nbsp;← center (mean)<br>
+$\sigma^2 = \text{Var}[X]$ ← spread (variance)<br>
+$\sigma = \text{SD}[X]$ &nbsp;&nbsp;← same units as $X$
+</div></div>
+
+    <div class="callout">
+      <strong>Task 4:</strong> historical hammer weights ~ Normal(μ₀=956g, σ₀=17.2g). You're testing whether new production raised the mean. The Normal distribution describes the weights; hypothesis testing decides if the mean shifted.
+    </div>
+  </section>
+
+  <!-- ══ 10: Exponential & Gamma ══ -->
+  <section class="slide" data-slide="10" data-nav-tier="sub" data-nav-section="╰ DISTRIBUTIONS IN DEPTH">
+    <span class="badge-sub">SUB-CHAPTER · Tasks 2, 3, 6 prep</span>
+    <h1>Exponential &amp; Gamma — Waiting Times</h1>
+
+    <div class="visual-row" style="align-items:flex-start">
+      <div style="flex:1">
+        <div style="border:2px solid var(--rose); padding:10px; background:rgba(196,40,72,.04); margin-bottom:12px">
+          <p style="font-weight:bold; color:var(--rose); font-size:11px; margin-bottom:6px">Exponential(λ)</p>
+          <p>How long until the first event?</p>
+          <ul style="margin:6px 0; padding-left:16px">
+            <li>Time until a lightbulb fails</li>
+            <li>Time until you get a phone call</li>
+            <li>Waiting time at a checkout</li>
+          </ul>
+          <div class="formula" style="margin:6px 0">$$E[X] = \frac{1}{\lambda} \qquad \text{Var}[X] = \frac{1}{\lambda^2}$$
+<div style="font-family:Consolas,monospace; font-size:10px; color:var(--mist); text-align:center; margin-top:4px"><span class="tip" data-tip-title="Memoryless property" data-tip="If you&rsquo;ve already waited $t$ hours with no event, the probability of waiting $h$ more hours is the same as at the start. Past waiting time doesn&rsquo;t count.">Memoryless</span> — past doesn&rsquo;t matter</div></div>
+          <p style="font-size:9px; color:var(--mist)">Task 2: survival function F̄(y) is a mixture of Exponential-type decays in y².</p>
+        </div>
+      </div>
+      <div style="flex:1">
+        <div style="border:2px solid var(--honey); padding:10px; background:rgba(184,104,0,.04)">
+          <p style="font-weight:bold; color:var(--honey); font-size:11px; margin-bottom:6px">Gamma(α, θ)</p>
+          <p>How long until the α-th event?</p>
+          <ul style="margin:6px 0; padding-left:16px">
+            <li>Sum of α independent Exponentials</li>
+            <li>Router processing α packets</li>
+            <li>Insurance: total of multiple claims</li>
+          </ul>
+          <div class="formula" style="margin:6px 0">$$E[X] = \alpha\theta \qquad \text{Var}[X] = \alpha\theta^2$$
+<div style="font-family:Consolas,monospace; font-size:10px; color:var(--mist); text-align:center; margin-top:4px">Erlang = Gamma with integer $\alpha$</div></div>
+          <p style="font-size:9px; color:var(--mist)">Task 3: router time ~ Gamma(7, θ). Task 6: prior on θ is Gamma(35, 51).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- shape comparison visual -->
+    <div class="visual-center">
+      <svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <!-- axes -->
+        <line x1="40" y1="110" x2="500" y2="110" stroke="#1c1a30" stroke-width="1.5"/>
+        <line x1="40" y1="20" x2="40" y2="110" stroke="#1c1a30" stroke-width="1.5"/>
+        <text x="270" y="128" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">time →</text>
+        <!-- Exponential: steep decay from left -->
+        <path d="M42,28 C60,38 80,55 110,75 C140,90 180,103 250,109 C320,112 400,112 500,112" stroke="#c42848" stroke-width="2.5" fill="none"/>
+        <text x="68" y="52" font-family="Consolas,monospace" font-size="9" fill="#c42848" font-weight="bold">Exp(λ)</text>
+        <text x="68" y="64" font-family="Consolas,monospace" font-size="9" fill="#c42848">α = 1</text>
+        <!-- Gamma α=3: rises then decays -->
+        <path d="M42,108 C55,100 70,82 90,62 C110,46 130,38 150,38 C170,38 190,44 210,55 C240,68 280,88 330,104 C380,112 440,112 500,112" stroke="#b86800" stroke-width="2.5" fill="none"/>
+        <text x="152" y="32" font-family="Consolas,monospace" font-size="9" fill="#b86800" font-weight="bold">Gamma(3,θ)</text>
+        <!-- Gamma α=7: broader hump, further right -->
+        <path d="M42,109 C80,108 120,100 155,86 C175,78 200,64 225,52 C245,44 265,40 280,40 C295,40 315,44 335,52 C360,62 390,80 420,96 C450,106 480,110 500,111" stroke="#0d7a6e" stroke-width="2.5" fill="none"/>
+        <text x="285" y="34" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e" font-weight="bold">Gamma(7,θ) ← Task 3</text>
+      </svg>
+    </div>
+    <p class="visual-caption">As α increases, the Gamma distribution shifts right and becomes more bell-shaped</p>
+  </section>
+
+  <!-- ══ 11: Survival Function ══ -->
+  <section class="slide" data-slide="11" data-nav-section="╰ TASK 2 PREP">
+    <h1>Survival Function — What Is It?</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+        <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+        <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+        <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+        <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+        <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+        <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Hootsworth:</span> In Task 2, you don't get told the PDF directly. You get the survival function — and you derive the PDF from it. Let's understand what it means first.
+      </div>
+    </div>
+
+    <p><strong>Context:</strong> $Y$ = hours until an owl call is heard in the forest. It's a continuous random variable ($Y \geq 0$).</p>
+
+    <div class="visual-row" style="gap:24px; align-items:flex-start; margin:12px 0">
+      <div style="flex:1">
+        <div class="formula" style="text-align:center">$$\bar{F}(y) = P(Y > y)$$
+        <div style="font-family:Consolas,monospace; font-size:11px; color:var(--mist); margin-top:4px">probability the event has <em>not yet happened</em> by time $y$</div></div>
+        <div style="margin-top:10px; font-size:12px; line-height:1.8">
+          <strong>Relation to <span class="tip" data-tip-title="CDF — Cumulative Distribution Function" data-tip="$F(y) = P(Y \leq y)$ — the probability the event has happened BY time $y$. Starts at 0, ends at 1. The survival function is its mirror: $\bar{F}(y) = 1 - F(y)$.">CDF</span>:</strong> $\bar{F}(y) = 1 - F(y)$ <br>
+          <strong>At $y=0$:</strong> $\bar{F}(0) = 1$ — certain to still be waiting at start<br>
+          <strong>As $y\to\infty$:</strong> $\bar{F}(y) \to 0$ — eventually the event always happens
+        </div>
+      </div>
+      <!-- SVG: F-bar (descending) vs F (ascending) -->
+      <div style="flex:1">
+        <svg width="280" height="180" viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+          <!-- axes -->
+          <line x1="30" y1="150" x2="270" y2="150" stroke="#1c1a30" stroke-width="1.5"/>
+          <line x1="30" y1="20"  x2="30"  y2="150" stroke="#1c1a30" stroke-width="1.5"/>
+          <!-- tick labels -->
+          <text x="28" y="155" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">0</text>
+          <text x="27" y="24"  text-anchor="end"    font-family="Consolas,monospace" font-size="8" fill="#6a5888">1</text>
+          <text x="270" y="163" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">y</text>
+          <!-- F-bar curve: starts at 1, decays to 0 -->
+          <path d="M30,22 C60,22 80,35 110,68 C140,100 170,130 210,144 C240,152 260,153 270,154" stroke="#1a5ca8" stroke-width="2.5" fill="none"/>
+          <!-- F(y) curve: starts at 0, rises to 1 -->
+          <path d="M30,150 C60,150 80,137 110,104 C140,72 170,42 210,28 C240,20 260,19 270,18" stroke="#c42848" stroke-width="2" fill="none" stroke-dasharray="5,3"/>
+          <!-- labels -->
+          <text x="110" y="60" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8" font-weight="bold">F̄(y) = P(Y&gt;y)</text>
+          <text x="140" y="38" font-family="Consolas,monospace" font-size="10" fill="#c42848">F(y) = P(Y≤y)</text>
+          <!-- y=1 dashed line -->
+          <line x1="30" y1="22" x2="270" y2="22" stroke="#ccc4e0" stroke-width="1" stroke-dasharray="3,3"/>
+        </svg>
+        <p class="visual-caption">$\bar{F}(y)$ and $F(y)$ are mirror images: they always sum to 1</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Why use the survival function?</strong> For waiting-time problems, it's often more natural to specify &ldquo;how likely is it that nothing has happened yet?&rdquo; than to specify the density directly. Task 2 gives you $\bar{F}(y)$ — your job is to derive $f(y)$ from it.
+    </div>
+  </section>
+
+  <!-- ══ 12: From F-bar to PDF ══ -->
+  <section class="slide" data-slide="12" data-nav-tier="sub" data-nav-section="╰ TASK 2 PREP">
+    <span class="badge-sub">SUB-CHAPTER · Task 2 prep</span>
+    <h1>From F̄(y) to PDF — Just Differentiate</h1>
+
+    <div class="visual-row" style="gap:20px; align-items:flex-start">
+      <div style="flex:1">
+        <h2>The key rule</h2>
+        <div class="formula">$$f(y) = -\frac{d\bar{F}}{dy}$$
+        <div style="font-family:Consolas,monospace; font-size:11px; color:var(--mist); margin-top:6px">Why the minus sign? $\bar{F}(y)$ is <em>decreasing</em>, so its derivative is negative. Multiply by $-1$ to get a positive PDF.</div></div>
+
+        <h2 style="margin-top:12px">Computing probabilities</h2>
+        <p>Instead of integrating the PDF, use the survival function directly:</p>
+        <div class="formula">$$P(a < Y < b) = \int_a^b f(y)\,dy = \bar{F}(a) - \bar{F}(b)$$</div>
+        <p style="font-size:11px; color:var(--mist)">This works because $\bar{F}$ is decreasing: a larger value $a$ means less time elapsed, so $\bar{F}(a) > \bar{F}(b)$ and the difference is positive.</p>
+      </div>
+
+      <!-- SVG: survival curve left, its derivative (PDF) right -->
+      <div style="flex:1">
+        <svg width="280" height="200" viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+          <!-- LEFT: F-bar curve -->
+          <text x="70" y="14" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1a5ca8" font-weight="bold">F̄(y)</text>
+          <line x1="10" y1="170" x2="130" y2="170" stroke="#1c1a30" stroke-width="1.2"/>
+          <line x1="10" y1="20"  x2="10"  y2="170" stroke="#1c1a30" stroke-width="1.2"/>
+          <text x="9"  y="24"  text-anchor="end" font-family="Consolas,monospace" font-size="7" fill="#6a5888">1</text>
+          <text x="9"  y="172" text-anchor="end" font-family="Consolas,monospace" font-size="7" fill="#6a5888">0</text>
+          <path d="M10,22 C30,22 45,35 70,75 C95,115 110,150 130,168" stroke="#1a5ca8" stroke-width="2.5" fill="rgba(26,92,168,.08)"/>
+          <!-- area a..b shaded -->
+          <rect x="48" y="22" width="36" height="148" fill="rgba(26,92,168,.12)" stroke="none"/>
+          <text x="56" y="100" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">F̄(a)−F̄(b)</text>
+          <line x1="48" y1="20" x2="48" y2="170" stroke="#b86800" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="84" y1="20" x2="84" y2="170" stroke="#b86800" stroke-width="1" stroke-dasharray="3,2"/>
+          <text x="48"  y="180" text-anchor="middle" font-family="Consolas,monospace" font-size="7" fill="#b86800">a</text>
+          <text x="84"  y="180" text-anchor="middle" font-family="Consolas,monospace" font-size="7" fill="#b86800">b</text>
+
+          <!-- arrow pointing right -->
+          <text x="148" y="100" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">−d/dy</text>
+          <line x1="138" y1="95" x2="165" y2="95" stroke="#6a5888" stroke-width="1.5" marker-end="url(#arr-tip)"/>
+          <defs><marker id="arr-tip" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#6a5888"/></marker></defs>
+
+          <!-- RIGHT: PDF curve -->
+          <text x="220" y="14" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848" font-weight="bold">f(y) = −dF̄/dy</text>
+          <line x1="168" y1="170" x2="275" y2="170" stroke="#1c1a30" stroke-width="1.2"/>
+          <line x1="168" y1="20"  x2="168" y2="170" stroke="#1c1a30" stroke-width="1.2"/>
+          <!-- PDF bell-ish shape peaking at some y>0 -->
+          <path d="M168,168 C178,165 190,140 200,90 C210,50 218,30 225,26 C232,30 240,50 248,90 C258,140 268,165 275,168" stroke="#c42848" stroke-width="2.5" fill="rgba(196,40,72,.08)"/>
+          <!-- shaded area a..b -->
+          <rect x="193" y="22" width="36" height="148" fill="rgba(196,40,72,.12)" stroke="none"/>
+          <line x1="193" y1="20" x2="193" y2="170" stroke="#b86800" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="229" y1="20" x2="229" y2="170" stroke="#b86800" stroke-width="1" stroke-dasharray="3,2"/>
+          <text x="193" y="180" text-anchor="middle" font-family="Consolas,monospace" font-size="7" fill="#b86800">a</text>
+          <text x="229" y="180" text-anchor="middle" font-family="Consolas,monospace" font-size="7" fill="#b86800">b</text>
+          <text x="211"  y="130" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#c42848">area = P(a&lt;Y&lt;b)</text>
+        </svg>
+        <p class="visual-caption">Shaded area is identical: $\bar{F}(a)-\bar{F}(b)$ = area under $f(y)$ from $a$ to $b$</p>
+      </div>
+    </div>
+
+    <div class="info">
+      <strong>Quick sanity check:</strong> The PDF $f(y)$ must be $\geq 0$ everywhere and integrate to 1. Since $\bar{F}(0)=1$ and $\bar{F}(\infty)=0$, the total area under $f(y)$ is $\bar{F}(0)-\bar{F}(\infty) = 1-0 = 1$. ✓
+    </div>
+  </section>
+
+  <!-- ══ 13: Task 2 Mixture ══ -->
+  <section class="slide" data-slide="13" data-nav-tier="sub" data-nav-section="╰ TASK 2 PREP">
+    <span class="badge-sub">SUB-CHAPTER · Task 2 setup</span>
+    <h1>Mixture Survival — Your Task 2</h1>
+
+    <p>A <strong>mixture survival function</strong> is a weighted sum of simpler survival curves. Each component represents a different &ldquo;mode&rdquo; of behaviour.</p>
+
+    <div class="formula">$$\bar{F}(y) = w_1\, g_1(y) + w_2\, g_2(y) \qquad \text{(ideally } w_1 + w_2 = 1\text{)}$$</div>
+
+    <h2>Your specific function</h2>
+    <div class="formula">$$\bar{F}(y) = 0.79\, e^{-4y^2} + 0.20\, e^{-6y^2}$$
+    <div style="font-family:Consolas,monospace; font-size:11px; margin-top:6px; color:var(--text)">$w_1 = 0.79$, $a_1 = 4$ &nbsp;|&nbsp; $w_2 = 0.20$, $a_2 = 6$ &nbsp;|&nbsp; <span style="color:var(--rose)">$0.79 + 0.20 = 0.99 \neq 1$ ← flag this in your notebook</span></div></div>
+
+    <div class="visual-row" style="gap:16px; align-items:flex-start; margin-top:10px">
+      <div style="flex:1">
+        <h2>Deriving the PDF</h2>
+        <p>Differentiate each term using the chain rule: $\frac{d}{dy}[e^{-ay^2}] = -2ay\,e^{-ay^2}$</p>
+        <div class="formula">$$f(y) = -\frac{d\bar{F}}{dy} = 0.79\cdot 8y\,e^{-4y^2} + 0.20\cdot 12y\,e^{-6y^2}$$</div>
+        <p style="margin-top:8px"><strong>Computing P(2 &lt; Y &lt; 4):</strong></p>
+        <div class="formula">$$P(2 < Y < 4) = \bar{F}(2) - \bar{F}(4)$$</div>
+      </div>
+      <!-- SVG: two component curves + sum -->
+      <div style="flex:1">
+        <svg width="260" height="175" viewBox="0 0 260 175" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+          <text x="130" y="12" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">Survival curves by component</text>
+          <line x1="20" y1="155" x2="250" y2="155" stroke="#1c1a30" stroke-width="1.2"/>
+          <line x1="20" y1="20"  x2="20"  y2="155" stroke="#1c1a30" stroke-width="1.2"/>
+          <text x="18" y="24"   text-anchor="end" font-family="Consolas,monospace" font-size="7" fill="#6a5888">1</text>
+          <text x="18" y="157"  text-anchor="end" font-family="Consolas,monospace" font-size="7" fill="#6a5888">0</text>
+          <text x="250" y="163" text-anchor="middle" font-family="Consolas,monospace" font-size="7" fill="#6a5888">y →</text>
+          <!-- slow component: 0.79·e^{-4y²} — starts at 0.79, decays moderately -->
+          <path d="M20,41 C50,41 70,55 95,90 C115,118 135,140 165,152 C195,158 230,158 250,158" stroke="#1a5ca8" stroke-width="2" fill="none"/>
+          <text x="62" y="54" font-family="Consolas,monospace" font-size="7.5" fill="#1a5ca8">0.79·e^{−4y²}</text>
+          <!-- fast component: 0.20·e^{-6y²} — starts at 0.20, decays faster -->
+          <path d="M20,123 C35,123 50,128 65,140 C80,150 100,155 130,157 C160,158 200,158 250,158" stroke="#c42848" stroke-width="2" fill="none"/>
+          <text x="55" y="133" font-family="Consolas,monospace" font-size="7.5" fill="#c42848">0.20·e^{−6y²}</text>
+          <!-- total sum F-bar: starts near 0.99, fast decay -->
+          <path d="M20,23 C45,23 65,34 90,60 C115,88 140,122 175,146 C205,157 230,159 250,159" stroke="#0d7a6e" stroke-width="2.5" fill="none" stroke-dasharray="6,3"/>
+          <text x="100" y="43" font-family="Consolas,monospace" font-size="7.5" fill="#0d7a6e" font-weight="bold">F̄(y) total</text>
+          <!-- y=1 line -->
+          <line x1="20" y1="20" x2="250" y2="20" stroke="#ccc4e0" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="246" y="19" text-anchor="end" font-family="Consolas,monospace" font-size="7" fill="#ccc4e0">1.0</text>
+        </svg>
+        <p class="visual-caption">Sum starts at 0.99 (not 1.0) — document this in the notebook</p>
+      </div>
+    </div>
+
+    <div class="warn">
+      <strong>Exam flag:</strong> $\xi_5 + \xi_7 = 0.79 + 0.20 = 0.99 \neq 1$. A true survival function should satisfy $\bar{F}(0) = 1$. Acknowledge this discrepancy explicitly in your notebook write-up.
+    </div>
+  </section>
+
+  <!-- ══ 14: Quest Complete / Go to Task 1 ══ -->
+  <section class="slide" data-slide="14">
+    <h1>Foundations Complete — Ready for Tasks 1 &amp; 2</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+        <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+        <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+        <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+        <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+        <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+        <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+        <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+        <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Hootsworth:</span> You've got the foundations AND the survival analysis toolkit. You're ready for Task 1 right now, and Task 2 right after. Good luck out there!
+      </div>
+    </div>
+
+    <h2>Mental models you now have</h2>
+    <ul class="checkpoint">
+      <li>Probability = model → predicts data; Statistics = data → infers model</li>
+      <li>Distribution = complete portrait of a random variable (all values + likelihoods)</li>
+      <li>E[X] = weighted average of all values; long-run average, not a single-trial prediction</li>
+      <li>Variance = average squared distance from E[X]; how predictable is it?</li>
+      <li>PMF for discrete (Bernoulli, Binomial), PDF for continuous (Normal, Gamma)</li>
+      <li>Bernoulli(p): E[X]=p, Var[X]=p(1−p) — your Task 1 distribution</li>
+      <li>Survival function $\bar{F}(y) = P(Y > y)$; PDF from $f(y) = -d\bar{F}/dy$ — your Task 2 toolkit</li>
+      <li>Mixture survival: weighted sum of component curves; flag $w_1+w_2 \neq 1$ if present</li>
+    </ul>
+
+    <div class="visual-row" style="gap:12px; margin-top:16px">
+      <div class="callout" style="flex:1">
+        <strong>Task 1 deck:</strong> <code>slides/task1-bernoulli/index.html</code><br>Assumes you've covered slides 0–8 of this deck. Goes straight into the formal proof and Python.
+      </div>
+      <div class="callout" style="flex:1">
+        <strong>Task 2 deck:</strong> <code>slides/task2-survival/index.html</code><br>Assumes slides 0–13 of this deck. Will cover the full numerical derivation and plots.
+      </div>
+    </div>
+  </section>
+
+  </div><!-- /deck -->
+
+  <nav class="deck-controls">
+    <button type="button" id="prev">◀ PREV</button>
+    <span id="counter">1 / 12</span>
+    <button type="button" id="next">NEXT ▶</button>
+  </nav>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const sideNavList = document.getElementById("side-nav-list");
+    const navButtons = [];
+    let mainNum = 0, subParentNum = 0, subIndex = 0;
+    const sectionHeadersAdded = new Set();
+
+    slides.forEach((slide, j) => {
+      const tier = slide.dataset.navTier || "core";
+      let displayNum;
+      if (tier === "core") {
+        mainNum++; subParentNum = mainNum; subIndex = 0;
+        displayNum = String(mainNum);
+      } else if (tier.startsWith("sub")) {
+        const sectionLabel = slide.dataset.navSection || "╰ DETAILS";
+        if (!sectionHeadersAdded.has(sectionLabel)) {
+          const head = document.createElement("p");
+          head.className = "side-nav-section";
+          head.textContent = sectionLabel;
+          sideNavList.appendChild(head);
+          sectionHeadersAdded.add(sectionLabel);
+        }
+        subIndex++;
+        displayNum = `${subParentNum}.${subIndex}`;
+      } else {
+        displayNum = String(j + 1);
+      }
+      const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      const isSub = tier.startsWith("sub");
+      btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+      btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
+      btn.addEventListener("click", () => show(j));
+      sideNavList.appendChild(btn);
+      navButtons.push(btn);
+    });
+    const headCore = document.createElement("p");
+    headCore.className = "side-nav-section";
+    headCore.textContent = "FOUNDATIONS PATH";
+    sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
+    let i = 0;
+    const counter = document.getElementById("counter");
+    function show(n) {
+      i = Math.max(0, Math.min(n, slides.length - 1));
+      slides.forEach((s, j) => s.classList.toggle("active", j === i));
+      navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+      counter.textContent = `${i + 1} / ${slides.length}`;
+      navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+    document.getElementById("prev").onclick = () => show(i - 1);
+    document.getElementById("next").onclick = () => show(i + 1);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") show(i + 1);
+      if (e.key === "ArrowLeft")  show(i - 1);
+    });
+    show(0);
+  </script>
+
+  <div id="laser-dot"></div>
+  <script>
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var PALETTE = ['#1a5ca8','#c42848','#b86800','#0d7a6e','#6a5888','#f5c842','#e87060','#a8d870'];
+    var PETAL_COLORS = ['#c42848','#b86800','#f5c842','#6a5888','#1a5ca8','#e87060','#0d7a6e'];
+    var PISTIL_COLORS = ['#f5c842','#1c1a30','#c42848'];
+    var LEAF_COLORS = ['#a8d870','#4a9a40','#7bc860','#e8a040','#c84828'];
+    var STAR_COLORS = ['#1a5ca8','#b86800','#c42848','#0d7a6e'];
+    var PARTICLE_CAP = 40, lastSpawn = 0, particleCount = 0;
+    var laser = document.getElementById('laser-dot');
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function rnd(min, max) { return min + Math.random() * (max - min); }
+    function makeFlower() {
+      var color = pick(PETAL_COLORS), pistil = pick(PISTIL_COLORS);
+      var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS,'svg');
+      svg.setAttribute('viewBox','0 0 16 16'); svg.setAttribute('width','14'); svg.setAttribute('height','14');
+      var g = document.createElementNS(NS,'g'); g.setAttribute('transform','translate(8,8)');
+      for (var k=0;k<5;k++){var petal=document.createElementNS(NS,'ellipse');petal.setAttribute('cx','0');petal.setAttribute('cy','-4');petal.setAttribute('rx','2.5');petal.setAttribute('ry','4');petal.setAttribute('fill',color);petal.setAttribute('opacity','0.9');if(k>0)petal.setAttribute('transform','rotate('+(k*72)+')');g.appendChild(petal);}
+      var pistilEl=document.createElementNS(NS,'circle');pistilEl.setAttribute('cx','0');pistilEl.setAttribute('cy','0');pistilEl.setAttribute('r','2.5');pistilEl.setAttribute('fill',pistil);g.appendChild(pistilEl);svg.appendChild(g);return svg;
+    }
+    function makeLeaf() {
+      var color=pick(LEAF_COLORS),angle=Math.floor(rnd(0,360));var NS='http://www.w3.org/2000/svg',svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 16 16');svg.setAttribute('width','14');svg.setAttribute('height','14');var ellipse=document.createElementNS(NS,'ellipse');ellipse.setAttribute('cx','8');ellipse.setAttribute('cy','8');ellipse.setAttribute('rx','3.5');ellipse.setAttribute('ry','6.5');ellipse.setAttribute('fill',color);ellipse.setAttribute('transform','rotate('+angle+',8,8)');var line=document.createElementNS(NS,'line');line.setAttribute('x1','8');line.setAttribute('y1','2');line.setAttribute('x2','8');line.setAttribute('y2','14');line.setAttribute('stroke','#2a5a20');line.setAttribute('stroke-width','0.8');line.setAttribute('transform','rotate('+angle+',8,8)');svg.appendChild(ellipse);svg.appendChild(line);return svg;
+    }
+    function makeStar() {
+      var color=pick(STAR_COLORS);var NS='http://www.w3.org/2000/svg',svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 16 16');svg.setAttribute('width','14');svg.setAttribute('height','14');var polygon=document.createElementNS(NS,'polygon');polygon.setAttribute('points','8,1 9.5,6.5 15,8 9.5,9.5 8,15 6.5,9.5 1,8 6.5,6.5');polygon.setAttribute('fill',color);svg.appendChild(polygon);return svg;
+    }
+    document.addEventListener('mousemove', function(e) {
+      if(laser){laser.style.left=e.clientX+'px';laser.style.top=e.clientY+'px';}
+      var now=Date.now();if(now-lastSpawn<30||particleCount>=PARTICLE_CAP)return;lastSpawn=now;
+      var size=4+Math.floor(rnd(0,3)),el=document.createElement('div');el.className='fd-particle';
+      el.style.cssText=['width:'+size+'px','height:'+size+'px','background:'+pick(PALETTE),'border-radius:0','left:'+(e.clientX+rnd(-6,6)-size/2)+'px','top:'+(e.clientY+rnd(-6,6)-size/2)+'px'].join(';');
+      document.body.appendChild(el);particleCount++;
+      var ty=-rnd(20,40);el.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY('+ty+'px)'}],{duration:rnd(600,800),easing:'ease-out',fill:'forwards'}).addEventListener('finish',function(){el.remove();particleCount--;});
+    });
+    document.addEventListener('click', function(e) {
+      var themes=['flower','leaf','star'],theme=themes[Math.floor(Math.random()*3)];
+      var count=12+Math.floor(rnd(0,5));
+      for(var k=0;k<count;k++){var angle=rnd(0,360)*Math.PI/180,dist=rnd(40,80),dx=Math.cos(angle)*dist,dy=Math.sin(angle)*dist,rotate=rnd(0,360),el;
+        if(theme==='flower')el=makeFlower();else if(theme==='leaf')el=makeLeaf();else el=makeStar();
+        el.setAttribute('class','fd-petal');el.style.cssText=['left:'+(e.clientX-7)+'px','top:'+(e.clientY-7)+'px','transform:rotate('+rotate+'deg)'].join(';');
+        document.body.appendChild(el);
+        (function(el,rotate,dx,dy){el.animate([{opacity:1,transform:'rotate('+rotate+'deg) translate(0,0)'},{opacity:0,transform:'rotate('+(rotate+180)+'deg) translate('+dx+'px,'+dy+'px)'}],{duration:rnd(700,900),easing:'ease-out',fill:'forwards'}).addEventListener('finish',function(){el.remove();});}(el,rotate,dx,dy));
+      }
+    });
+  }());
+  </script>
+  <script>
+  (function () {
+    var box = document.createElement('div');
+    box.id = 'tip-box';
+    document.body.appendChild(box);
+    document.querySelectorAll('.tip').forEach(function (el) {
+      el.addEventListener('mouseenter', function (e) {
+        var lbl = el.dataset.tipTitle ? '<span class="tip-label">' + el.dataset.tipTitle + '</span>' : '';
+        box.innerHTML = lbl + (el.dataset.tip || '');
+        if (window.renderMathInElement) renderMathInElement(box, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+        box.style.display = 'block'; move(e);
+      });
+      el.addEventListener('mousemove', move);
+      el.addEventListener('mouseleave', function () { box.style.display = 'none'; });
+    });
+    function move(e) {
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 310 > window.innerWidth)  x = e.clientX - 316;
+      if (y + 200 > window.innerHeight) y = e.clientY - 206;
+      box.style.left = x + 'px'; box.style.top = y + 'px';
+    }
+  }());
+  </script>
+</body>
+</html>
