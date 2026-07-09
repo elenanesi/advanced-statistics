@@ -70,6 +70,18 @@
       "notes": "Deck extended 2026-06-24. Covers probability space, random variable (label gun + why 'random'), measurability, integrability, E[X] (seesaw), PMF, formal proof block, Python code, pitfalls, quiz. Assumes stats-probability-foundations done first."
     },
     {
+      "id": "unit3-distributions",
+      "title": "Important probability distributions (Unit 3 survey)",
+      "mastery": "novice",
+      "prerequisites": ["stats-probability-foundations"],
+      "related_exam_tasks": [1, 2, 3, 4, 6],
+      "course_book": ["Unit 3 — 3.1", "Unit 3 — 3.2", "Unit 3 — 3.3", "Unit 3 — 3.4", "Unit 3 — 3.5"],
+      "buddy_id": "coin-sprite",
+      "slide_path": "slides/ch3-distributions/index.html",
+      "slide_status": "ready",
+      "notes": "Deck created 2026-07-03 (19 slides incl. 3 sub-chapters) after Elena said she was struggling with chapter 3. Organizing frame: every distribution answers one everyday question. Covers: binomial (+ why n-choose-k, sub), negative binomial (flip the question), normal via Galton board + CLT (+ Irwin-Hall sum-of-5-uniforms sub), 68/95/99.7 sigma ruler with the book's ±1σ-excludes-32% gotcha, Poisson (+ binomial-limit sub), Gamma-Poisson overdispersion → NB (two doors into one distribution), exponential derived from P(0 events)=e^-λt, Weibull three k regimes, transformation theorem with rubber-sheet/area-preservation intuition, family-tree map, exam-task mapping, traps, quiz. All curves computed numerically."
+    },
+    {
       "id": "continuous-survival-pdf",
       "title": "Survival function → PDF",
       "mastery": "novice",
@@ -89,8 +101,9 @@
       "related_exam_tasks": [3],
       "course_book": ["Unit 3 — 3.3", "Unit 3 — 3.5", "Unit 6 — 6.1"],
       "buddy_id": "router-sprite",
-      "slide_path": "slides/gamma-sum-mle/index.html",
-      "slide_status": "none"
+      "slide_path": "slides/task3-gamma-mle/index.html",
+      "slide_status": "ready",
+      "notes": "Deck created 2026-07-02 (18 slides incl. 3 sub-chapters). Covers: reading the Gamma(7,θ) density visually (rise × fall = hump), scale knob θ, Erlang 7-stage story, exam normalization typo flag (120 should be Γ(7)=720 — flag like Task 2's 0.99), T=S1+S2 ~ Γ(14,θ) via transformation theorem + convolution, likelihood as guess-and-compare, log transform (3 reasons), MLE θ̂ = t̄/14 = 289/70 ≈ 4.129 TB, E[T] = 57.8 TB. Quiz + notebook map included."
     },
     {
       "id": "hypothesis-test-mean",

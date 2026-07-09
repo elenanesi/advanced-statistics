@@ -1,5 +1,5 @@
 # CLAUDE.md — Advanced Statistics workspace
-> Read this at the start of every session. Last updated: 2026-06-24.
+> Read this at the start of every session. Last updated: 2026-07-02.
 > Detailed playbooks live in `docs/`. This file is the fast-path session bootstrap.
 
 ---
@@ -41,7 +41,7 @@
 
 **Current template:** `slides/_template/index.html` is the ground truth. Ignore `slides/README.md` for style — it describes a dark 90s aesthetic that was never used in practice.
 
-**Actual style (as of 2026-06-24):**
+**Actual style (as of 2026-07-02):**
 - Background: warm parchment `#f0ebe0`, dot-grid overlay
 - Cards: near-white `#fffef8`, `border: 2px solid #ccc4e0`, `box-shadow: 4px 4px 0 rgba(80,60,140,.18)`
 - Fonts: **DotGothic16** (Google Fonts) for `h1`, counter, buttons only — **Consolas/Courier New** for everything else (body, formulas, code, side nav)
@@ -51,27 +51,44 @@
 - All visuals: hand-coded inline SVG with `viewBox` and `max-width:100%` — no external image deps
 - Buddy sprites: pixel-art 16×16 `shape-rendering="crispEdges"` SVG `<rect>` blocks — catalog in `_template/index.html`
 
+**KaTeX math rendering (added 2026-07-02 — now in template and all decks):**
+- CDN: KaTeX v0.16.11 via `cdn.jsdelivr.net` (3 tags: CSS + katex.min.js + auto-render.min.js with `onload`)
+- Delimiters: `$...$` = display block, `\(...\)` = inline
+- Always set `throwOnError: false` — silently degrades rather than breaking the slide
+- `.formula` CSS: keeps Consolas for plain text; KaTeX auto-overrides font for math elements inside `$...$`
+- If adding KaTeX to an existing deck: copy the 3 `<link>`/`<script>` tags from the template `<head>`, add `.formula .katex` and `.formula .katex-display` rules to the `<style>` block
+
+**Hover tooltips (added 2026-07-02 — now in template and all decks):**
+- Markup: `<span class="tip" data-tip-title="Term name" data-tip="explanation text">term</span>`
+- Style: amber dashed underline (`border-bottom: 2px dashed var(--honey); cursor: help`)
+- The tooltip JS block renders KaTeX inside tooltip content if you include `$math$` in `data-tip`
+- Copy the full `.tip` / `#tip-box` / `.tip-label` CSS + tooltip IIFE JS from the template
+
 **Decks that exist:**
 
 | Path | Content | Status |
 |------|---------|--------|
-| `slides/intro-stats-probability/` | Stats vs probability, distributions, E[X] from scratch (die analogy), variance, PMF/PDF, Bernoulli, distribution roadmap for all 6 tasks | Created 2026-06-24 |
-| `slides/task1-bernoulli/` | Full Task 1 proof deck — assumes intro deck done first | Extended 2026-06-24 |
+| `slides/intro-stats-probability/` | Stats vs probability, distributions, E[X] from scratch (die analogy), variance, PMF/PDF, Bernoulli, distribution roadmap for all 6 tasks; Task 2 prep slides (survival function, mixture) | KaTeX + tooltips added 2026-07-02; 15 slides |
+| `slides/task1-bernoulli/` | Full Task 1 proof deck — assumes intro deck done first | KaTeX + tooltips added 2026-07-02 |
 | `slides/causal-inference/` | Causal inference methods (ITS, DiD, SCA) | Exists, separate domain |
-| `slides/task2-survival/` | Task 2 survival analysis | Status unknown — check |
+| `slides/task2-survival/` | Task 2 survival analysis — F̄(y), mixture, chain rule PDF, Jacobian, quartiles | KaTeX + tooltips added 2026-07-02; 16 slides |
+| `slides/task3-gamma-mle/` | Task 3 — Gamma(7,θ) density visually, Erlang 7-stage story, 120→720 normalization flag, T=S₁+S₂~Γ(14,θ) convolution proof, likelihood + log transform, MLE θ̂=t̄/14≈4.129 TB, E[T]=57.8 TB | Created 2026-07-02 from template (KaTeX + tooltips); 18 slides incl. 3 sub-chapters |
+| `slides/ch3-distributions/` | Course-book Unit 3 survey ("distribution field guide"): binomial + neg. binomial, normal via Galton/CLT + σ ruler, Poisson + Gamma-Poisson overdispersion, exponential, Weibull, transformation theorem, family-tree map, exam-task mapping | Created 2026-07-03 from template; 19 slides incl. 3 sub-chapters; all curves computed numerically |
 | `slides/vbb/` | VBB (separate design system) | Not part of stats quest template |
 
 **When creating a new deck:** copy `_template/`, use DotGothic16 + Consolas, pick the right buddy from the sprite catalog (Penny=Bernoulli, Hootsworth=Owl/survival, Packet=Gamma/router, Forge=hypothesis tests, Ridge=OLS/ridge, Bayes=conjugate priors), put intro-before-formalism, visual-before-formula.
 
+KaTeX and tooltips are already wired into the template — they come for free when you copy it. After writing the keydown event binding in the JS, **always add `show(0);` immediately after it** — omitting this leaves the counter blank on load (recurring bug fixed in all existing decks 2026-07-02).
+
 ---
 
-## Exam task status (as of 2026-06-24)
+## Exam task status (as of 2026-07-02)
 
 | Task | Branch | Status |
 |------|--------|--------|
-| 1 | Bernoulli, p=0.58 | Notebook started; slides complete |
-| 2 | Survival mixture, ξ4=3 | Not started |
-| 3 | Gamma(7,θ) router MLE | Not started |
+| 1 | Bernoulli, p=0.58 | Notebook started; slides complete (KaTeX + tooltips) |
+| 2 | Survival mixture, ξ4=3 | Slides complete (KaTeX + tooltips); notebook not started |
+| 3 | Gamma(7,θ) router MLE, ξ9=2 | Slides complete (`slides/task3-gamma-mle/`); notebook not started. ⚠ Exam density constant 120 is a typo — must be Γ(7)=720 (flag in notebook like Task 2's 0.99) |
 | 4 | "Higher weights?" hypothesis test | Not started |
 | 5 | Degree-10 polynomial + ridge | Not started |
 | 6 | Bayesian Gamma posterior | Not started |
@@ -109,3 +126,5 @@ These came up this session; update `learning/profile.json` when gaps close:
 - Don't commit unless explicitly asked
 - Don't publish exam solutions to external platforms (IU copyright)
 - Don't edit `exam_tasks/*.pdf` or `knowledge/*.pdf` (read-only)
+- Don't forget `show(0)` after the keydown binding in any deck's JS — the counter stays blank without it
+- Don't add KaTeX CDN tags manually to new decks — they're already in the template; just copy the template

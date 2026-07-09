@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TASK 3: GAMMA ROUTERS &amp; MAXIMUM LIKELIHOOD — Advanced Stats Quest</title>
+  <!-- Technique C pixel-art favicon: Packet the Bunny -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="4" y="0" width="2" height="4" fill="%2388c8c0"/><rect x="10" y="0" width="2" height="4" fill="%2388c8c0"/><rect x="3" y="4" width="10" height="7" fill="%2388c8c0"/><rect x="5" y="6" width="1" height="2" fill="%233a3040"/><rect x="10" y="6" width="1" height="2" fill="%233a3040"/><rect x="7" y="8" width="2" height="1" fill="%23d0a0a8"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <!-- KaTeX — proper math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:     #f0ebe0;   /* warm parchment */
+      --card:   #fffef8;   /* near-white */
+      --accent: #1a5ca8;   /* deep sapphire — h1, checkpoints */
+      --rose:   #c42848;   /* vivid crimson — speech bubbles, callouts */
+      --honey:  #b86800;   /* deep amber — h2, formulas */
+      --text:   #1c1a30;   /* dark navy — body text */
+      --mist:   #6a5888;   /* muted plum — secondary, counters */
+      --teal:   #0d7a6e;   /* deep teal — positive signals */
+      --slate:  #3a4d7a;   /* slate blue — methodology callouts */
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 720px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    .side-nav {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 52px;
+      width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto;
+      z-index: 9;
+    }
+    .side-nav-title {
+      font-family: "DotGothic16", monospace;
+      font-size: 8px;
+      color: var(--mist);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .side-nav-btn:hover {
+      background: rgba(26,92,168,.06);
+      border-color: #ccc4e0;
+    }
+    .side-nav-btn.active {
+      background: rgba(26,92,168,.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .side-nav-num {
+      flex-shrink: 0;
+      color: var(--mist);
+      font-size: 10px;
+      min-width: 1.2em;
+    }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9px;
+      color: var(--mist);
+      margin: 10px 0 4px;
+      padding-top: 10px;
+      border-top: 1px solid #d0c8e0;
+      letter-spacing: 1px;
+      line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+    .badge-sub {
+      border: 2px solid var(--slate);
+      color: var(--slate);
+      font-size: 10px;
+      padding: 4px 8px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    .slide {
+      display: none;
+      background: var(--card);
+      border: 2px solid #ccc4e0;
+      box-shadow: 4px 4px 0 rgba(80,60,140,.18);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .slide.active { display: block; }
+    h1 {
+      font-family: "DotGothic16", monospace;
+      font-size: 13px;
+      color: var(--accent);
+      margin: 0 0 16px;
+      letter-spacing: .5px;
+    }
+    h2 {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      color: var(--honey);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 18px 0 8px;
+    }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+    table { border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+    th, td { border: 2px solid #ccc4e0; padding: 6px 10px; text-align: left; }
+    th { background: rgba(26,92,168,.06); color: var(--accent); }
+
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .buddy-speech {
+      flex: 1;
+      background: #fff8f2;
+      border: 2px solid var(--rose);
+      padding: 12px;
+      position: relative;
+    }
+    .buddy-speech::before {
+      content: "";
+      position: absolute;
+      left: -11px;
+      top: 14px;
+      border: 7px solid transparent;
+      border-right-color: var(--rose);
+    }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    .formula {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(26,92,168,.06);
+      padding: 14px 16px;
+      border: 2px solid rgba(26,92,168,.3);
+      margin: 12px 0;
+      overflow-x: auto;
+      line-height: 1.8;
+    }
+    .formula em { color: var(--honey); font-style: normal; }
+    .formula .katex { font-size: 1.08em; }
+    .formula .katex-display { margin: 6px 0; }
+
+    .callout {
+      border: 2px solid var(--rose);
+      background: rgba(196,40,72,.05);
+      padding: 12px 16px;
+      margin: 12px 0;
+    }
+    .callout .callout-title { color: var(--rose); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; display: block; margin-bottom: 4px; }
+    .callout.good { border-color: var(--teal); background: rgba(13,122,110,.05); }
+    .callout.good .callout-title { color: var(--teal); }
+
+    .viz { margin: 14px 0; }
+    .viz svg { max-width: 100%; height: auto; display: block; }
+    .viz-caption { font-size: 11px; color: var(--mist); margin-top: 4px; }
+
+    /* ── hover tooltips for jargon terms ── */
+    .tip { border-bottom: 2px dashed var(--honey); cursor: help; }
+    #tip-box {
+      position: fixed; display: none;
+      background: #fff8f2;
+      border: 2px solid var(--honey);
+      box-shadow: 4px 4px 0 rgba(80,60,140,.22);
+      padding: 10px 14px; max-width: 300px;
+      font-size: 11px; z-index: 99998;
+      color: var(--text); line-height: 1.6; pointer-events: none;
+    }
+    .tip-label {
+      font-weight: bold; color: var(--honey); display: block;
+      margin-bottom: 4px; font-size: 10px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 8px; }
+
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+
+    nav.deck-controls {
+      position: fixed;
+      bottom: 0;
+      left: 212px;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      background: rgba(240,235,224,.97);
+      border-top: 3px solid var(--honey);
+      z-index: 10;
+    }
+    #counter {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      color: var(--mist);
+    }
+    button {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fffef8;
+      border: 2px solid #0d3d7a;
+      box-shadow: 3px 3px 0 rgba(26,92,168,.25);
+      cursor: pointer;
+    }
+    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+
+    .fd-particle, .fd-petal { position: fixed; z-index: 99999; pointer-events: none; }
+
+    body { cursor: none; }
+    button, a, summary, [role="button"],
+    .side-nav, .side-nav-btn, details { cursor: none !important; }
+    #laser-dot {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, #c42848 45%, transparent 70%);
+      box-shadow: 0 0 6px 2px #c42848, 0 0 14px 4px #c4284855;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.05s ease;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #laser-dot { display: none; }
+      body { cursor: auto; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="side-nav" aria-label="Slide contents">
+    <p class="side-nav-title">CONTENTS</p>
+    <div id="side-nav-list" class="side-nav-list"></div>
+  </aside>
+
+  <div class="deck" id="deck">
+
+  <!-- Slide 0: Title -->
+  <section class="slide active" data-slide="0">
+    <h1>TASK 3: GAMMA ROUTERS &amp; MAXIMUM LIKELIHOOD</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="4"  y="0" width="2" height="4" fill="#88c8c0"/>
+        <rect x="10" y="0" width="2" height="4" fill="#88c8c0"/>
+        <rect x="5"  y="1" width="1" height="2" fill="#d0a0a8"/>
+        <rect x="10" y="1" width="1" height="2" fill="#d0a0a8"/>
+        <rect x="3"  y="4" width="10" height="7" fill="#88c8c0"/>
+        <rect x="5"  y="6" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="6" width="1" height="2" fill="#3a3040"/>
+        <rect x="7"  y="8" width="2" height="1" fill="#d0a0a8"/>
+        <rect x="4"  y="8" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="8" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="7"  y="9" width="2" height="1" fill="#508880"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Packet:</span> Hop hop! I'm Packet, your router bunny. My job: carry data until my hardware gives out. Your job: figure out the pattern behind <em>when</em> that happens — from just 5 measurements. Press → to start!
+      </div>
+    </div>
+    <p>Advanced Statistics · DLMDSAS01 · Exam Task 3 (your branch: $\xi_9 = 2$)</p>
+    <div class="callout good">
+      <span class="callout-title">Prerequisites</span>
+      This deck assumes the <b>intro deck</b> (<code>slides/intro-stats-probability/</code>): what a PDF (probability density function) is, what $E[X]$ means, and the Gamma distribution's first appearance in the roadmap. If "density" or "expected value" feel wobbly, do that deck first.
+    </div>
+  </section>
+
+  <!-- Slide 1: Quest map -->
+  <section class="slide" data-slide="1">
+    <h1>What the exam actually asks</h1>
+    <p>The exam text is dense, so here it is decoded into four sub-quests. Everything else in this deck exists to make these four doable.</p>
+    <table>
+      <tr><th>#</th><th>Exam wording</th><th>In plain terms</th></tr>
+      <tr><td>Q1</td><td>"$S$ is modeled by … $f_S(s)=\frac{1}{120\theta^7}s^6e^{-s/\theta}$"</td><td>Understand the model for ONE router's bandwidth-until-failure $S$ (in terabytes, TB)</td></tr>
+      <tr><td>Q2</td><td>"Express $T$ in terms of $S_1, S_2$ … realistic assumptions … density of $T$"</td><td>The dual-router system: $T = S_1 + S_2$. Say why that's fair, then derive $f_T$</td></tr>
+      <tr><td>Q3</td><td>"Calculate the likelihood function … propose a transformation whose maximum is the same"</td><td>Build $\mathcal{L}(\theta)$ from the sample, then take its logarithm</td></tr>
+      <tr><td>Q4</td><td>"Estimate the model-parameter with maximum likelihood … compute the expectation"</td><td>From your data $\xi_{10} = (37,\,58,\,8,\,176,\,10)$ TB: find $\hat\theta$, then $E[T]$</td></tr>
+    </table>
+    <p><b>Branch check:</b> your $\xi_9 = 2$, so only the $s^6$ density applies. The $\xi_9=0$ and $\xi_9=1$ branches must be skipped and stated as not applicable in the notebook.</p>
+    <p>Course book route: Unit 3.3 (Gamma/Exponential) → Unit 3.5 (Transformed Random Variables) → Unit 6.1 (Maximum Likelihood).</p>
+  </section>
+
+  <!-- Slide 2: Meet S -->
+  <section class="slide" data-slide="2">
+    <h1>Meet S — read the density like a picture</h1>
+    <p>$S$ = how many terabytes a single router pushes through before its hardware fails. It's a continuous random variable, so it gets a PDF. Before any algebra, look at what the formula's two ingredients <em>do</em>:</p>
+    <div class="formula">
+      $$f_S(s) = \frac{1}{720\,\theta^{7}}\; \underbrace{s^{6}}_{\text{rises}} \;\cdot\; \underbrace{e^{-s/\theta}}_{\text{falls}} \qquad (s \ge 0)$$
+      <em>Heads-up: the exam sheet prints 120, not 720 — that's a typo we'll flag properly in a moment.</em>
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 660 175" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <!-- panel 1: rise -->
+        <g transform="translate(10,10)">
+          <rect x="0" y="0" width="200" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline transform="scale(0.6667,1) scale(1,1.0833)" points="0.0,120.0 7.5,120.0 15.0,120.0 22.5,120.0 30.0,120.0 37.5,120.0 45.0,120.0 52.5,120.0 60.0,120.0 67.5,120.0 75.0,120.0 82.5,119.9 90.0,119.9 97.5,119.9 105.0,119.8 112.5,119.7 120.0,119.5 127.5,119.3 135.0,119.0 142.5,118.6 150.0,118.1 157.5,117.5 165.0,116.7 172.5,115.7 180.0,114.4 187.5,112.8 195.0,110.9 202.5,108.6 210.0,105.9 217.5,102.6 225.0,98.6 232.5,94.0 240.0,88.5 247.5,82.2 255.0,74.7 262.5,66.1 270.0,56.2 277.5,44.8 285.0,31.8 292.5,16.9 300.0,0.0" fill="none" stroke="#0d7a6e" stroke-width="2"/>
+          <text x="100" y="150" text-anchor="middle" fill="#0d7a6e">s⁶ — slow starter</text>
+        </g>
+        <!-- panel 2: fall -->
+        <g transform="translate(230,10)">
+          <rect x="0" y="0" width="200" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline transform="scale(0.6667,1) scale(1,1.0833)" points="0.0,0.0 7.5,37.5 15.0,63.3 22.5,81.0 30.0,93.2 37.5,101.6 45.0,107.4 52.5,111.3 60.0,114.0 67.5,115.9 75.0,117.2 82.5,118.1 90.0,118.7 97.5,119.1 105.0,119.4 112.5,119.6 120.0,119.7 127.5,119.8 135.0,119.9 142.5,119.9 150.0,119.9 157.5,120.0 165.0,120.0 172.5,120.0 180.0,120.0 187.5,120.0 195.0,120.0 202.5,120.0 210.0,120.0 217.5,120.0 225.0,120.0 232.5,120.0 240.0,120.0 247.5,120.0 255.0,120.0 262.5,120.0 270.0,120.0 277.5,120.0 285.0,120.0 292.5,120.0 300.0,120.0" fill="none" stroke="#c42848" stroke-width="2"/>
+          <text x="100" y="150" text-anchor="middle" fill="#c42848">e^(−s/θ) — decay</text>
+        </g>
+        <!-- panel 3: product -->
+        <g transform="translate(450,10)">
+          <rect x="0" y="0" width="200" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline transform="scale(0.6667,1) scale(1,1.0833)" points="0.0,120.0 7.5,120.0 15.0,119.9 22.5,119.3 30.0,117.4 37.5,113.1 45.0,105.8 52.5,95.4 60.0,82.3 67.5,67.5 75.0,52.1 82.5,37.4 90.0,24.3 97.5,13.7 105.0,6.0 112.5,1.5 120.0,0.0 127.5,1.3 135.0,5.1 142.5,10.8 150.0,17.9 157.5,25.9 165.0,34.5 172.5,43.3 180.0,51.9 187.5,60.2 195.0,68.0 202.5,75.2 210.0,81.7 217.5,87.5 225.0,92.6 232.5,97.1 240.0,101.0 247.5,104.3 255.0,107.1 262.5,109.4 270.0,111.4 277.5,113.0 285.0,114.4 292.5,115.5 300.0,116.4" fill="none" stroke="#1a5ca8" stroke-width="2.5"/>
+          <line x1="80" y1="0" x2="80" y2="130" stroke="#b86800" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="100" y="150" text-anchor="middle" fill="#1a5ca8">product = the hump</text>
+        </g>
+        <text x="330" y="172" text-anchor="middle" fill="#6a5888">horizontal axis: s in TB, 0 → 60 (curves drawn with θ = 4; peak at s = 6θ = 24 TB)</text>
+      </svg>
+    </div>
+    <ul>
+      <li><b>$s^6$ says: instant deaths are essentially impossible.</b> Near $s=0$ the density is crushed to zero — a router basically never fails after moving only a few gigabytes.</li>
+      <li><b>$e^{-s/\theta}$ says: surviving forever is impossible too.</b> Every extra terabyte costs a constant multiplicative "wear tax".</li>
+      <li><b>Their product is a hump</b>: failure most plausibly happens in a middle zone — this is the Gamma distribution shape.</li>
+    </ul>
+    <p>Concretely: this is a <b>Gamma distribution with shape $k=7$ and <span class="tip" data-tip-title="Scale parameter" data-tip="A parameter that stretches or squeezes the horizontal axis of a distribution without changing its silhouette. For Gamma: mean $= k\theta$, mode $= (k-1)\theta$ — double $\theta$ and every landmark doubles.">scale</span> $\theta$</b>, written $S \sim \Gamma(7, \theta)$.</p>
+  </section>
+
+  <!-- Slide 3: theta knob -->
+  <section class="slide" data-slide="3">
+    <h1>θ — the one knob we don't know</h1>
+    <p>The shape (the exponent 6, i.e. $k=7$) is <b>fixed by the model</b> — the exam hands it to you. The scale $\theta$ is the <b>unknown</b>: it says how many TB one "unit of wear" is worth. Same silhouette, different stretch:</p>
+    <div class="viz">
+      <svg viewBox="0 0 620 195" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(30,10)">
+          <rect x="0" y="0" width="560" height="150" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,150.0 14.0,149.5 28.0,139.4 42.0,105.5 56.0,58.1 70.0,21.0 84.0,8.3 98.0,18.5 112.0,42.2 126.0,69.6 140.0,94.4 154.0,113.7 168.0,127.5 182.0,136.6 196.0,142.3 210.0,145.7 224.0,147.7 238.0,148.8 252.0,149.4 266.0,149.7 280.0,149.8 294.0,149.9 308.0,150.0 322.0,150.0 336.0,150.0 350.0,150.0 364.0,150.0 378.0,150.0 392.0,150.0 406.0,150.0 420.0,150.0 434.0,150.0 448.0,150.0 462.0,150.0 476.0,150.0 490.0,150.0 504.0,150.0 518.0,150.0 532.0,150.0 546.0,150.0 560.0,150.0" fill="none" stroke="#0d7a6e" stroke-width="2"/>
+          <polyline points="0.0,150.0 14.0,150.0 28.0,149.8 42.0,148.4 56.0,144.7 70.0,137.7 84.0,127.8 98.0,116.0 112.0,104.0 126.0,93.5 140.0,85.5 154.0,80.7 168.0,79.1 182.0,80.5 196.0,84.3 210.0,89.7 224.0,96.1 238.0,103.0 252.0,109.8 266.0,116.3 280.0,122.2 294.0,127.4 308.0,131.9 322.0,135.6 336.0,138.8 350.0,141.3 364.0,143.3 378.0,144.9 392.0,146.2 406.0,147.1 420.0,147.9 434.0,148.4 448.0,148.8 462.0,149.2 476.0,149.4 490.0,149.6 504.0,149.7 518.0,149.8 532.0,149.8 546.0,149.9 560.0,149.9" fill="none" stroke="#1a5ca8" stroke-width="2"/>
+          <polyline points="0.0,150.0 14.0,150.0 28.0,150.0 42.0,149.8 56.0,149.4 70.0,148.3 84.0,146.5 98.0,143.6 112.0,139.8 126.0,135.2 140.0,130.0 154.0,124.6 168.0,119.4 182.0,114.5 196.0,110.3 210.0,107.0 224.0,104.6 238.0,103.2 252.0,102.8 266.0,103.2 280.0,104.4 294.0,106.2 308.0,108.5 322.0,111.2 336.0,114.1 350.0,117.1 364.0,120.2 378.0,123.2 392.0,126.1 406.0,128.9 420.0,131.5 434.0,133.8 448.0,136.0 462.0,137.9 476.0,139.6 490.0,141.2 504.0,142.5 518.0,143.7 532.0,144.7 546.0,145.5 560.0,146.3" fill="none" stroke="#b86800" stroke-width="2"/>
+          <text x="92"  y="22"  fill="#0d7a6e">θ=2</text>
+          <text x="180" y="70"  fill="#1a5ca8">θ=4</text>
+          <text x="270" y="95"  fill="#b86800">θ=6</text>
+          <text x="0"   y="165" fill="#6a5888">0</text>
+          <text x="136" y="165" fill="#6a5888">20</text>
+          <text x="276" y="165" fill="#6a5888">40</text>
+          <text x="416" y="165" fill="#6a5888">60</text>
+          <text x="548" y="165" fill="#6a5888">80</text>
+          <text x="280" y="181" text-anchor="middle" fill="#6a5888">s = bandwidth total to failure (TB) — all three curves are Γ(7, θ)</text>
+        </g>
+      </svg>
+    </div>
+    <div class="formula">
+      mode (peak)&nbsp;&nbsp;= $(k-1)\,\theta = 6\theta$<br/>
+      mean $E[S]$&nbsp; = $k\,\theta = 7\theta$<br/>
+      variance&nbsp;&nbsp;&nbsp;&nbsp; = $k\,\theta^2 = 7\theta^2$
+    </div>
+    <p>Turn $\theta$ up → routers are tougher, the hump slides right and flattens. <b>Everything in Q3/Q4 is about using data to find where this knob is set.</b></p>
+  </section>
+
+  <!-- Slide 3.1 sub: why shape 7 -->
+  <section class="slide" data-slide="4" data-nav-tier="sub" data-nav-section="╰ WHY SHAPE 7?">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>Why shape 7? The 7-stage story</h1>
+    <p>A Gamma distribution with an <em>integer</em> shape $k$ has a beautiful physical reading (this special case is called the <span class="tip" data-tip-title="Erlang distribution" data-tip="A Gamma distribution whose shape parameter $k$ is a whole number. Equivalently: the distribution of a sum of $k$ independent Exponential$(\theta)$ waiting times. Named after A.K. Erlang, who used it for telephone traffic — routers are its natural habitat.">Erlang distribution</span>):</p>
+    <div class="callout good">
+      <span class="callout-title">The intuition</span>
+      Imagine the router's life as <b>7 internal wear stages</b>. Each stage lasts an Exponential$(\theta)$ amount of traffic — memoryless, average $\theta$ TB. The router dies when the 7th stage completes. Total life = sum of 7 exponential waits = $\Gamma(7,\theta)$.
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 620 80" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(10,15)">
+          <rect x="0"   y="0" width="70" height="30" fill="#88c8c0" stroke="#508880" stroke-width="2"/>
+          <rect x="76"  y="0" width="82" height="30" fill="#88c8c0" stroke="#508880" stroke-width="2"/>
+          <rect x="164" y="0" width="58" height="30" fill="#88c8c0" stroke="#508880" stroke-width="2"/>
+          <rect x="228" y="0" width="95" height="30" fill="#88c8c0" stroke="#508880" stroke-width="2"/>
+          <rect x="329" y="0" width="66" height="30" fill="#88c8c0" stroke="#508880" stroke-width="2"/>
+          <rect x="401" y="0" width="88" height="30" fill="#88c8c0" stroke="#508880" stroke-width="2"/>
+          <rect x="495" y="0" width="75" height="30" fill="#88c8c0" stroke="#508880" stroke-width="2"/>
+          <text x="35"  y="20" text-anchor="middle" fill="#1c1a30">st.1</text>
+          <text x="117" y="20" text-anchor="middle" fill="#1c1a30">st.2</text>
+          <text x="193" y="20" text-anchor="middle" fill="#1c1a30">st.3</text>
+          <text x="275" y="20" text-anchor="middle" fill="#1c1a30">st.4</text>
+          <text x="362" y="20" text-anchor="middle" fill="#1c1a30">st.5</text>
+          <text x="445" y="20" text-anchor="middle" fill="#1c1a30">st.6</text>
+          <text x="532" y="20" text-anchor="middle" fill="#1c1a30">st.7</text>
+          <text x="570" y="20" fill="#c42848">✖</text>
+          <text x="285" y="55" text-anchor="middle" fill="#6a5888">each block = one Exponential(θ) chunk of traffic; lengths vary randomly — death at the end of stage 7</text>
+        </g>
+      </svg>
+    </div>
+    <ul>
+      <li>$\xi_9=0$ branch: $k=1$ (plain Exponential — 1 stage). $\xi_9=1$: $k=5$. Yours ($\xi_9=2$): $k=7$.</li>
+      <li>This story is not just decoration — it's the exact reason the dual-router result on the "shapes add" slide will feel obvious instead of magical.</li>
+    </ul>
+  </section>
+
+  <!-- Slide 4: the 120 flag -->
+  <section class="slide" data-slide="5">
+    <h1>⚠ Flag: the exam's 120 should be 720</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="4"  y="0" width="2" height="4" fill="#88c8c0"/>
+        <rect x="10" y="0" width="2" height="4" fill="#88c8c0"/>
+        <rect x="5"  y="1" width="1" height="2" fill="#d0a0a8"/>
+        <rect x="10" y="1" width="1" height="2" fill="#d0a0a8"/>
+        <rect x="3"  y="4" width="10" height="7" fill="#88c8c0"/>
+        <rect x="5"  y="6" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="6" width="1" height="2" fill="#3a3040"/>
+        <rect x="7"  y="8" width="2" height="1" fill="#d0a0a8"/>
+        <rect x="4"  y="8" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="8" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="7"  y="9" width="2" height="1" fill="#508880"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Packet:</span> Remember Task 2's "0.79 + 0.20 = 0.99" trap? Same energy here. A density must enclose exactly area 1 — and the exam's constant doesn't.
+      </div>
+    </div>
+    <p>Every PDF must satisfy $\int_0^\infty f_S(s)\,ds = 1$. The general Gamma density uses the <span class="tip" data-tip-title="Gamma function" data-tip="$\Gamma(k) = \int_0^\infty u^{k-1}e^{-u}du$. For whole numbers it's just a factorial shifted by one: $\Gamma(k) = (k-1)!$. So $\Gamma(7) = 6! = 720$. It's the normalizing constant that makes the Gamma density enclose area 1.">Gamma function</span> $\Gamma(k)=(k-1)!$ as its normalizer. Check the exam's three branches against that:</p>
+    <table>
+      <tr><th>Branch</th><th>Density core</th><th>Needs $\Gamma(k)$</th><th>Exam prints</th><th>OK?</th></tr>
+      <tr><td>$\xi_9=0$</td><td>$e^{-s/\theta}$ &nbsp;($k=1$)</td><td>$0! = 1$</td><td>$1$</td><td>✔</td></tr>
+      <tr><td>$\xi_9=1$</td><td>$s^4e^{-s/\theta}$ &nbsp;($k=5$)</td><td>$4! = 24$</td><td>$24$</td><td>✔</td></tr>
+      <tr><td><b>$\xi_9=2$</b></td><td>$s^6e^{-s/\theta}$ &nbsp;($k=7$)</td><td>$6! = \mathbf{720}$</td><td>$\mathbf{120}$</td><td><b>✘ (120 = 5!)</b></td></tr>
+    </table>
+    <p>With 120, the "density" encloses area $\tfrac{720}{120} = 6$, not 1. Someone factorialed the wrong number.</p>
+    <div class="callout">
+      <span class="callout-title">How to handle it in the notebook</span>
+      <b>Flag it, correct it, proceed.</b> State the check ($\int_0^\infty s^6 e^{-s/\theta} ds = 6!\,\theta^7$), note that 120 must be $720 = \Gamma(7)$, and use 720 from then on. Bonus nuance worth writing: the wrong constant would <em>not</em> change the maximum likelihood estimate $\hat\theta$ (a constant factor shifts the likelihood curve up/down, not sideways) — but the course book explicitly requires $f$ normalized at all stages, and every probability, plot, and expectation formula would silently be 6× off.
+    </div>
+  </section>
+
+  <!-- Slide 4.1 sub: integral check -->
+  <section class="slide" data-slide="6" data-nav-tier="sub" data-nav-section="╰ THE AREA CHECK">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>The area check, step by step</h1>
+    <p>Two lines, and it's exam-proof material (Q1 asks you to justify the model). Substitute $u = s/\theta$ (so $s = \theta u$, $ds = \theta\,du$) to peel $\theta$ out of the integral:</p>
+    <div class="formula">
+      $$\int_0^\infty s^6 e^{-s/\theta}\,ds \;=\; \int_0^\infty (\theta u)^6 e^{-u}\,\theta\,du \;=\; \theta^7 \int_0^\infty u^6 e^{-u}\,du \;=\; \theta^7\,\Gamma(7) \;=\; 720\,\theta^7$$
+    </div>
+    <p>So the correctly normalized density divides by exactly what the integral produces:</p>
+    <div class="formula">
+      $$f_S(s) = \frac{s^6 e^{-s/\theta}}{720\,\theta^7} \quad\Rightarrow\quad \int_0^\infty f_S(s)\,ds = \frac{720\,\theta^7}{720\,\theta^7} = 1$$ <em>✔ area is exactly 1</em>
+    </div>
+    <p>The same one-substitution trick ("pull out $\theta$, recognize $\Gamma(\cdot)$") also delivers the mean: $E[S] = \frac{1}{720\theta^7}\int_0^\infty s^7 e^{-s/\theta} ds = \frac{\Gamma(8)\,\theta^8}{720\,\theta^7} = \frac{5040}{720}\theta = 7\theta$. That's the $k\theta$ rule you saw two slides ago — now proven, not just stated.</p>
+  </section>
+
+  <!-- Slide 5: dual router -->
+  <section class="slide" data-slide="7">
+    <h1>Two routers, one number: T = S₁ + S₂</h1>
+    <p>The dual system: router 1 carries traffic until it dies; a standby router 2 takes over automatically and carries traffic until <em>it</em> dies. The system's total bandwidth-to-failure is:</p>
+    <div class="formula">$$T = S_1 + S_2$$</div>
+    <div class="viz">
+      <svg viewBox="0 0 620 105" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(10,12)">
+          <rect x="0"   y="10" width="230" height="28" fill="#88c8c0" stroke="#508880" stroke-width="2"/>
+          <rect x="236" y="10" width="300" height="28" fill="#a8b8e0" stroke="#3a4d7a" stroke-width="2"/>
+          <text x="115" y="29" text-anchor="middle" fill="#1c1a30">router 1 working (S₁ TB)</text>
+          <text x="386" y="29" text-anchor="middle" fill="#1c1a30">router 2 working (S₂ TB)</text>
+          <text x="231" y="6"  text-anchor="middle" fill="#c42848">✖ failover</text>
+          <text x="540" y="29" fill="#c42848">✖✖</text>
+          <line x1="0" y1="52" x2="536" y2="52" stroke="#b86800" stroke-width="2"/>
+          <line x1="0" y1="46" x2="0" y2="58" stroke="#b86800" stroke-width="2"/>
+          <line x1="536" y1="46" x2="536" y2="58" stroke="#b86800" stroke-width="2"/>
+          <text x="268" y="72" text-anchor="middle" fill="#b86800">T = S₁ + S₂ = total TB the system delivers before going dark</text>
+        </g>
+      </svg>
+    </div>
+    <h2>The "realistic assumptions" the exam wants — spelled out</h2>
+    <ul>
+      <li><b>Independence:</b> $S_1$ and $S_2$ are separate physical machines; one wearing out doesn't age the other. (Realistic unless they share a power supply or overheating rack — worth one honest sentence in the notebook.)</li>
+      <li><b>Identically distributed:</b> "two routers of the same type" → same model, same $\theta$: both $\Gamma(7,\theta)$. Together with independence this is the classic <span class="tip" data-tip-title="i.i.d." data-tip="Independent and identically distributed: each observation comes from the same distribution and carries no information about the others. The workhorse assumption that lets joint densities factor into products.">i.i.d.</span> setup.</li>
+      <li><b>Instant failover:</b> router 2 takes over with no gap and no traffic lost, and it doesn't age while on standby — so the total is exactly the sum, nothing more.</li>
+    </ul>
+    <p>In course-book language, $T$ is a <b>transformed random variable</b> (Unit 3.5): the transformation is $g(s_1, s_2) = s_1 + s_2$ applied to the random pair $(S_1, S_2)$.</p>
+  </section>
+
+  <!-- Slide 6: density of T -->
+  <section class="slide" data-slide="8">
+    <h1>The density of T: shapes add</h1>
+    <p>Here's the punchline first, story second, proof in the sub-chapter:</p>
+    <div class="formula">
+      $$S_1, S_2 \overset{\text{i.i.d.}}{\sim} \Gamma(7,\theta) \quad\Longrightarrow\quad T = S_1 + S_2 \sim \Gamma(14,\theta)$$
+      $$f_T(t) = \frac{1}{13!\,\theta^{14}}\; t^{13}\, e^{-t/\theta} \qquad (t \ge 0), \qquad 13! = 6{,}227{,}020{,}800$$
+    </div>
+    <p><b>Why it's believable without algebra:</b> remember the 7-stage story. Router 1 = 7 exponential wear stages, router 2 = 7 more. The system just walks through <b>14 stages</b> end to end — and a sum of 14 i.i.d. Exponential$(\theta)$ chunks is $\Gamma(14,\theta)$ by the very same story.</p>
+    <div class="viz">
+      <svg viewBox="0 0 620 195" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(30,10)">
+          <rect x="0" y="0" width="560" height="150" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,150.0 14.0,149.9 28.0,147.4 42.0,135.4 56.0,110.4 70.0,77.0 84.0,44.5 98.0,21.4 112.0,11.5 126.0,14.2 140.0,26.4 154.0,44.2 168.0,63.7 182.0,82.6 196.0,99.1 210.0,112.8 224.0,123.5 238.0,131.6 252.0,137.4 266.0,141.6 280.0,144.5 294.0,146.4 308.0,147.7 322.0,148.6 336.0,149.1 350.0,149.4 364.0,149.7 378.0,149.8 392.0,149.9 406.0,149.9 420.0,150.0 434.0,150.0 448.0,150.0 462.0,150.0 476.0,150.0 490.0,150.0 504.0,150.0 518.0,150.0 532.0,150.0 546.0,150.0 560.0,150.0" fill="none" stroke="#0d7a6e" stroke-width="2"/>
+          <polyline points="0.0,150.0 14.0,150.0 28.0,150.0 42.0,150.0 56.0,150.0 70.0,149.9 84.0,149.6 98.0,148.7 112.0,146.4 126.0,142.0 140.0,134.7 154.0,124.5 168.0,111.8 182.0,97.7 196.0,83.7 210.0,71.4 224.0,62.0 238.0,56.5 252.0,54.9 266.0,57.2 280.0,62.5 294.0,70.3 308.0,79.4 322.0,89.2 336.0,98.9 350.0,108.0 364.0,116.1 378.0,123.3 392.0,129.3 406.0,134.2 420.0,138.1 434.0,141.2 448.0,143.6 462.0,145.4 476.0,146.7 490.0,147.7 504.0,148.4 518.0,148.9 532.0,149.2 546.0,149.5 560.0,149.7" fill="none" stroke="#c42848" stroke-width="2.5"/>
+          <text x="120" y="30"  fill="#0d7a6e">f_S — one router, Γ(7,θ)</text>
+          <text x="300" y="50"  fill="#c42848">f_T — dual system, Γ(14,θ)</text>
+          <text x="0"   y="165" fill="#6a5888">0</text>
+          <text x="136" y="165" fill="#6a5888">30</text>
+          <text x="276" y="165" fill="#6a5888">60</text>
+          <text x="416" y="165" fill="#6a5888">90</text>
+          <text x="546" y="165" fill="#6a5888">120</text>
+          <text x="280" y="181" text-anchor="middle" fill="#6a5888">TB — both drawn with θ ≈ 4.13 (spoiler: your fitted value). T sits further right and is wider.</text>
+        </g>
+      </svg>
+    </div>
+    <div class="callout">
+      <span class="callout-title">When "shapes add" is allowed — don't skip this check</span>
+      $\Gamma(k_1,\theta) + \Gamma(k_2,\theta) = \Gamma(k_1{+}k_2,\theta)$ requires <b>(1) independence</b> and <b>(2) the same scale $\theta$</b>. Different scales → the sum is <em>not</em> Gamma at all. Here both hold by our assumptions — say so explicitly in the notebook.
+    </div>
+    <p>Useful immediately: $E[T] = 14\,\theta$ and $\operatorname{Var}[T] = 14\,\theta^2$.</p>
+  </section>
+
+  <!-- Slide 6.1 sub: proof -->
+  <section class="slide" data-slide="9" data-nav-tier="sub" data-nav-section="╰ PROOF OF f_T">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>Proof: transformation theorem → convolution</h1>
+    <p>The exam says "calculate the density function of $T$" — the course book's tool is the <b>transformation theorem</b> (Unit 3.5, Eq. 3.39; Hogg et al. 2020, §2.7). Strategy: sums lose information (you can't recover $s_1, s_2$ from $t$ alone), so add a helper coordinate, transform the pair, then integrate the helper away.</p>
+    <ol>
+      <li><b>Choose the transformation.</b> $g(s_1,s_2) = (t, u) = (s_1{+}s_2,\; s_2)$. Inverse: $s_1 = t-u$, $s_2 = u$.</li>
+      <li><b>Compute the <span class="tip" data-tip-title="Jacobian" data-tip="The determinant of the matrix of partial derivatives of the inverse transformation. It measures how the transformation stretches area, so densities stay honest: probability mass in = probability mass out. Task 2's deck used the 1-D version, $|dg^{-1}/dy|$.">Jacobian</span>.</b>
+        $J = \det\begin{pmatrix} \partial s_1/\partial t & \partial s_1/\partial u \\ \partial s_2/\partial t & \partial s_2/\partial u \end{pmatrix} = \det\begin{pmatrix} 1 & -1 \\ 0 & 1 \end{pmatrix} = 1$ — a sum doesn't stretch area.</li>
+      <li><b>Joint density in, marginalize the helper out.</b> Independence gives $f_{(S_1,S_2)}(s_1,s_2) = f_S(s_1)f_S(s_2)$, so
+        $$f_T(t) = \int_0^{t} f_S(t-u)\,f_S(u)\,du$$
+        — this integral is called the <span class="tip" data-tip-title="Convolution" data-tip="The operation that produces the density of a sum of independent random variables: slide one density across the other and integrate the overlap, $\;(f*g)(t)=\int f(t-u)g(u)du$. The limits 0 to $t$ appear because both routers need non-negative lifetimes.">convolution</span> of $f_S$ with itself. Limits $0$ to $t$: both pieces must be non-negative.</li>
+      <li><b>Plug in and watch $u$ vanish from the exponent</b> — the step that only works because both routers share the same $\theta$:
+        $$f_T(t) = \frac{e^{-t/\theta}}{720^2\,\theta^{14}} \int_0^{t} (t-u)^6\, u^6\, du$$
+        since $e^{-(t-u)/\theta}\,e^{-u/\theta} = e^{-t/\theta}$.</li>
+      <li><b>The remaining integral is a classic.</b> Substitute $u = tv$:
+        $\int_0^t (t-u)^6 u^6\,du = t^{13}\int_0^1 (1-v)^6 v^6\,dv = t^{13}\,\frac{6!\,6!}{13!}$
+        (that last value is the <span class="tip" data-tip-title="Beta function" data-tip="$B(a,b)=\int_0^1 v^{a-1}(1-v)^{b-1}dv = \frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}$. For whole numbers: $B(7,7) = \frac{6!\,6!}{13!}$. It shows up whenever you split an interval into two power-weighted parts.">Beta function</span> $B(7,7)$).</li>
+    </ol>
+    <div class="formula">
+      $$f_T(t) = \frac{e^{-t/\theta}}{6!\,6!\,\theta^{14}}\cdot t^{13}\,\frac{6!\,6!}{13!} = \frac{t^{13}\,e^{-t/\theta}}{13!\,\theta^{14}} \;\;=\;\; \Gamma(14,\theta)\ \text{density}$$ <em>✔ exactly the Gamma(14, θ) form</em>
+    </div>
+    <p>Exactly the "shapes add" result — now with a citation-ready derivation for the notebook.</p>
+  </section>
+
+  <!-- Slide 7: likelihood -->
+  <section class="slide" data-slide="10">
+    <h1>Likelihood: guess-and-compare</h1>
+    <p>The infrastructure team ran the experiment: five dual-router systems, run to failure. Your data (values of $T$, in TB):</p>
+    <div class="formula">$t_1..t_5$ = 37, &nbsp;58, &nbsp;8, &nbsp;176, &nbsp;10 &nbsp;&nbsp;(sample size $n=5$)</div>
+    <p><b>The idea before the formula:</b> pick a candidate $\theta$ and ask, "if the world really had this $\theta$, how plausible would my exact five numbers be?" Try many candidates; crown the one that makes the data most plausible. That plausibility-as-a-function-of-$\theta$ is the <b>likelihood</b>:</p>
+    <div class="formula">
+      $$\mathcal{L}(\theta) = \prod_{i=1}^{5} f_T(t_i \mid \theta)$$
+      <em>product because the five systems are independent — joint density = product of densities (course book Eq. 6.6)</em>
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 620 185" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(40,10)">
+          <rect x="0" y="0" width="250" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,130.0 4.4,130.0 8.8,130.0 13.2,130.0 17.5,130.0 21.9,130.0 26.3,130.0 30.7,130.0 35.1,130.0 39.5,130.0 43.9,130.0 48.2,130.0 52.6,129.9 57.0,129.2 61.4,126.6 65.8,119.1 70.2,103.5 74.6,79.1 78.9,49.5 83.3,22.1 87.7,4.3 92.1,0.0 96.5,8.6 100.9,26.2 105.3,47.7 109.6,68.9 114.0,87.0 118.4,101.3 122.8,111.5 127.2,118.6 131.6,123.2 136.0,126.0 140.4,127.7 144.7,128.7 149.1,129.3 153.5,129.6 157.9,129.8 162.3,129.9 166.7,129.9 171.1,130.0 175.4,130.0 179.8,130.0 184.2,130.0 188.6,130.0 193.0,130.0 197.4,130.0 201.8,130.0 206.1,130.0 210.5,130.0 214.9,130.0 219.3,130.0 223.7,130.0 228.1,130.0 232.5,130.0 236.8,130.0 241.2,130.0 245.6,130.0 250.0,130.0" fill="none" stroke="#1a5ca8" stroke-width="2"/>
+          <circle cx="74.0"  cy="82.7"  r="4" fill="#b86800"/>
+          <circle cx="91.2"  cy="0"     r="4" fill="#c42848"/>
+          <circle cx="128.8" cy="120.6" r="4" fill="#0d7a6e"/>
+          <line x1="91.2" y1="0" x2="91.2" y2="130" stroke="#c42848" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="0"   y="145" fill="#6a5888">0.8</text>
+          <text x="86"  y="145" fill="#c42848">4.13</text>
+          <text x="240" y="145" fill="#6a5888">9.9</text>
+          <text x="125" y="160" text-anchor="middle" fill="#6a5888">θ candidate (TB)</text>
+          <text x="310" y="35"  fill="#b86800">θ = 3.5 → 36% as plausible as the best</text>
+          <text x="310" y="55"  fill="#c42848">θ = 4.13 → the winner (the MLE!)</text>
+          <text x="310" y="75"  fill="#0d7a6e">θ = 5.5 → 7% as plausible</text>
+          <text x="310" y="105" fill="#6a5888">exactly the guess-and-compare game the</text>
+          <text x="310" y="120" fill="#6a5888">course book plays with Poisson λ (Fig. 71)</text>
+        </g>
+      </svg>
+      <p class="viz-caption">$\mathcal{L}(\theta)$ for YOUR five data points, computed honestly — not a sketch. The curve is razor-thin: bad guesses are punished brutally.</p>
+    </div>
+    <div class="callout">
+      <span class="callout-title">Two lookalikes — keep them apart</span>
+      <b>Likelihood ≠ probability of θ.</b> $\mathcal{L}(\theta) = P(\text{data} \mid \theta)$, read as a function of $\theta$ with the data frozen. It is NOT $P(\theta \mid \text{data})$ — that reversed reading is Bayesian and is exactly what Task 6 will do. &nbsp;Also: <b>use $f_T$, not $f_S$</b> — the sample is five <em>dual-system totals</em>, so each observation follows $\Gamma(14,\theta)$, never $\Gamma(7,\theta)$.
+    </div>
+  </section>
+
+  <!-- Slide 8: log transform -->
+  <section class="slide" data-slide="11">
+    <h1>The exam's "transformation": take the log</h1>
+    <p>Q3's second half — "propose a transformation of this likelihood function whose maximum is the same and can be computed easily" — has a one-word answer: <b>logarithm</b>. The log-likelihood is $\ell(\theta) = \ln \mathcal{L}(\theta)$ (course book Eq. 6.7). Three reasons, all exam-quotable:</p>
+    <ol>
+      <li><b>Same maximum.</b> $\ln$ is strictly <span class="tip" data-tip-title="Monotonic (strictly increasing)" data-tip="A function that only ever goes up: $a < b \Rightarrow \ln a < \ln b$. It reorders nothing — so whatever $\theta$ made $\mathcal{L}$ biggest also makes $\ln\mathcal{L}$ biggest. The peak's HEIGHT changes; its LOCATION cannot.">monotonic</span>, so the peak stays at the same $\theta$ — only its height changes.</li>
+      <li><b>Products become sums.</b> $\ln \prod = \sum \ln$. Differentiating a 5-term product needs the product rule five ways; differentiating a sum is term-by-term.</li>
+      <li><b>Computers need it.</b> For your data the peak value is $\mathcal{L}(\hat\theta) \approx 5.8 \times 10^{-26}$. With more data, that races toward <span class="tip" data-tip-title="Numerical underflow" data-tip="When a number is closer to zero than the smallest value a float can represent (~$10^{-308}$ for float64), it silently becomes 0. Multiply 60 densities of size ~$10^{-6}$ each and you're there. Sums of logs stay comfortably in range (here: −58.1).">underflow</span>. Its log is a tame $-58.1$.</li>
+    </ol>
+    <div class="viz">
+      <svg viewBox="0 0 660 185" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(20,10)">
+          <rect x="0" y="0" width="250" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,130.0 4.4,130.0 8.8,130.0 13.2,130.0 17.5,130.0 21.9,130.0 26.3,130.0 30.7,130.0 35.1,130.0 39.5,130.0 43.9,130.0 48.2,130.0 52.6,129.9 57.0,129.2 61.4,126.6 65.8,119.1 70.2,103.5 74.6,79.1 78.9,49.5 83.3,22.1 87.7,4.3 92.1,0.0 96.5,8.6 100.9,26.2 105.3,47.7 109.6,68.9 114.0,87.0 118.4,101.3 122.8,111.5 127.2,118.6 131.6,123.2 136.0,126.0 140.4,127.7 144.7,128.7 149.1,129.3 153.5,129.6 157.9,129.8 162.3,129.9 166.7,129.9 171.1,130.0 175.4,130.0 179.8,130.0 184.2,130.0 188.6,130.0 193.0,130.0 197.4,130.0 201.8,130.0 206.1,130.0 210.5,130.0 214.9,130.0 219.3,130.0 223.7,130.0 228.1,130.0 232.5,130.0 236.8,130.0 241.2,130.0 245.6,130.0 250.0,130.0" fill="none" stroke="#1a5ca8" stroke-width="2"/>
+          <line x1="91.2" y1="0" x2="91.2" y2="130" stroke="#c42848" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="125" y="150" text-anchor="middle" fill="#1a5ca8">L(θ) — needle</text>
+        </g>
+        <g transform="translate(340,10)">
+          <rect x="0" y="0" width="250" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,130.0 4.4,95.0 8.8,71.3 13.2,54.4 17.5,42.0 21.9,32.6 26.3,25.4 30.7,19.8 35.1,15.4 39.5,12.0 43.9,9.2 48.2,7.0 52.6,5.2 57.0,3.8 61.4,2.7 65.8,1.8 70.2,1.2 74.6,0.7 78.9,0.4 83.3,0.1 87.7,0.0 92.1,0.0 96.5,0.1 100.9,0.2 105.3,0.3 109.6,0.6 114.0,0.8 118.4,1.1 122.8,1.4 127.2,1.8 131.6,2.2 136.0,2.6 140.4,3.0 144.7,3.4 149.1,3.9 153.5,4.3 157.9,4.8 162.3,5.2 166.7,5.7 171.1,6.2 175.4,6.7 179.8,7.2 184.2,7.7 188.6,8.2 193.0,8.7 197.4,9.2 201.8,9.7 206.1,10.2 210.5,10.7 214.9,11.2 219.3,11.7 223.7,12.2 228.1,12.7 232.5,13.1 236.8,13.6 241.2,14.1 245.6,14.6 250.0,15.1" fill="none" stroke="#0d7a6e" stroke-width="2"/>
+          <line x1="91.2" y1="0" x2="91.2" y2="130" stroke="#c42848" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="125" y="150" text-anchor="middle" fill="#0d7a6e">ℓ(θ) = ln L(θ) — gentle hill, same peak</text>
+        </g>
+        <text x="330" y="178" text-anchor="middle" fill="#c42848">← the dashed line is at the SAME θ = 4.13 in both panels — that's reason 1 made visible</text>
+      </svg>
+    </div>
+    <p>One more convention worth a sentence in the notebook: optimizers minimize rather than maximize, so software works with the <b>negative log-likelihood</b> $-\ell(\theta)$ (course book Eq. 6.9). Same location, flipped upside down.</p>
+  </section>
+
+  <!-- Slide 9: maximize -->
+  <section class="slide" data-slide="12">
+    <h1>Maximize: five lines of calculus</h1>
+    <p>Write out $\ell(\theta)$ by taking logs of $f_T(t_i) = \frac{t_i^{13} e^{-t_i/\theta}}{13!\,\theta^{14}}$ and summing over the 5 observations:</p>
+    <div class="formula">
+      $$\ell(\theta) = 13\sum_i \ln t_i \;-\; \frac{1}{\theta}\sum_i t_i \;-\; n\ln 13! \;-\; 14\,n \ln \theta$$
+      <em>only the middle two terms contain θ — the rest is dead weight that the derivative will erase</em>
+    </div>
+    <p>Differentiate with respect to $\theta$ (recall $\frac{d}{d\theta}\frac{1}{\theta} = -\frac{1}{\theta^2}$ and $\frac{d}{d\theta}\ln\theta = \frac{1}{\theta}$), set to zero:</p>
+    <div class="formula">
+      $$\ell'(\theta) = \frac{\sum_i t_i}{\theta^2} - \frac{14n}{\theta} = 0
+      \;\;\Longrightarrow\;\; \frac{\sum_i t_i}{\theta} = 14n
+      \;\;\Longrightarrow\;\; \boxed{\hat\theta = \frac{\sum_i t_i}{14\,n} = \frac{\bar t}{14}}$$
+    </div>
+    <ul>
+      <li><b>Confirm it's a peak, not a valley:</b> $\ell''(\theta) = -\frac{2\sum t_i}{\theta^3} + \frac{14n}{\theta^2}$, and at $\theta = \hat\theta$ this equals $-\frac{14n}{\hat\theta^2} &lt; 0$ ✔ (downward curvature = maximum). One line, but graders love it.</li>
+      <li><b>The general pattern</b> (worth memorizing for Task 6 too): for $\Gamma(k, \theta)$ with known shape $k$, the MLE of the scale is always $\hat\theta = \bar x / k$ — "sample mean divided by shape".</li>
+    </ul>
+  </section>
+
+  <!-- Slide 10: numbers -->
+  <section class="slide" data-slide="13">
+    <h1>Plug in your numbers</h1>
+    <table>
+      <tr><th>$t_i$ (TB)</th><td>37</td><td>58</td><td>8</td><td>176</td><td>10</td><th>$\sum t_i$</th><td><b>289</b></td></tr>
+    </table>
+    <div class="formula">
+      $$\hat\theta = \frac{289}{14 \times 5} = \frac{289}{70} \approx 4.129 \text{ TB}
+      \qquad\qquad
+      E[T] = 14\,\hat\theta = \frac{289}{5} = 57.8 \text{ TB}$$
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 620 120" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(30,15)">
+          <line x1="0" y1="50" x2="560" y2="50" stroke="#6a5888" stroke-width="1.5"/>
+          <circle cx="103.6" cy="50" r="6" fill="#1a5ca8"/>
+          <circle cx="162.4" cy="50" r="6" fill="#1a5ca8"/>
+          <circle cx="22.4"  cy="50" r="6" fill="#1a5ca8"/>
+          <circle cx="492.8" cy="50" r="6" fill="#1a5ca8"/>
+          <circle cx="28.0"  cy="44" r="6" fill="#1a5ca8" opacity="0.75"/>
+          <line x1="161.8" y1="15" x2="161.8" y2="85" stroke="#c42848" stroke-width="2" stroke-dasharray="4,3"/>
+          <text x="161.8" y="10" text-anchor="middle" fill="#c42848">t̄ = 57.8 = fitted E[T]</text>
+          <text x="492.8" y="35" text-anchor="middle" fill="#6a5888">176 — one long-lived system pulls hard</text>
+          <text x="0"   y="70" fill="#6a5888">0</text>
+          <text x="136" y="70" fill="#6a5888">50</text>
+          <text x="276" y="70" fill="#6a5888">100</text>
+          <text x="416" y="70" fill="#6a5888">150</text>
+          <text x="546" y="70" fill="#6a5888">200</text>
+          <text x="280" y="92" text-anchor="middle" fill="#6a5888">the five observed dual-system totals (TB); the 8 and 10 dots overlap on the left</text>
+        </g>
+      </svg>
+    </div>
+    <div class="callout good">
+      <span class="callout-title">Notice what just happened</span>
+      $E[T] = 14 \times \frac{\bar t}{14} = \bar t$ — the fitted model's mean IS the sample mean, exactly. That's not a coincidence and not circular reasoning: maximum likelihood, for this family, <em>chooses</em> to calibrate the model so its average matches the data's average. The estimate of the single-router mean follows for free: $E[S] = 7\hat\theta = 28.9$ TB.
+    </div>
+    <p>Honest caveat for the notebook: $n = 5$ is tiny and the 176 carries a lot of weight — the estimate is exactly right <em>given the model</em>, but a fresh sample of 5 could move it substantially.</p>
+  </section>
+
+  <!-- Slide 11: watch out -->
+  <section class="slide" data-slide="14">
+    <h1>Watch out! Five traps</h1>
+    <ol>
+      <li><b>Fitting $f_S$ to $T$-data.</b> The five numbers are dual-system totals → use $\Gamma(14,\theta)$. Using $\Gamma(7,\theta)$ by reflex gives $\hat\theta = \bar t/7 \approx 8.26$ — double the right answer, and silently wrong.</li>
+      <li><b>Using the exam's 120 without flagging it.</b> It doesn't move $\hat\theta$, but an unnormalized "density" fails the acceptance criteria (proof steps + tool trust). Flag → correct to 720 → proceed.</li>
+      <li><b>Scale vs. rate.</b> Our $\theta$ multiplies (scale). Many texts write Gamma with a rate $\lambda = 1/\theta$ that divides. In scipy: <code>gamma(a=14, scale=theta)</code> — passing a rate where scale belongs inverts your answer.</li>
+      <li><b>$\theta$ vs. $\hat\theta$.</b> $\theta$ is the unknown true knob; $\hat\theta = 4.129$ is your data-driven estimate of it. Keep the hat on in the write-up — graders read it as "I know the difference".</li>
+      <li><b>Units.</b> $\xi_{10}$ is in terabytes, so $\hat\theta$ and $E[T]$ are in TB too. Label the axes (acceptance criterion: "reader can read values").</li>
+    </ol>
+  </section>
+
+  <!-- Slide 12: quiz -->
+  <section class="slide" data-slide="15">
+    <h1>Quiz</h1>
+    <p><b>Q1.</b> A classmate fits the single-router density to the five numbers and proudly reports $\hat\theta \approx 8.26$ TB. What went wrong, and why is the error exactly a factor of 2?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>They used $f_S$ (shape 7) instead of $f_T$ (shape 14). The scale MLE is $\bar t / k$, so halving $k$ from 14 to 7 doubles the estimate: $57.8/7 \approx 8.26$ vs the correct $57.8/14 \approx 4.13$.</p>
+    </details>
+    <p><b>Q2.</b> The exam asks for "a transformation whose maximum is the same". Why does taking the log guarantee the maximum location doesn't move?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>Because $\ln$ is strictly increasing: if $\mathcal{L}(\theta_1) &gt; \mathcal{L}(\theta_2)$ then $\ln\mathcal{L}(\theta_1) &gt; \ln\mathcal{L}(\theta_2)$ — every comparison between candidates is preserved, so the winner is preserved. Only heights change, never the ranking.</p>
+    </details>
+    <p><b>Q3.</b> Without redoing any calculus: if the infrastructure team had measured 5 <em>single</em> routers instead (same numbers), what would $\hat\theta$ be?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>$\hat\theta = \bar t / 7 = 57.8 / 7 \approx 8.26$ TB — same "mean over shape" rule, shape 7 this time. (Same arithmetic as Q1's mistake, but now it would be correct, because the model would match the data's origin.)</p>
+    </details>
+    <p><b>Q4.</b> True or false: because the exam's constant 120 is wrong, the maximum likelihood estimate computed from it is also wrong.</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>False. The constant multiplies $\mathcal{L}(\theta)$ by the same factor ($6^n$) for every $\theta$ — in log form it adds a constant, which the derivative kills. $\hat\theta$ is untouched. But probabilities, plots, and $\int f = 1$ checks WOULD all be wrong, which is why you still must flag and fix it.</p>
+    </details>
+  </section>
+
+  <!-- Slide 13: notebook map -->
+  <section class="slide" data-slide="16">
+    <h1>From slides to notebook</h1>
+    <p>Section-by-section map for <code>exam_tasks/bernoulli_vote_analysis.ipynb</code> (Task 3 chapter), following the repo's naming convention:</p>
+    <table>
+      <tr><th>Notebook section</th><th>What goes in (deck slide)</th></tr>
+      <tr><td>## Branch resolution</td><td>$\xi_9 = 2$ → $s^6$ density; state branches 0, 1 skipped (slide 2)</td></tr>
+      <tr><td>## Model and assumptions</td><td>$S \sim \Gamma(7,\theta)$ + the 720 flag; i.i.d. + instant failover for $T$ (slides 3–6)</td></tr>
+      <tr><td>## Derivation</td><td>area check; convolution proof $T \sim \Gamma(14,\theta)$; $\ell(\theta)$; $\hat\theta = \bar t/14$ with 2nd-derivative check (slides 4.1, 6.1, 9–10)</td></tr>
+      <tr><td>## Numerical results</td><td>$\hat\theta = 289/70 \approx 4.129$ TB, $E[T] = 57.8$ TB (slide 11)</td></tr>
+      <tr><td>## Visualization</td><td>$f_S$ vs $f_T$ at $\hat\theta$; $\ell(\theta)$ curve with peak marked; data rug — axes in TB</td></tr>
+      <tr><td>## Tool trust and checks</td><td>see below</td></tr>
+    </table>
+    <h2>Tool trust — the checks that make graders relax</h2>
+    <ul>
+      <li><code>scipy.stats.gamma(a=14, scale=theta_hat)</code> — name the library, cite the <b>a=shape, scale=θ</b> convention explicitly.</li>
+      <li><b>Cross-check the calculus numerically:</b> minimize the negative log-likelihood with <code>scipy.optimize.minimize_scalar</code> and confirm it lands on $289/70 = 4.12857...$ — analytic and numeric answers agreeing is the single most convincing trust signal.</li>
+      <li><b>Check the density is a density:</b> <code>scipy.integrate.quad</code> of $f_T$ over $[0,\infty)$ → 1.0 (and show it gives 6.0 with the exam's 120, closing the flag).</li>
+      <li><b>Simulation sanity check:</b> draw two $\Gamma(7,\hat\theta)$ samples, add them, histogram against the $\Gamma(14,\hat\theta)$ curve — "shapes add" made visible.</li>
+    </ul>
+  </section>
+
+  <!-- Slide 14: quest complete -->
+  <section class="slide" data-slide="17">
+    <h1>Quest complete</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="4"  y="0" width="2" height="4" fill="#88c8c0"/>
+        <rect x="10" y="0" width="2" height="4" fill="#88c8c0"/>
+        <rect x="5"  y="1" width="1" height="2" fill="#d0a0a8"/>
+        <rect x="10" y="1" width="1" height="2" fill="#d0a0a8"/>
+        <rect x="3"  y="4" width="10" height="7" fill="#88c8c0"/>
+        <rect x="5"  y="6" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="6" width="1" height="2" fill="#3a3040"/>
+        <rect x="7"  y="8" width="2" height="1" fill="#d0a0a8"/>
+        <rect x="4"  y="8" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="8" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="7"  y="9" width="2" height="1" fill="#508880"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Packet:</span> Full hop completed! You took one router's density, doubled it into a system, and squeezed a single knob out of five numbers. Task 6 will meet this same Gamma again — with priors. See you in the notebook!
+      </div>
+    </div>
+    <ul class="checkpoint">
+      <li>$S \sim \Gamma(7,\theta)$: $s^6$ forbids instant death, $e^{-s/\theta}$ forbids immortality; θ is the unknown scale knob</li>
+      <li>Exam typo flagged: normalizer must be $\Gamma(7) = 720$, not 120 (area check: $\int s^6 e^{-s/\theta} ds = 6!\,\theta^7$)</li>
+      <li>$T = S_1 + S_2 \sim \Gamma(14,\theta)$ — shapes add, given independence and equal θ (proof: transformation theorem → convolution)</li>
+      <li>Likelihood = guess-and-compare: $\mathcal{L}(\theta) = \prod f_T(t_i)$; log it — same peak, easier math, no underflow</li>
+      <li>$\hat\theta = \bar t / 14 = 289/70 \approx 4.129$ TB; $E[T] = 14\hat\theta = 57.8$ TB $= \bar t$ (MLE matches model mean to sample mean)</li>
+    </ul>
+  </section>
+
+  </div>
+
+  <nav class="deck-controls">
+    <button type="button" id="prev">◀ PREV</button>
+    <span id="counter">1 / 18</span>
+    <button type="button" id="next">NEXT ▶</button>
+  </nav>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const sideNavList = document.getElementById("side-nav-list");
+    const navButtons = [];
+
+    let mainNum = 0;
+    let subParentNum = 0;
+    let subIndex = 0;
+    const sectionHeadersAdded = new Set();
+
+    slides.forEach((slide, j) => {
+      const tier = slide.dataset.navTier || "core";
+      let displayNum;
+
+      if (tier === "core") {
+        mainNum++;
+        subParentNum = mainNum;
+        subIndex = 0;
+        displayNum = String(mainNum);
+      } else if (tier.startsWith("sub")) {
+        const sectionLabel = slide.dataset.navSection || "╰ DETAILS";
+        if (!sectionHeadersAdded.has(sectionLabel)) {
+          const head = document.createElement("p");
+          head.className = "side-nav-section";
+          head.textContent = sectionLabel;
+          sideNavList.appendChild(head);
+          sectionHeadersAdded.add(sectionLabel);
+        }
+        subIndex++;
+        displayNum = `${subParentNum}.${subIndex}`;
+      } else {
+        displayNum = String(j + 1);
+      }
+
+      const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      const isSub = tier.startsWith("sub");
+      btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+      btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
+      btn.addEventListener("click", () => show(j));
+      sideNavList.appendChild(btn);
+      navButtons.push(btn);
+    });
+    const headCore = document.createElement("p");
+    headCore.className = "side-nav-section";
+    headCore.textContent = "ROUTER PATH — start here";
+    sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
+    let i = 0;
+    const counter = document.getElementById("counter");
+    function show(n) {
+      i = Math.max(0, Math.min(n, slides.length - 1));
+      slides.forEach((s, j) => s.classList.toggle("active", j === i));
+      navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+      counter.textContent = `${i + 1} / ${slides.length}`;
+      navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+    document.getElementById("prev").onclick = () => show(i - 1);
+    document.getElementById("next").onclick = () => show(i + 1);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") show(i + 1);
+      if (e.key === "ArrowLeft") show(i - 1);
+    });
+    show(0);
+  </script>
+
+  <div id="laser-dot"></div>
+  <script>
+  /* ── Cursor effects: fairydust trail + click explosion ── */
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var PALETTE = ['#1a5ca8','#c42848','#b86800','#0d7a6e','#6a5888','#f5c842','#e87060','#a8d870'];
+    var PETAL_COLORS = ['#c42848','#b86800','#f5c842','#6a5888','#1a5ca8','#e87060','#0d7a6e'];
+    var PISTIL_COLORS = ['#f5c842','#1c1a30','#c42848'];
+    var LEAF_COLORS = ['#a8d870','#4a9a40','#7bc860','#e8a040','#c84828'];
+    var STAR_COLORS = ['#1a5ca8','#b86800','#c42848','#0d7a6e'];
+    var PARTICLE_CAP = 40;
+    var lastSpawn = 0;
+    var particleCount = 0;
+    var laser = document.getElementById('laser-dot');
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function rnd(min, max) { return min + Math.random() * (max - min); }
+
+    function makeFlower() {
+      var color = pick(PETAL_COLORS);
+      var pistil = pick(PISTIL_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var g = document.createElementNS(NS, 'g');
+      g.setAttribute('transform', 'translate(8,8)');
+      for (var i = 0; i < 5; i++) {
+        var petal = document.createElementNS(NS, 'ellipse');
+        petal.setAttribute('cx', '0');
+        petal.setAttribute('cy', '-4');
+        petal.setAttribute('rx', '2.5');
+        petal.setAttribute('ry', '4');
+        petal.setAttribute('fill', color);
+        petal.setAttribute('opacity', '0.9');
+        if (i > 0) petal.setAttribute('transform', 'rotate(' + (i * 72) + ')');
+        g.appendChild(petal);
+      }
+      var pistilEl = document.createElementNS(NS, 'circle');
+      pistilEl.setAttribute('cx', '0');
+      pistilEl.setAttribute('cy', '0');
+      pistilEl.setAttribute('r', '2.5');
+      pistilEl.setAttribute('fill', pistil);
+      g.appendChild(pistilEl);
+      svg.appendChild(g);
+      return svg;
+    }
+
+    function makeLeaf() {
+      var color = pick(LEAF_COLORS);
+      var angle = Math.floor(rnd(0, 360));
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var ellipse = document.createElementNS(NS, 'ellipse');
+      ellipse.setAttribute('cx', '8');
+      ellipse.setAttribute('cy', '8');
+      ellipse.setAttribute('rx', '3.5');
+      ellipse.setAttribute('ry', '6.5');
+      ellipse.setAttribute('fill', color);
+      ellipse.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      var line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', '8');
+      line.setAttribute('y1', '2');
+      line.setAttribute('x2', '8');
+      line.setAttribute('y2', '14');
+      line.setAttribute('stroke', '#2a5a20');
+      line.setAttribute('stroke-width', '0.8');
+      line.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      svg.appendChild(ellipse);
+      svg.appendChild(line);
+      return svg;
+    }
+
+    function makeStar() {
+      var color = pick(STAR_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var polygon = document.createElementNS(NS, 'polygon');
+      polygon.setAttribute('points', '8,1 9.5,6.5 15,8 9.5,9.5 8,15 6.5,9.5 1,8 6.5,6.5');
+      polygon.setAttribute('fill', color);
+      svg.appendChild(polygon);
+      return svg;
+    }
+
+    /* Effect 1 — Fairydust trail */
+    document.addEventListener('mousemove', function (e) {
+      if (laser) {
+        laser.style.left = e.clientX + 'px';
+        laser.style.top = e.clientY + 'px';
+      }
+      var now = Date.now();
+      if (now - lastSpawn < 30 || particleCount >= PARTICLE_CAP) return;
+      lastSpawn = now;
+
+      var size = 4 + Math.floor(rnd(0, 3));
+      var el = document.createElement('div');
+      el.className = 'fd-particle';
+      el.style.cssText = [
+        'width:' + size + 'px',
+        'height:' + size + 'px',
+        'background:' + pick(PALETTE),
+        'border-radius:0',
+        'left:' + (e.clientX + rnd(-6, 6) - size / 2) + 'px',
+        'top:' + (e.clientY + rnd(-6, 6) - size / 2) + 'px'
+      ].join(';');
+      document.body.appendChild(el);
+      particleCount++;
+
+      var ty = -rnd(20, 40);
+      el.animate(
+        [{ opacity: 1, transform: 'translateY(0)' },
+         { opacity: 0, transform: 'translateY(' + ty + 'px)' }],
+        { duration: rnd(600, 800), easing: 'ease-out', fill: 'forwards' }
+      ).addEventListener('finish', function () { el.remove(); particleCount--; });
+    });
+
+    /* Effect 2 — Click explosion with random theme (flower / leaf / star) */
+    document.addEventListener('click', function (e) {
+      var themes = ['flower', 'leaf', 'star'];
+      var theme = themes[Math.floor(Math.random() * 3)];
+      var count = 12 + Math.floor(rnd(0, 5));
+      for (var k = 0; k < count; k++) {
+        var angle = rnd(0, 360) * Math.PI / 180;
+        var dist = rnd(40, 80);
+        var dx = Math.cos(angle) * dist;
+        var dy = Math.sin(angle) * dist;
+        var rotate = rnd(0, 360);
+        var el;
+        if (theme === 'flower') { el = makeFlower(); }
+        else if (theme === 'leaf') { el = makeLeaf(); }
+        else { el = makeStar(); }
+        el.setAttribute('class', 'fd-petal');
+        el.style.cssText = [
+          'left:' + (e.clientX - 7) + 'px',
+          'top:' + (e.clientY - 7) + 'px',
+          'transform:rotate(' + rotate + 'deg)'
+        ].join(';');
+        document.body.appendChild(el);
+
+        (function (el, rotate, dx, dy) {
+          el.animate(
+            [{ opacity: 1, transform: 'rotate(' + rotate + 'deg) translate(0,0)' },
+             { opacity: 0, transform: 'rotate(' + (rotate + 180) + 'deg) translate(' + dx + 'px,' + dy + 'px)' }],
+            { duration: rnd(700, 900), easing: 'ease-out', fill: 'forwards' }
+          ).addEventListener('finish', function () { el.remove(); });
+        }(el, rotate, dx, dy));
+      }
+    });
+  }());
+  </script>
+  <script>
+  /* ── hover tooltip engine ── */
+  (function () {
+    var box = document.createElement('div');
+    box.id = 'tip-box';
+    document.body.appendChild(box);
+    document.querySelectorAll('.tip').forEach(function (el) {
+      el.addEventListener('mouseenter', function (e) {
+        var lbl = el.dataset.tipTitle ? '<span class="tip-label">' + el.dataset.tipTitle + '</span>' : '';
+        box.innerHTML = lbl + (el.dataset.tip || '');
+        if (window.renderMathInElement) renderMathInElement(box, {
+          delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+          throwOnError: false
+        });
+        box.style.display = 'block'; move(e);
+      });
+      el.addEventListener('mousemove', move);
+      el.addEventListener('mouseleave', function () { box.style.display = 'none'; });
+    });
+    function move(e) {
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 310 > window.innerWidth)  x = e.clientX - 316;
+      if (y + 200 > window.innerHeight) y = e.clientY - 206;
+      box.style.left = x + 'px'; box.style.top = y + 'px';
+    }
+  }());
+  </script>
+</body>
+</html>
