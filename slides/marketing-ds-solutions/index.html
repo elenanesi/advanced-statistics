@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Science × Marketing — What we can build for you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#141414;
+    --ink-soft:#3a4148;
+    --blue:#2f6fa7;
+    --teal:#0f8a72;
+    --amber:#b06a00;
+    --card:rgba(255,255,254,.58);
+    --card-border:rgba(255,255,255,.8);
+    --chart-surface:#fbfdfb;
+    --grid:#e3e9e5;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:"Source Serif 4",Georgia,serif;
+    color:var(--ink);
+    background:linear-gradient(168deg,#79b2e0 0%,#96c1e6 32%,#a5cede 58%,#a7d7c5 100%);
+    background-attachment:fixed;
+    overflow:hidden;
+  }
+  .sans{font-family:"Archivo","Helvetica Neue",Arial,sans-serif}
+
+  /* ---- chrome ---- */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 44px;
+  }
+  .wordmark{font-family:"Archivo",sans-serif;font-weight:900;font-size:24px;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+  .wordmark .tag{font-size:10px;font-weight:800;letter-spacing:.08em;border:1.5px solid var(--ink);border-radius:999px;padding:3px 9px 2px}
+  .dateline{text-align:right;font-size:14px;line-height:1.35}
+  .dateline b{font-weight:600}
+
+  footer{
+    position:fixed;bottom:0;left:0;right:0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 44px;
+  }
+  .counter{font-family:"Archivo",sans-serif;font-weight:800;font-size:14px;letter-spacing:.04em}
+  .navbtns{display:flex;gap:10px}
+  .navbtn{
+    width:38px;height:38px;border-radius:50%;border:1.5px solid var(--ink);
+    background:transparent;color:var(--ink);cursor:pointer;
+    font-family:"Archivo",sans-serif;font-size:16px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s,color .15s;
+  }
+  .navbtn:hover{background:var(--ink);color:#fff}
+
+  /* ---- slides ---- */
+  .slide{
+    position:absolute;inset:0;display:none;
+    padding:96px 64px 76px;
+    flex-direction:column;
+  }
+  .slide.active{display:flex}
+  .kicker{
+    font-family:"Source Serif 4",serif;font-style:italic;font-size:17px;
+    color:var(--ink-soft);margin-bottom:10px;
+  }
+  h1{font-family:"Archivo",sans-serif;font-weight:900;letter-spacing:-.025em;font-size:clamp(40px,5.2vw,66px);line-height:1.04}
+  h2{font-family:"Archivo",sans-serif;font-weight:900;letter-spacing:-.02em;font-size:clamp(28px,3.2vw,42px);line-height:1.08;margin-bottom:6px}
+  h3{font-family:"Archivo",sans-serif;font-weight:800;font-size:16px;letter-spacing:-.01em;margin-bottom:8px}
+  p{font-size:16.5px;line-height:1.55}
+  .muted{color:var(--ink-soft)}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    box-shadow:0 10px 28px rgba(25,55,90,.10);
+    backdrop-filter:blur(7px);
+    padding:22px 24px;
+  }
+  .chartcard{background:rgba(251,253,251,.88)}
+
+  .pill{
+    display:inline-flex;align-items:center;gap:10px;
+    background:var(--ink);color:#fff;border-radius:999px;
+    padding:11px 10px 11px 22px;
+    font-family:"Archivo",sans-serif;font-weight:600;font-size:14px;letter-spacing:.01em;
+  }
+  .pill .arr{
+    width:26px;height:26px;border-radius:50%;background:#fff;color:var(--ink);
+    display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;
+  }
+  .chip{
+    display:inline-block;border:1.5px solid var(--ink);border-radius:999px;
+    padding:6px 16px;font-family:"Archivo",sans-serif;font-weight:600;font-size:13px;
+  }
+
+  .cols{display:grid;gap:22px;flex:1;min-height:0;align-content:start}
+  .cols.c2{grid-template-columns:7fr 5fr}
+  .cols.c3{grid-template-columns:1fr 1fr 1fr}
+
+  ul.tight{list-style:none}
+  ul.tight li{
+    padding-left:22px;position:relative;margin-bottom:10px;font-size:16px;line-height:1.5;
+  }
+  ul.tight li::before{
+    content:"";position:absolute;left:2px;top:9px;width:8px;height:8px;border-radius:2px;background:var(--ink);
+  }
+
+  .bignum{font-family:"Archivo",sans-serif;font-weight:900;font-size:44px;letter-spacing:-.02em;line-height:1}
+  .bignum-label{font-style:italic;font-size:14px;color:var(--ink-soft);margin-top:4px}
+
+  svg{display:block;max-width:100%;height:auto}
+  svg text{font-family:"Archivo",sans-serif}
+  .footnote{font-style:italic;font-size:13px;color:var(--ink-soft);margin-top:10px}
+
+  /* legend */
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-family:"Archivo",sans-serif;font-size:13px;font-weight:600}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .swatch{width:14px;height:4px;border-radius:2px;display:inline-block}
+  .swatch.dash{background:repeating-linear-gradient(90deg,var(--teal) 0 4px,transparent 4px 7px)}
+
+  /* tooltip */
+  #tip{
+    position:fixed;z-index:50;pointer-events:none;display:none;max-width:260px;
+    background:var(--ink);color:#fff;border-radius:10px;padding:10px 13px;
+    font-family:"Archivo",sans-serif;font-size:13px;line-height:1.45;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+  }
+  [data-tip]{cursor:help}
+
+  /* title slide specifics */
+  .titlegrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:auto}
+  .titlegrid .card{padding:20px 22px}
+  .titlegrid .qnum{font-family:"Archivo",sans-serif;font-weight:900;font-size:13px;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:8px}
+  .titlegrid h3{font-size:20px}
+  .titlegrid p{font-size:15px}
+
+  .statrow{display:flex;gap:18px;margin-top:14px}
+  .statrow .card{flex:1;padding:16px 18px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">.monks <span class="tag">DATA&nbsp;SCIENCE</span></div>
+  <div class="dateline"><b>Friday</b><br>July 10, 2026 · Marketing × DS brainstorm</div>
+</header>
+
+<div id="tip"></div>
+
+<!-- ============ SLIDE 1 — TITLE ============ -->
+<section class="slide">
+  <p class="kicker">Data Science team · working session with Marketing</p>
+  <h1>Measuring what<br>marketing actually moves.</h1>
+  <p style="margin-top:18px;max-width:640px;font-size:19px">Three tools we can build for you — each answers a budget question you already ask, using data you already have.</p>
+  <div class="titlegrid">
+    <div class="card">
+      <div class="qnum">01 · CAUSAL IMPACT</div>
+      <h3>“Did it actually work?”</h3>
+      <p class="muted">Isolate what a campaign, promo or price change really added — separate from seasonality and trend.</p>
+    </div>
+    <div class="card">
+      <div class="qnum">02 · ATTRIBUTION</div>
+      <h3>“Which channels get the credit?”</h3>
+      <p class="muted">A top-down view of how each channel contributes to the KPI — including delayed, carry-over effects.</p>
+    </div>
+    <div class="card">
+      <div class="qnum">03 · ELASTICITY</div>
+      <h3>“Where should the next euro go?”</h3>
+      <p class="muted">How much the KPI responds when spend moves — the basis for reallocation and scenario planning.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 2 — CAUSAL IMPACT ============ -->
+<section class="slide">
+  <p class="kicker">01 · Causal impact — for campaigns, promos, price changes, launches</p>
+  <h2>Did it actually work?</h2>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="card chartcard">
+      <h3>Revenue: what happened vs. what would have happened anyway</h3>
+      <svg viewBox="0 0 640 300" role="img" aria-label="Line chart: actual revenue vs expected revenue without the campaign; the gap after launch is the incremental impact">
+        <!-- grid -->
+        <g stroke="#e3e9e5" stroke-width="1">
+          <line x1="50" y1="40" x2="620" y2="40"/><line x1="50" y1="100" x2="620" y2="100"/>
+          <line x1="50" y1="160" x2="620" y2="160"/><line x1="50" y1="220" x2="620" y2="220"/>
+        </g>
+        <!-- axes labels -->
+        <g fill="#3a4148" font-size="11">
+          <text x="44" y="44" text-anchor="end">€1.2M</text>
+          <text x="44" y="104" text-anchor="end">€1.0M</text>
+          <text x="44" y="164" text-anchor="end">€0.8M</text>
+          <text x="44" y="224" text-anchor="end">€0.6M</text>
+          <text x="50" y="262">Jan</text><text x="170" y="262">Feb</text><text x="290" y="262">Mar</text>
+          <text x="410" y="262">Apr</text><text x="530" y="262">May</text>
+        </g>
+        <line x1="50" y1="248" x2="620" y2="248" stroke="#c7cfc9" stroke-width="1"/>
+        <!-- lift region between actual & counterfactual, post intervention -->
+        <path d="M370,138 C420,120 470,96 520,84 C560,75 595,70 615,68 L615,120 C595,122 560,126 520,131 C470,138 420,148 370,152 Z"
+              fill="#2f6fa7" opacity="0.16"/>
+        <!-- intervention line -->
+        <line x1="370" y1="34" x2="370" y2="248" stroke="#141414" stroke-width="1.5" stroke-dasharray="5 5"/>
+        <text x="378" y="48" font-size="11" font-weight="700" fill="#141414">campaign starts</text>
+        <!-- counterfactual (expected) -->
+        <path d="M50,190 C90,182 120,192 160,180 C210,166 240,176 290,164 C330,155 350,152 370,152 C420,148 470,138 520,131 C560,126 595,122 615,120"
+              fill="none" stroke="#0f8a72" stroke-width="2" stroke-dasharray="7 5"/>
+        <!-- actual -->
+        <path d="M50,192 C90,180 120,194 160,178 C210,168 240,174 290,166 C330,156 350,150 370,138 C420,120 470,96 520,84 C560,75 595,70 615,68"
+              fill="none" stroke="#2f6fa7" stroke-width="2.5"/>
+        <!-- direct labels -->
+        <text x="500" y="60" font-size="12" font-weight="700" fill="#2f6fa7">Actual</text>
+        <text x="452" y="160" font-size="12" font-weight="700" fill="#0f8a72">Expected without campaign</text>
+        <!-- lift annotation -->
+        <g data-tip="The vertical gap between the two lines, summed over the campaign window, is the incremental revenue: what the campaign added on top of what would have happened anyway.">
+          <line x1="565" y1="72" x2="565" y2="122" stroke="#141414" stroke-width="1.5"/>
+          <line x1="560" y1="72" x2="570" y2="72" stroke="#141414" stroke-width="1.5"/>
+          <line x1="560" y1="122" x2="570" y2="122" stroke="#141414" stroke-width="1.5"/>
+          <text x="558" y="102" text-anchor="end" font-size="12" font-weight="800" fill="#141414">lift</text>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--blue)"></i>Actual revenue</span>
+        <span><i class="swatch dash"></i>Expected without campaign (modeled)</span>
+      </div>
+      <p class="footnote">Illustrative data — shape of the real deliverable.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="bignum">+12.4%</div>
+        <div class="bignum-label">incremental revenue, with a range: “between +8% and +17%, 95% probability”</div>
+      </div>
+      <div class="card">
+        <h3>How it works, in one sentence</h3>
+        <p class="muted">A model learns your normal pattern (trend, seasonality, market signals) from the months <em>before</em> the campaign, forecasts the “no-campaign world”, and the gap is what your campaign added.</p>
+      </div>
+      <div class="card">
+        <h3>Use it when there is no A/B test</h3>
+        <p class="muted">TV &amp; audio bursts, national promos, price changes, launches — anything you can’t split-test but still need to defend in a budget review.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 3 — ATTRIBUTION ============ -->
+<section class="slide">
+  <p class="kicker">02 · Attribution — statistical, top-down, no user tracking needed</p>
+  <h2>Which channels get the credit?</h2>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="card chartcard">
+      <h3>Share of modeled sales contribution, last 12 months</h3>
+      <svg viewBox="0 0 640 290" role="img" aria-label="Bar chart of modeled contribution share by channel">
+        <g font-size="13" fill="#141414">
+          <!-- bars: max width 420 at x=170 -->
+          <g data-tip="Paid Search: 34% of modeled contribution. Consistent performer; effects are near-immediate (short carry-over).">
+            <text x="160" y="42" text-anchor="end" font-weight="600">Paid Search</text>
+            <rect x="170" y="28" width="382" height="22" rx="4" fill="#2f6fa7"/>
+            <text x="560" y="44" font-weight="800">34%</text>
+          </g>
+          <g data-tip="Paid Social: 22%. Noticeable carry-over — impressions this week keep converting for ~2 more weeks (adstock).">
+            <text x="160" y="90" text-anchor="end" font-weight="600">Paid Social</text>
+            <rect x="170" y="76" width="247" height="22" rx="4" fill="#2f6fa7"/>
+            <text x="425" y="92" font-weight="800">22%</text>
+          </g>
+          <g data-tip="TV / Online video: 18%. Longest carry-over of all channels — the model credits sales that arrive weeks after the flight.">
+            <text x="160" y="138" text-anchor="end" font-weight="600">TV / Video</text>
+            <rect x="170" y="124" width="202" height="22" rx="4" fill="#2f6fa7"/>
+            <text x="380" y="140" font-weight="800">18%</text>
+          </g>
+          <g data-tip="Display: 9%. Small but measurable; often undervalued by click-based attribution because it rarely gets the last click.">
+            <text x="160" y="186" text-anchor="end" font-weight="600">Display</text>
+            <rect x="170" y="172" width="101" height="22" rx="4" fill="#2f6fa7"/>
+            <text x="279" y="188" font-weight="800">9%</text>
+          </g>
+          <g data-tip="Baseline: 17% — sales you would get with zero media: brand strength, distribution, seasonality, organic demand.">
+            <text x="160" y="234" text-anchor="end" font-weight="600">Baseline (no media)</text>
+            <rect x="170" y="220" width="191" height="22" rx="4" fill="#9fb3c2"/>
+            <text x="369" y="236" font-weight="800">17%</text>
+          </g>
+        </g>
+        <line x1="170" y1="16" x2="170" y2="252" stroke="#c7cfc9" stroke-width="1"/>
+        <text x="170" y="278" font-size="11" fill="#3a4148" font-style="italic">Hover a bar for what it means · illustrative data</text>
+      </svg>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <h3>Why it beats last-click reports</h3>
+        <ul class="tight">
+          <li>Works from <b>spend + outcome data</b>, not cookies or user tracking — unaffected by consent loss and signal decay.</li>
+          <li>Captures <b>carry-over</b>: an ad seen today keeps driving sales for days or weeks. Click reports miss this entirely.</li>
+          <li>Credits <b>upper-funnel channels</b> (TV, video, display) that rarely get the last click but still move the number.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What you receive</h3>
+        <p class="muted">A contribution split per channel with a <b>confidence tier</b> attached — we tell you explicitly which estimates are solid and which need more data before you act on them.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 4 — ELASTICITY ============ -->
+<section class="slide">
+  <p class="kicker">03 · Elasticity — the “what if we moved the budget?” engine</p>
+  <h2>Where should the next euro go?</h2>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="card chartcard">
+      <h3>Response curve: conversions vs. spend (one channel)</h3>
+      <svg viewBox="0 0 640 300" role="img" aria-label="Curve showing diminishing returns of spend; +10% spend at the current point yields +3% conversions">
+        <g stroke="#e3e9e5" stroke-width="1">
+          <line x1="60" y1="50" x2="620" y2="50"/><line x1="60" y1="110" x2="620" y2="110"/>
+          <line x1="60" y1="170" x2="620" y2="170"/><line x1="60" y1="230" x2="620" y2="230"/>
+        </g>
+        <line x1="60" y1="248" x2="620" y2="248" stroke="#c7cfc9"/>
+        <line x1="60" y1="30" x2="60" y2="248" stroke="#c7cfc9"/>
+        <g fill="#3a4148" font-size="11">
+          <text x="340" y="272" text-anchor="middle">monthly spend →</text>
+          <text x="30" y="140" text-anchor="middle" transform="rotate(-90 30 140)">conversions →</text>
+        </g>
+        <!-- diminishing returns curve -->
+        <path d="M60,246 C120,170 180,120 260,92 C340,68 440,54 620,44"
+              fill="none" stroke="#0f8a72" stroke-width="2.5"/>
+        <!-- current point -->
+        <g data-tip="Current operating point: where this channel sits today on its response curve.">
+          <line x1="300" y1="80" x2="300" y2="248" stroke="#141414" stroke-width="1" stroke-dasharray="3 4"/>
+          <line x1="60" y1="80" x2="300" y2="80" stroke="#141414" stroke-width="1" stroke-dasharray="3 4"/>
+          <circle cx="300" cy="80" r="6" fill="#b06a00" stroke="#fbfdfb" stroke-width="2"/>
+          <text x="300" y="266" text-anchor="middle" font-size="11" font-weight="700" fill="#141414">today</text>
+        </g>
+        <!-- +10% point -->
+        <g data-tip="Move spend +10% → the model projects +3% conversions here, because the curve is flattening. The same +10% on a steeper channel buys more.">
+          <line x1="356" y1="72" x2="356" y2="248" stroke="#b06a00" stroke-width="1" stroke-dasharray="3 4"/>
+          <line x1="60" y1="72" x2="356" y2="72" stroke="#b06a00" stroke-width="1" stroke-dasharray="3 4"/>
+          <circle cx="356" cy="72" r="6" fill="#b06a00" stroke="#fbfdfb" stroke-width="2"/>
+          <text x="356" y="266" text-anchor="middle" font-size="11" font-weight="700" fill="#b06a00">+10% spend</text>
+          <text x="368" y="60" font-size="12" font-weight="800" fill="#b06a00">→ +3% conversions</text>
+        </g>
+        <!-- flattening annotation -->
+        <text x="480" y="110" font-size="12" font-style="italic" fill="#3a4148" font-family="'Source Serif 4',serif">the curve flattens: each extra €100K
+          <tspan x="480" dy="16">buys less than the last</tspan></text>
+      </svg>
+      <p class="footnote">Elasticity = the % change in the KPI when spend changes 1%. Elasticity 0.3 → +10% spend ≈ +3% KPI.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <h3>The reallocation logic</h3>
+        <p class="muted">Every channel has its own curve. Money moves from <b>flat curves</b> (saturated channels) to <b>steep curves</b> (under-invested channels) until no move improves the total. That is the whole optimization, made visible.</p>
+      </div>
+      <div class="card">
+        <h3>Scenario planner</h3>
+        <p class="muted">Before committing a budget shift, you type it in — <em>“move €200K from Display to Social”</em> — and get a projected KPI change with an uncertainty range. Test the decision before you make it.</p>
+      </div>
+      <div><span class="chip">Search 0.31</span>&nbsp; <span class="chip">Social 0.42</span>&nbsp; <span class="chip">Display 0.08</span>
+        <p class="footnote">Example elasticities: here Social has the most headroom, Display is saturated.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 5 — NEXT STEPS ============ -->
+<section class="slide">
+  <p class="kicker">From models to budget decisions</p>
+  <h2>What this looks like for your team</h2>
+  <div class="cols c3" style="margin-top:14px">
+    <div class="card">
+      <h3>You get</h3>
+      <ul class="tight">
+        <li>An <b>impact read-out per campaign</b> — one number, a range, and the chart from slide 2.</li>
+        <li>A <b>quarterly contribution &amp; elasticity review</b> per channel.</li>
+        <li>A <b>self-serve scenario planner</b> for budget shifts.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>We need</h3>
+      <ul class="tight">
+        <li><b>12–24 months</b> of weekly (ideally daily) spend per channel.</li>
+        <li>The <b>KPI series</b> you steer on (revenue, conversions, leads).</li>
+        <li>A <b>campaign calendar</b> — dates of major pushes, promos, price changes.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Honest limits</h3>
+      <ul class="tight">
+        <li>These are <b>observational models</b> — directional guidance with explicit uncertainty, not lab-grade proof.</li>
+        <li>Estimates <b>sharpen over time</b> as spend varies and we validate projections against outcomes.</li>
+        <li>Every number ships with a <b>confidence tier</b> — we flag what’s solid and what isn’t.</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top:auto;display:flex;align-items:center;gap:22px">
+    <span class="pill">Today: pick 1–2 campaigns to pilot <span class="arr">→</span></span>
+    <p class="muted" style="font-style:italic;max-width:460px">A first causal-impact read on a past campaign takes ~2 weeks from data handover — a low-risk way to see the output on your own numbers.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="counter"><span id="cur">1</span> / <span id="total">5</span></div>
+  <div class="navbtns">
+    <button class="navbtn" id="prev" aria-label="Previous slide">←</button>
+    <button class="navbtn" id="next" aria-label="Next slide">→</button>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var slides=document.querySelectorAll('.slide'),i=0;
+  document.getElementById('total').textContent=slides.length;
+  function show(n){
+    i=(n+slides.length)%slides.length;
+    slides.forEach(function(s,k){s.classList.toggle('active',k===i);});
+    document.getElementById('cur').textContent=i+1;
+  }
+  document.getElementById('next').addEventListener('click',function(){show(i+1);});
+  document.getElementById('prev').addEventListener('click',function(){show(i-1);});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown')show(i+1);
+    if(e.key==='ArrowLeft'||e.key==='PageUp')show(i-1);
+  });
+  show(0);
+
+  // hover tooltips
+  var tip=document.getElementById('tip');
+  document.querySelectorAll('[data-tip]').forEach(function(el){
+    el.addEventListener('mousemove',function(e){
+      tip.textContent=el.getAttribute('data-tip');
+      tip.style.display='block';
+      var x=Math.min(e.clientX+14,window.innerWidth-280);
+      tip.style.left=x+'px';
+      tip.style.top=(e.clientY+16)+'px';
+    });
+    el.addEventListener('mouseleave',function(){tip.style.display='none';});
+  });
+})();
+</script>
+</body>
+</html>
