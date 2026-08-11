@@ -1,12 +1,15 @@
 ## Learned User Preferences
 
+**Living source of truth for teaching:** `learning/profile.json` + `learning/session_log.jsonl` (schema in `docs/LEARNING_SYSTEM.md`). Cursor rule: `.cursor/rules/elena-learning.mdc`. Skill: `.cursor/skills/elena-teaching/SKILL.md`. Claude bootstrap: `CLAUDE.md`.
+
 - Always spell out acronyms on first use before using them (e.g. ITS → Interrupted Time Series). Never assume the abbreviation is already known.
 - When introducing a taxonomy, make the hierarchy explicit: state whether something is a category/family or a specific model/instance within it.
 - When two concepts look similar (e.g. A/B test vs. DiD), call out the distinguishing difference head-on rather than assuming it's obvious.
 - Provide brief plain-English definitions for jargon inline where it appears (parenthetical or expandable info-point) — don't require prior stats knowledge.
 - Pair abstract/terse definitions with a one-sentence concrete example; Elena prefers concrete over abstract.
 - Use expandable `<details>` info-points to keep the main flow scannable while making deeper definitions available on click; avoid walls of text.
-- These teaching/communication preferences apply to all slide decks, concept explanations, and teaching materials.
+- **Intuition and visuals before formalism** — never lead with bare measure-theory notation; she said explicitly she is a visual learner.
+- These teaching/communication preferences apply to all slide decks, concept explanations, and teaching materials. After teaching, update `profile.json` / append `session_log.jsonl`.
 
 ## Learned Workspace Facts
 

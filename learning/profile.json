@@ -2,19 +2,43 @@
   "learner": {
     "name": "Elena",
     "course": "DLMDSAS01",
-    "repo_goals": ["exam_workbook", "concept_mastery", "html_slides"]
+    "role": "Associate Director, Data Science (Monks)",
+    "repo_goals": ["exam_workbook", "concept_mastery", "html_slides", "work_transfer"]
   },
   "preferences": {
     "preferred_modes": ["visual", "narrative", "computational"],
     "avoid_modes": ["algebra_first"],
     "slide_aesthetic": "parchment-pixel-retro",
     "session_length": "medium",
-    "notes": "CONFIRMED 2026-06-24: visual learner — said explicitly 'I'm a very visual person, an image and a comparison with something I can imagine helps me learning'. Intuition MUST precede formalism — complained that 'X : Ω → R means almost nothing to me' when shown definition first. Needs the conceptual WHY before the WHAT. Thinks in prerequisite chains — spontaneously requested an intro deck before the task-specific deck. Always anchor abstract definitions with a concrete real-world example before introducing notation."
+    "communication": [
+      "Spell out acronyms on first use",
+      "Pair every abstract definition with a one-sentence concrete example",
+      "Call out lookalike distinctions head-on",
+      "Plain-English parentheticals for jargon",
+      "Use <details> for deeper math; keep main flow scannable",
+      "Be concise and direct — no filler, no cheerleading",
+      "Work/manual cards: lead with the stakeholder ask in quotes, then plain-English 'what that means', then the concept — never concept jargon as the headline"
+    ],
+    "notes": "CONFIRMED 2026-06-24: visual learner — 'I'm a very visual person, an image and a comparison with something I can imagine helps me learning'. Intuition MUST precede formalism — 'X : Ω → R means almost nothing to me' when definition came first; label-gun analogy worked. Needs conceptual WHY before WHAT. Thinks in prerequisite chains — spontaneously requested intro deck before task deck. Always anchor abstract definitions with a concrete real-world example before notation."
+  },
+  "agent_memory": {
+    "source_of_truth": [
+      "learning/profile.json",
+      "learning/session_log.jsonl",
+      "learning/concepts.json"
+    ],
+    "cursor_rule": ".cursor/rules/elena-learning.mdc",
+    "cursor_skill": ".cursor/skills/elena-teaching/SKILL.md",
+    "personal_cursor_skill": "~/.cursor/skills/elena-teaching/SKILL.md",
+    "claude_bootstrap": "CLAUDE.md",
+    "codex_bootstrap": "AGENTS.md",
+    "playbooks": ["docs/LEARNING_SYSTEM.md", "docs/AGENTS.md", "docs/EXAM_WORKBOOK.md"]
   },
   "strengths": [
     "comfortable with Python and matplotlib",
     "connects exam requirements to mathematical structure",
-    "naturally structures learning by dependency — asks for prereqs before task-specific content"
+    "naturally structures learning by dependency — asks for prereqs before task-specific content",
+    "strong applied ML / marketing measurement practitioner (causal impact, VBB, GA4)"
   ],
   "weaknesses": [
     "formal probability theory (measure theory, σ-algebras) — notation without intuition fails",
@@ -26,32 +50,64 @@
       "question_asked": "Why is X called a random variable if the values 0 and 1 are fixed?",
       "clarification_needed": "The function X(·) is deterministic. The randomness comes from the input ω — which outcome the experiment produces. Capital X = the rule + uncertainty about input; lowercase x = a realized value.",
       "last_seen": "2026-06-24",
-      "addressed_in": "slides/task1-bernoulli/index.html slide 3"
+      "addressed_in": "slides/exam_tasks/task1-bernoulli.html slide 3",
+      "status": "resolved"
     },
     {
       "concept": "expected-value",
       "question_asked": "What exactly IS E[X]? Still not 100% clear.",
       "clarification_needed": "E[X] = weighted average of all possible values (each value × its probability, summed). It's the long-run average after many trials, not a prediction of any single trial, and it need not be a possible value (die E[X] = 3.5).",
       "last_seen": "2026-06-24",
-      "addressed_in": "slides/intro-stats-probability/index.html slides 3–4; slides/task1-bernoulli/index.html slide 8"
+      "addressed_in": "slides/intro-stats-probability/index.html slides 3–4; slides/exam_tasks/task1-bernoulli.html slide 8",
+      "status": "resolved"
     }
   ],
   "concepts": {
     "bernoulli-expectation": {
       "mastery": "solid",
       "last_assessed": "2026-06-24",
-      "notes": "Full slide deck built (slides/task1-bernoulli/). E[X] confusion resolved via die analogy + seesaw. Formal proof (Ω,F,P, measurability, integrability) is in the deck and notebook. Distinction outcome vs E[X] explicitly addressed."
+      "notes": "Full slide deck built (slides/exam_tasks/task1-bernoulli.html). E[X] confusion resolved via die analogy + seesaw."
     },
     "stats-probability-foundations": {
       "mastery": "developing",
       "last_assessed": "2026-06-24",
-      "notes": "Intro deck created (slides/intro-stats-probability/). Covers stats vs probability, distributions, E[X] from scratch, variance, PMF vs PDF, Bernoulli, distribution roadmap. Not yet tested in a diagnostic."
+      "notes": "Intro deck created. Not yet tested in a diagnostic."
+    },
+    "unit3-distributions": {
+      "mastery": "novice",
+      "last_assessed": "2026-07-06",
+      "notes": "ch3-distributions deck ready; diagnostic pending."
+    },
+    "continuous-survival-pdf": {
+      "mastery": "novice",
+      "last_assessed": null,
+      "notes": "task2-survival deck exists; notebook not started."
+    },
+    "gamma-sum-mle": {
+      "mastery": "novice",
+      "last_assessed": null,
+      "notes": "task3-gamma-mle deck ready; notebook not started."
+    },
+    "hypothesis-test-mean": {
+      "mastery": "novice",
+      "last_assessed": null,
+      "notes": "slides/exam_tasks/task4-hypothesis.html"
+    },
+    "ols-ridge": {
+      "mastery": "novice",
+      "last_assessed": null,
+      "notes": "slides/exam_tasks/task5-ridge.html"
+    },
+    "gamma-conjugate-bayes": {
+      "mastery": "novice",
+      "last_assessed": null,
+      "notes": "slides/exam_tasks/task6-bayes.html — Hogg rate parameterization for Gamma."
     }
   },
   "calibration": {
     "status": "partial",
-    "sessions_completed": 1,
-    "recommended_next_probe": "continuous-survival-pdf",
-    "notes": "Task 1 concepts are solid after 2026-06-24 session. Next priority: Task 2 (survival function, mixture of decays) then Task 4 (hypothesis testing, Normal). Tasks 3 and 6 depend on Gamma distribution which was introduced in intro deck but not assessed."
+    "sessions_completed": 2,
+    "recommended_next_probe": "hypothesis-test-mean z-vs-t and conjugate-gamma rate vs scale",
+    "notes": "Tasks 4–6 deck created 2026-08-06. Next: live diagnostic on z-test vs t-test trap and Task 6 rate parameterization, then notebook implementation."
   }
 }

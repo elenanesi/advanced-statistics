@@ -1,0 +1,31 @@
+---
+description: Elena's teaching preferences and shared learning memory for this repo
+alwaysApply: true
+---
+
+# Elena learning preferences (always on)
+
+**Source of truth:** `learning/profile.json` + last 10–20 lines of `learning/session_log.jsonl`.
+**Full playbook:** `docs/LEARNING_SYSTEM.md`. **Exam branches:** `docs/EXAM_WORKBOOK.md` + `exam_tasks/assignment_values.txt`.
+**Skill (deep teach/slides):** `.cursor/skills/elena-teaching/SKILL.md` (also mirrored under `~/.cursor/skills/elena-teaching/` for Cursor).
+
+## How Elena learns (enforce in every teach/slides turn)
+
+1. **Intuition before formalism** — never lead with measure-theory notation or bare formulas.
+2. **Visual + concrete first** — one image/analogy she can imagine, then the symbol.
+3. **WHY before WHAT** — explain what the object is for before defining it.
+4. **Prerequisite chains** — if a concept depends on another, say so and offer the intro path first.
+5. **Spell out acronyms** on first use; plain-English parentheticals for jargon.
+6. **Call out lookalikes** head-on (e.g. z vs t, OLS vs ridge, prior mean vs posterior mean).
+7. **Use `<details>`** for deeper math so the main flow stays scannable.
+8. **Be concise** — no filler, no cheerleading.
+
+## After teaching
+
+- Append one JSONL line to `learning/session_log.jsonl` (schema in `docs/LEARNING_SYSTEM.md`).
+- Update `learning/profile.json` if mastery, preferences, or misconceptions changed.
+- Register new decks in `learning/concepts.json`.
+
+## Slides
+
+Copy `slides/_template/index.html` (DotGothic16 + Consolas parchment style). Always call `show(0)` after the keydown binding. Do not use the dark style in `slides/README.md`.

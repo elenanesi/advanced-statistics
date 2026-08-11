@@ -1,13 +1,28 @@
 # CLAUDE.md — Advanced Statistics workspace
-> Read this at the start of every session. Last updated: 2026-07-02.
+> Read this at the start of every session. Last updated: 2026-08-06.
 > Detailed playbooks live in `docs/`. This file is the fast-path session bootstrap.
+
+---
+
+## Cross-agent learning memory (Cursor / Claude / Codex)
+
+| Surface | Path | Role |
+|---------|------|------|
+| **Source of truth** | `learning/profile.json` + `learning/session_log.jsonl` | Preferences, mastery, misconceptions |
+| Cursor rule | `.cursor/rules/elena-learning.mdc` | Always-on teach contract |
+| Cursor skill | `.cursor/skills/elena-teaching/SKILL.md` (+ `~/.cursor/skills/elena-teaching/`) | Deep teach/slides workflow |
+| Claude bootstrap | this file | Session checklist |
+| Codex bootstrap | `AGENTS.md` | Same prefs + causal-impact notes |
+| Playbooks | `docs/LEARNING_SYSTEM.md`, `docs/AGENTS.md` | Rubric, log schema, exam workflow |
+
+When Elena states a new preference or misconception: update `profile.json` and append `session_log.jsonl` in the same turn.
 
 ---
 
 ## Session startup (do these first, in order)
 
 1. **Classify intent** from the latest message: `exam` | `teach` | `slides` | `open_stats` | `general` | `mixed`. Don't over-index on repo layout — answer what was actually asked.
-2. **If exam work**: open `exam_tasks/assignment_values.txt` to verify branch values. Task 1 notebook cells exist; Tasks 2–6 are not done. Personal path is pre-resolved in `docs/EXAM_WORKBOOK.md`.
+2. **If exam work**: open `exam_tasks/assignment_values.txt` to verify branch values. Task 1 notebook cells exist; Tasks 2–6 notebook not done. Personal path is pre-resolved in `docs/EXAM_WORKBOOK.md`.
 3. **If teaching**: skim `learning/session_log.jsonl` (last 10 lines) and `learning/profile.json` before explaining anything.
 4. **If slides**: the real template is `slides/_template/index.html` — use it, not the style described in `slides/README.md` (those docs describe an older style that was never shipped).
 
@@ -69,12 +84,18 @@
 | Path | Content | Status |
 |------|---------|--------|
 | `slides/intro-stats-probability/` | Stats vs probability, distributions, E[X] from scratch (die analogy), variance, PMF/PDF, Bernoulli, distribution roadmap for all 6 tasks; Task 2 prep slides (survival function, mixture) | KaTeX + tooltips added 2026-07-02; 15 slides |
-| `slides/task1-bernoulli/` | Full Task 1 proof deck — assumes intro deck done first | KaTeX + tooltips added 2026-07-02 |
-| `slides/causal-inference/` | Causal inference methods (ITS, DiD, SCA) | Exists, separate domain |
-| `slides/task2-survival/` | Task 2 survival analysis — F̄(y), mixture, chain rule PDF, Jacobian, quartiles | KaTeX + tooltips added 2026-07-02; 16 slides |
-| `slides/task3-gamma-mle/` | Task 3 — Gamma(7,θ) density visually, Erlang 7-stage story, 120→720 normalization flag, T=S₁+S₂~Γ(14,θ) convolution proof, likelihood + log transform, MLE θ̂=t̄/14≈4.129 TB, E[T]=57.8 TB | Created 2026-07-02 from template (KaTeX + tooltips); 18 slides incl. 3 sub-chapters |
-| `slides/ch3-distributions/` | Course-book Unit 3 survey ("distribution field guide"): binomial + neg. binomial, normal via Galton/CLT + σ ruler, Poisson + Gamma-Poisson overdispersion, exponential, Weibull, transformation theorem, family-tree map, exam-task mapping | Created 2026-07-03 from template; 19 slides incl. 3 sub-chapters; all curves computed numerically |
+| `slides/exam_tasks/task1-bernoulli.html` | Full Task 1 proof deck — assumes intro deck done first | KaTeX + tooltips |
+| `slides/exam_tasks/task2-survival.html` | Task 2 survival — F̄(y), mixture, PDF, Jacobian, quartiles | KaTeX + tooltips; 16 slides |
+| `slides/exam_tasks/task3-gamma-mle.html` | Task 3 Gamma routers + MLE (120→720 flag) | KaTeX + tooltips; 18 slides |
+| `slides/exam_tasks/task4-hypothesis.html` | Task 4 hammer z-test (higher weights); z-vs-t trap | Created 2026-08-06; Forge |
+| `slides/exam_tasks/task5-ridge.html` | Task 5 degree-10 OLS + ridge | Created 2026-08-06; Ridge |
+| `slides/exam_tasks/task6-bayes.html` | Task 6 Gamma conjugate Bayes (Hogg rate form) | Created 2026-08-06; Bayes |
+| `slides/ch3-distributions/` | Unit 3 distribution field guide | 19 slides |
+| `slides/monks-ds-manual/` | Monks problem→concept field manual (marketing/creative/ecom) | Created 2026-08-06 |
+| `slides/causal-inference/` | Causal inference methods (ITS, DiD, SCA) | Separate domain |
 | `slides/vbb/` | VBB (separate design system) | Not part of stats quest template |
+
+**Convention:** all exam task decks are flat files: `slides/exam_tasks/taskN-<topic>.html`.
 
 **When creating a new deck:** copy `_template/`, use DotGothic16 + Consolas, pick the right buddy from the sprite catalog (Penny=Bernoulli, Hootsworth=Owl/survival, Packet=Gamma/router, Forge=hypothesis tests, Ridge=OLS/ridge, Bayes=conjugate priors), put intro-before-formalism, visual-before-formula.
 
@@ -82,16 +103,16 @@ KaTeX and tooltips are already wired into the template — they come for free wh
 
 ---
 
-## Exam task status (as of 2026-07-02)
+## Exam task status (as of 2026-08-06)
 
 | Task | Branch | Status |
 |------|--------|--------|
 | 1 | Bernoulli, p=0.58 | Notebook started; slides complete (KaTeX + tooltips) |
 | 2 | Survival mixture, ξ4=3 | Slides complete (KaTeX + tooltips); notebook not started |
-| 3 | Gamma(7,θ) router MLE, ξ9=2 | Slides complete (`slides/task3-gamma-mle/`); notebook not started. ⚠ Exam density constant 120 is a typo — must be Γ(7)=720 (flag in notebook like Task 2's 0.99) |
-| 4 | "Higher weights?" hypothesis test | Not started |
-| 5 | Degree-10 polynomial + ridge | Not started |
-| 6 | Bayesian Gamma posterior | Not started |
+| 3 | Gamma(7,θ) router MLE, ξ9=2 | Slides: `exam_tasks/task3-gamma-mle.html`; notebook not started. ⚠ 120→720 typo |
+| 4 | "Higher weights?" hypothesis test | Slides: `exam_tasks/task4-hypothesis.html`; notebook not started |
+| 5 | Degree-10 polynomial + ridge | Slides: `exam_tasks/task5-ridge.html`; notebook not started |
+| 6 | Bayesian Gamma posterior | Slides: `exam_tasks/task6-bayes.html`; notebook not started |
 
 Notebook: `exam_tasks/bernoulli_vote_analysis.ipynb`
 

@@ -65,7 +65,7 @@
       "related_exam_tasks": [1],
       "course_book": ["Unit 1 — 1.3"],
       "buddy_id": "coin-sprite",
-      "slide_path": "slides/task1-bernoulli/index.html",
+      "slide_path": "slides/exam_tasks/task1-bernoulli.html",
       "slide_status": "ready",
       "notes": "Deck extended 2026-06-24. Covers probability space, random variable (label gun + why 'random'), measurability, integrability, E[X] (seesaw), PMF, formal proof block, Python code, pitfalls, quiz. Assumes stats-probability-foundations done first."
     },
@@ -89,9 +89,9 @@
       "related_exam_tasks": [2],
       "course_book": ["Unit 3 — 3.3"],
       "buddy_id": "owl-sprite",
-      "slide_path": "slides/task2-survival/index.html",
+      "slide_path": "slides/exam_tasks/task2-survival.html",
       "slide_status": "unknown",
-      "notes": "slides/task2-survival/ may exist — check status before creating. Task 2 survival function: F̄(y) = 0.79·exp(−4y²) + 0.20·exp(−6y²). Flag: ξ5+ξ7=0.99 ≠ 1 (document in notebook)."
+      "notes": "Task 2 survival function: F̄(y) = 0.79·exp(−4y²) + 0.20·exp(−6y²). Flag: ξ5+ξ7=0.99 ≠ 1 (document in notebook)."
     },
     {
       "id": "gamma-sum-mle",
@@ -101,7 +101,7 @@
       "related_exam_tasks": [3],
       "course_book": ["Unit 3 — 3.3", "Unit 3 — 3.5", "Unit 6 — 6.1"],
       "buddy_id": "router-sprite",
-      "slide_path": "slides/task3-gamma-mle/index.html",
+      "slide_path": "slides/exam_tasks/task3-gamma-mle.html",
       "slide_status": "ready",
       "notes": "Deck created 2026-07-02 (18 slides incl. 3 sub-chapters). Covers: reading the Gamma(7,θ) density visually (rise × fall = hump), scale knob θ, Erlang 7-stage story, exam normalization typo flag (120 should be Γ(7)=720 — flag like Task 2's 0.99), T=S1+S2 ~ Γ(14,θ) via transformation theorem + convolution, likelihood as guess-and-compare, log transform (3 reasons), MLE θ̂ = t̄/14 = 289/70 ≈ 4.129 TB, E[T] = 57.8 TB. Quiz + notebook map included."
     },
@@ -109,12 +109,13 @@
       "id": "hypothesis-test-mean",
       "title": "Testing mean / variance claims",
       "mastery": "novice",
-      "prerequisites": ["stats-probability-foundations"],
+      "prerequisites": ["stats-probability-foundations", "unit3-distributions"],
       "related_exam_tasks": [4],
-      "course_book": ["Unit 7 — 7.1", "Unit 7 — 7.2"],
+      "course_book": ["Unit 3 — 3.2", "Unit 7 — 7.1", "Unit 7 — 7.2"],
       "buddy_id": "hammer-sprite",
-      "slide_path": "slides/hypothesis-test-mean/index.html",
-      "slide_status": "none"
+      "slide_path": "slides/exam_tasks/task4-hypothesis.html",
+      "slide_status": "ready",
+      "notes": "2026-08-06. Personal: higher weights, μ0=956, σ0=17.2, n=10, x̄=971.3, z≈2.81, reject at 5%. Flag z-vs-t (s≈38.2 → t≈1.27)."
     },
     {
       "id": "ols-ridge",
@@ -124,8 +125,9 @@
       "related_exam_tasks": [5],
       "course_book": ["Unit 6 — 6.2", "Unit 6 — 6.4"],
       "buddy_id": "ridge-sprite",
-      "slide_path": "slides/ols-ridge/index.html",
-      "slide_status": "none"
+      "slide_path": "slides/exam_tasks/task5-ridge.html",
+      "slide_status": "ready",
+      "notes": "2026-08-06. Degree-10 poly, 22 points. OLS ‖α‖≈1.19e11; ridge path shrinks coeffs. Steps + λ justification over digits."
     },
     {
       "id": "gamma-conjugate-bayes",
@@ -135,8 +137,22 @@
       "related_exam_tasks": [6],
       "course_book": ["Unit 4 — 4.3"],
       "buddy_id": "prior-sprite",
-      "slide_path": "slides/gamma-conjugate-bayes/index.html",
-      "slide_status": "none"
+      "slide_path": "slides/exam_tasks/task6-bayes.html",
+      "slide_status": "ready",
+      "notes": "2026-08-06. Hogg 11.2.2 rate form: prior Γ(35,51) → posterior Γ(65, 954.7); SE mean≈0.06808; mode≈0.06704."
+    },
+    {
+      "id": "monks-ds-field-manual",
+      "title": "Monks DS problem→concept field manual",
+      "mastery": "n/a",
+      "prerequisites": [],
+      "related_exam_tasks": [],
+      "course_book": [],
+      "buddy_id": "coin-sprite",
+      "slide_path": "slides/monks-ds-manual/index.html",
+      "slide_status": "ready",
+      "tags": ["work-transfer", "monks"],
+      "notes": "2026-08-06. Categorised marketing/creative/ecom problems mapped to exam + causal-impact + VBB concepts."
     }
   ]
 }
