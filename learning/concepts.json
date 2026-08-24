@@ -6,42 +6,66 @@
       "animal": "cat",
       "role": "Bernoulli & discrete probability",
       "sprite_style": "pixel-16",
-      "palette": ["#f0dcc0", "#c4919e", "#a87888"]
+      "palette": [
+        "#f0dcc0",
+        "#c4919e",
+        "#a87888"
+      ]
     },
     "owl-sprite": {
       "name": "Hootsworth",
       "animal": "owl",
       "role": "Continuous waiting times, survival, and foundational concepts",
       "sprite_style": "pixel-16",
-      "palette": ["#8870a0", "#c8a870", "#d4a060"]
+      "palette": [
+        "#8870a0",
+        "#c8a870",
+        "#d4a060"
+      ]
     },
     "router-sprite": {
       "name": "Packet",
       "animal": "bunny",
       "role": "Gamma, sums, MLE",
       "sprite_style": "pixel-16",
-      "palette": ["#88c8c0", "#d0a0a8", "#508880"]
+      "palette": [
+        "#88c8c0",
+        "#d0a0a8",
+        "#508880"
+      ]
     },
     "hammer-sprite": {
       "name": "Forge",
       "animal": "bear",
       "role": "Hypothesis testing",
       "sprite_style": "pixel-16",
-      "palette": ["#a09090", "#d8c8b8", "#c8a0a0"]
+      "palette": [
+        "#a09090",
+        "#d8c8b8",
+        "#c8a0a0"
+      ]
     },
     "ridge-sprite": {
       "name": "Ridge",
       "animal": "penguin",
       "role": "OLS & regularization",
       "sprite_style": "pixel-16",
-      "palette": ["#485880", "#e8e0d8", "#d4a060"]
+      "palette": [
+        "#485880",
+        "#e8e0d8",
+        "#d4a060"
+      ]
     },
     "prior-sprite": {
       "name": "Bayes",
       "animal": "fox",
       "role": "Bayesian updating",
       "sprite_style": "pixel-16",
-      "palette": ["#c8804c", "#f0dcc0", "#5a4040"]
+      "palette": [
+        "#c8804c",
+        "#f0dcc0",
+        "#5a4040"
+      ]
     }
   },
   "concepts": [
@@ -50,8 +74,19 @@
       "title": "Statistics vs Probability — Foundations",
       "mastery": "developing",
       "prerequisites": [],
-      "related_exam_tasks": [1, 2, 3, 4, 5, 6],
-      "course_book": ["Unit 1 — 1.1", "Unit 1 — 1.2", "Unit 1 — 1.3"],
+      "related_exam_tasks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "course_book": [
+        "Unit 1 — 1.1",
+        "Unit 1 — 1.2",
+        "Unit 1 — 1.3"
+      ],
       "buddy_id": "owl-sprite",
       "slide_path": "slides/intro-stats-probability/index.html",
       "slide_status": "ready",
@@ -61,21 +96,43 @@
       "id": "bernoulli-expectation",
       "title": "Bernoulli trial & expectation",
       "mastery": "solid",
-      "prerequisites": ["stats-probability-foundations"],
-      "related_exam_tasks": [1],
-      "course_book": ["Unit 1 — 1.3"],
+      "prerequisites": [
+        "stats-probability-foundations"
+      ],
+      "related_exam_tasks": [
+        1
+      ],
+      "course_book": [
+        "Unit 1 — 1.3"
+      ],
       "buddy_id": "coin-sprite",
-      "slide_path": "slides/exam_tasks/task1-bernoulli.html",
+      "slide_path": "slides/exam_tasks/task1-bernoulli-99d9e51.html",
       "slide_status": "ready",
-      "notes": "Deck extended 2026-06-24. Covers probability space, random variable (label gun + why 'random'), measurability, integrability, E[X] (seesaw), PMF, formal proof block, Python code, pitfalls, quiz. Assumes stats-probability-foundations done first."
+      "notes": "2026-08-22 refreshed for parameter set 99d9e51e: p = 0.65 (was 0.58), E[X] = 0.65, Var = 0.2275, sd = 0.47697. Pedagogy unchanged (label gun, why 'random', E[X] seesaw) since it was confirmed to work. Superseded deck kept for comparison.",
+      "superseded_slide_path": "slides/exam_tasks/task1-bernoulli.html",
+      "parameter_set": "99d9e51e"
     },
     {
       "id": "unit3-distributions",
       "title": "Important probability distributions (Unit 3 survey)",
       "mastery": "novice",
-      "prerequisites": ["stats-probability-foundations"],
-      "related_exam_tasks": [1, 2, 3, 4, 6],
-      "course_book": ["Unit 3 — 3.1", "Unit 3 — 3.2", "Unit 3 — 3.3", "Unit 3 — 3.4", "Unit 3 — 3.5"],
+      "prerequisites": [
+        "stats-probability-foundations"
+      ],
+      "related_exam_tasks": [
+        1,
+        2,
+        3,
+        4,
+        6
+      ],
+      "course_book": [
+        "Unit 3 — 3.1",
+        "Unit 3 — 3.2",
+        "Unit 3 — 3.3",
+        "Unit 3 — 3.4",
+        "Unit 3 — 3.5"
+      ],
       "buddy_id": "coin-sprite",
       "slide_path": "slides/ch3-distributions/index.html",
       "slide_status": "ready",
@@ -85,61 +142,105 @@
       "id": "continuous-survival-pdf",
       "title": "Survival function → PDF",
       "mastery": "novice",
-      "prerequisites": ["stats-probability-foundations"],
-      "related_exam_tasks": [2],
-      "course_book": ["Unit 3 — 3.3"],
+      "prerequisites": [
+        "stats-probability-foundations"
+      ],
+      "related_exam_tasks": [
+        2
+      ],
+      "course_book": [
+        "Unit 3 — 3.3"
+      ],
       "buddy_id": "owl-sprite",
-      "slide_path": "slides/exam_tasks/task2-survival.html",
-      "slide_status": "unknown",
-      "notes": "Task 2 survival function: F̄(y) = 0.79·exp(−4y²) + 0.20·exp(−6y²). Flag: ξ5+ξ7=0.99 ≠ 1 (document in notebook)."
+      "slide_path": "slides/exam_tasks/task2-survival-99d9e51.html",
+      "slide_status": "ready",
+      "notes": "2026-08-22 REWRITTEN: branch changed xi4 3 -> 1, so F̄(y) = (2/3)e^(-8y²) + (1/3)e^(-5y⁸) — a mixture of Weibull shape 2 (Rayleigh) and shape 8, hence BIMODAL (peaks ~15.0 and ~47.9 min). Generator gave 0.66+0.33 = 0.99; renormalised to exactly 2/3 and 1/3 and documented. E[Y] = 27.94 min, Var = 0.068605 h², Q1/med/Q3 = 14.54/24.90/42.79 min, P(2<Y<4) = 8.44e-15. Key trick taught: E[Y] = ∫F̄ for Y ≥ 0.",
+      "superseded_slide_path": "slides/exam_tasks/task2-survival.html",
+      "parameter_set": "99d9e51e"
     },
     {
       "id": "gamma-sum-mle",
-      "title": "Sum of Gammas & MLE",
+      "title": "Sum of exponentials & MLE",
       "mastery": "novice",
-      "prerequisites": ["continuous-survival-pdf"],
-      "related_exam_tasks": [3],
-      "course_book": ["Unit 3 — 3.3", "Unit 3 — 3.5", "Unit 6 — 6.1"],
+      "prerequisites": [
+        "continuous-survival-pdf"
+      ],
+      "related_exam_tasks": [
+        3
+      ],
+      "course_book": [
+        "Unit 3 — 3.3",
+        "Unit 3 — 3.5",
+        "Unit 6 — 6.1"
+      ],
       "buddy_id": "router-sprite",
-      "slide_path": "slides/exam_tasks/task3-gamma-mle.html",
+      "slide_path": "slides/exam_tasks/task3-exponential-99d9e51.html",
       "slide_status": "ready",
-      "notes": "Deck created 2026-07-02 (18 slides incl. 3 sub-chapters). Covers: reading the Gamma(7,θ) density visually (rise × fall = hump), scale knob θ, Erlang 7-stage story, exam normalization typo flag (120 should be Γ(7)=720 — flag like Task 2's 0.99), T=S1+S2 ~ Γ(14,θ) via transformation theorem + convolution, likelihood as guess-and-compare, log transform (3 reasons), MLE θ̂ = t̄/14 = 289/70 ≈ 4.129 TB, E[T] = 57.8 TB. Quiz + notebook map included."
+      "notes": "2026-08-22 REWRITTEN: branch changed xi9 2 -> 0, so S ~ Exponential(θ) and T = S1+S2 ~ Gamma(2,θ) by convolution. The 120-vs-720 typo warning NO LONGER APPLIES (it was specific to the xi9=2 line) and was dropped. Sample (33,29,6,37,1), n=5, θ̂ = T̄/2 = 10.6 TB, E[T] = 21.2 TB. se 3.352, so the 95% interval [4.03, 17.17] is very wide at n=5.",
+      "superseded_slide_path": "slides/exam_tasks/task3-gamma-mle.html",
+      "parameter_set": "99d9e51e"
     },
     {
       "id": "hypothesis-test-mean",
       "title": "Testing mean / variance claims",
       "mastery": "novice",
-      "prerequisites": ["stats-probability-foundations", "unit3-distributions"],
-      "related_exam_tasks": [4],
-      "course_book": ["Unit 3 — 3.2", "Unit 7 — 7.1", "Unit 7 — 7.2"],
+      "prerequisites": [
+        "stats-probability-foundations",
+        "unit3-distributions"
+      ],
+      "related_exam_tasks": [
+        4
+      ],
+      "course_book": [
+        "Unit 3 — 3.2",
+        "Unit 7 — 7.1",
+        "Unit 7 — 7.2"
+      ],
       "buddy_id": "hammer-sprite",
-      "slide_path": "slides/exam_tasks/task4-hypothesis.html",
+      "slide_path": "slides/exam_tasks/task4-hypothesis-99d9e51.html",
       "slide_status": "ready",
-      "notes": "2026-08-06. Personal: higher weights, μ0=956, σ0=17.2, n=10, x̄=971.3, z≈2.81, reject at 5%. Flag z-vs-t (s≈38.2 → t≈1.27)."
+      "notes": "2026-08-22 CONCLUSION FLIPPED. New data: μ0 = 842, σ0 = 55.3, n = 10, x̄ = 852.2, z = 0.5833, p = 0.2799 -> FAIL TO REJECT (the old deck concluded reject and is wrong for this data). z-vs-t still open: t = 0.2567 on 9 df, p = 0.4016, same conclusion. Power at the observed effect is only 14.4%; the minimum detectable difference at 80% power is 43.5 g vs an observed 10.2 g. Red flag: s = 125.65 vs σ0 = 55.3 is a variance ratio of 5.16.",
+      "superseded_slide_path": "slides/exam_tasks/task4-hypothesis.html",
+      "parameter_set": "99d9e51e"
     },
     {
       "id": "ols-ridge",
       "title": "OLS & ridge regression",
       "mastery": "novice",
       "prerequisites": [],
-      "related_exam_tasks": [5],
-      "course_book": ["Unit 6 — 6.2", "Unit 6 — 6.4"],
+      "related_exam_tasks": [
+        5
+      ],
+      "course_book": [
+        "Unit 6 — 6.2",
+        "Unit 6 — 6.4"
+      ],
       "buddy_id": "ridge-sprite",
-      "slide_path": "slides/exam_tasks/task5-ridge.html",
+      "slide_path": "slides/exam_tasks/task5-ridge-99d9e51.html",
       "slide_status": "ready",
-      "notes": "2026-08-06. Degree-10 poly, 22 points. OLS ‖α‖≈1.19e11; ridge path shrinks coeffs. Steps + λ justification over digits."
+      "notes": "2026-08-22 refreshed: new 22-point dataset, degree 10. Headline lesson is CONDITIONING — raw Vandermonde cond 1.02e13, after rescaling x to [-1,1] 3.74e3. Solve by SVD, never by inverting X'X. λ* = 4.5e-4 by leave-one-out CV; coefficient norm 6.63 -> 1.007 (-84.8%). Quality answer: least squares is dominated by |y| ~ 6e13 at the edges, so for |x| <= 7 both fits are worthless (fitted intercept 1.90e11 OLS vs observed y(0) = -0.98).",
+      "superseded_slide_path": "slides/exam_tasks/task5-ridge.html",
+      "parameter_set": "99d9e51e"
     },
     {
       "id": "gamma-conjugate-bayes",
       "title": "Gamma conjugate posterior",
       "mastery": "novice",
-      "prerequisites": ["gamma-sum-mle"],
-      "related_exam_tasks": [6],
-      "course_book": ["Unit 4 — 4.3"],
+      "prerequisites": [
+        "gamma-sum-mle"
+      ],
+      "related_exam_tasks": [
+        6
+      ],
+      "course_book": [
+        "Unit 4 — 4.3"
+      ],
       "buddy_id": "prior-sprite",
-      "slide_path": "slides/exam_tasks/task6-bayes.html",
+      "slide_path": "slides/exam_tasks/task6-bayes-99d9e51.html",
       "slide_status": "ready",
-      "notes": "2026-08-06. Hogg 11.2.2 rate form: prior Γ(35,51) → posterior Γ(65, 954.7); SE mean≈0.06808; mode≈0.06704."
+      "notes": "2026-08-22 refreshed + rate-vs-scale addressed head-on. Hogg writes β as a SCALE, so prior Gamma(23,63) has rate 1/63. Posterior Gamma(53, rate 954.8159); Bayes estimate (squared-error) = 0.0555081; mode = 0.0544608. Alternative reading of ξ18 as a rate gives 0.0520731 / 0.0510906, a 6.19% difference. Strong prior-influence illustration: the MLE α/x̄ = 0.03142 lies OUTSIDE the 95% credible interval [0.0416, 0.0714].",
+      "superseded_slide_path": "slides/exam_tasks/task6-bayes.html",
+      "parameter_set": "99d9e51e"
     },
     {
       "id": "monks-ds-field-manual",
@@ -151,8 +252,44 @@
       "buddy_id": "coin-sprite",
       "slide_path": "slides/monks-ds-manual/index.html",
       "slide_status": "ready",
-      "tags": ["work-transfer", "monks"],
+      "tags": [
+        "work-transfer",
+        "monks"
+      ],
       "notes": "2026-08-06. Categorised marketing/creative/ecom problems mapped to exam + causal-impact + VBB concepts."
+    },
+    {
+      "id": "advanced-workbook-deliverable",
+      "title": "Advanced Workbook (.docx deliverable)",
+      "mastery": "n/a",
+      "prerequisites": [
+        "bernoulli-expectation",
+        "continuous-survival-pdf",
+        "gamma-sum-mle",
+        "hypothesis-test-mean",
+        "ols-ridge",
+        "gamma-conjugate-bayes"
+      ],
+      "related_exam_tasks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "course_book": [],
+      "buddy_id": "owl-sprite",
+      "slide_path": null,
+      "artifact_path": "deliverables/workbook/Advanced_Workbook_DLMDSAS01_DRAFT.docx",
+      "slide_status": "n/a",
+      "parameter_set": "99d9e51e",
+      "tags": [
+        "exam",
+        "deliverable",
+        "draft"
+      ],
+      "notes": "2026-08-22 first draft. Built by deliverables/workbook/build.sh: compute.py -> results.json + figures, render.py substitutes {{token}}s into src/*.md (the prose holds no literal numbers), pandoc -> native Word equations, postprocess.py -> Roman front matter / Arabic body page numbers. Open: [[PLACEHOLDER]] title-page fields; final submission must be PDF; affidavit filed separately beforehand."
     }
   ]
 }

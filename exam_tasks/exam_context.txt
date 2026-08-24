@@ -1,0 +1,32 @@
+The sole exam of this course is an "Advanced Workbook": 
+A piece of mathematical text where you solve the given tasks in a fully justified manner. 
+This workbook should be similar to a work done in a company: you are the math specialist, thus you make the  workbook that is as if a million euros (and thousands of hours of work of some people) are invested based on the result your work; this means that the workbook is written in such a way that others can take it over and become responsible for it.
+The workbook writing is the last part of this course's time as you can see in the plan above. 
+How to start work on the workbook? Make sure you read the additional information at exam_tasks/Workbook-ExtraInfo-DLMDSAS01.pdf and exam_tasks/Task_Advanced_Workbook_DLMDSAS011.pdf.
+As explained in the Additional Information document, you should solve the assignments in the Workbook with personalized numbers. 
+Such numbers are saved under exam_tasks/assignment_values_2.txt
+
+Please note that we originally worked with the values in exam_tasks/assignment_values.txt when creating the slides in slides/exam_tasks.
+However, one of these values appeared to be incorrect. Instead of risking problems with the assignment, I generated new values instead. 
+If this new value generation still has issues, let me know and we will try to generate again.
+
+After obtaining your individual parameters, you should replace the exemplary numbers in the Workbook by your individual numbers, remove the part of tasks which are relevant, and state the signature string of the parameters on the front page of your work. 
+Submissions without dynamically generated parameters are considered invalid.
+
+LaTeX template is available here: https://github.com/IUBH-IT-Technik-Profs-Sandbox/LaTeX-IUBH-Template
+This is a rudimentary LaTeX set-up to help students at IUBH-Online to realize assignments, workboos, bachelor-thesis or masters' thesis. It includes a few common LaTeX formats and macros which must be adapted to the precise needs.
+
+A docx template is also available at exam_tasks/Template_Assignment_DLMDSAS01.docx
+
+IMPORTANT: Deadly sins you should not commit while delivering your workbook
+This document describes a few bad practices that were met in earlier workbooks and make it difficult to reach a satisfactory mark where the tutor assesses that mathematical understanding of the statistical phenomena is shown:
+
+A part of the exam’s competency is about creating a mathematical document connected to justifications from the literature as per the workbook's guidelines:
+- Ensure this guideline is followed: exam_tasks/Guidelines Advanced Workbook.pdf 
+- make sure you are able to input math formulæ that render in regular PDF viewers (there are often "rendering problem" which can only lead to problems in the professional practice).
+- Handwritten reasonings are for drafting... not for presenting, please!
+- Make sure you add a justification for every majors ingredients you use (e.g. for all tests and non-trivial theorems)
+- Submitting a Word file is dangerous, unpredictable, bad-practice and likely going to give bad renderings. You are required to submit PDFs and any tired tutor will simply say "no".
+- Code is very good to support the presentation but not a part of the presentation! ("Just read the code" is not very polite)
+- Badly rendered formulæ can only be understood as dubious. It is ok that you use OCR if you wish, but please edit the result so it is understandable and coherent!
+- Irregular notation is ok too... after all much of the notation in statistics could be reinvented. However, every notation that is not explained is like an invented word: Without an explanation the risk of confusion is very high.

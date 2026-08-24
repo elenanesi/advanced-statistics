@@ -3,11 +3,22 @@
     "name": "Elena",
     "course": "DLMDSAS01",
     "role": "Associate Director, Data Science (Monks)",
-    "repo_goals": ["exam_workbook", "concept_mastery", "html_slides", "work_transfer"]
+    "repo_goals": [
+      "exam_workbook",
+      "concept_mastery",
+      "html_slides",
+      "work_transfer"
+    ]
   },
   "preferences": {
-    "preferred_modes": ["visual", "narrative", "computational"],
-    "avoid_modes": ["algebra_first"],
+    "preferred_modes": [
+      "visual",
+      "narrative",
+      "computational"
+    ],
+    "avoid_modes": [
+      "algebra_first"
+    ],
     "slide_aesthetic": "parchment-pixel-retro",
     "session_length": "medium",
     "communication": [
@@ -32,7 +43,11 @@
     "personal_cursor_skill": "~/.cursor/skills/elena-teaching/SKILL.md",
     "claude_bootstrap": "CLAUDE.md",
     "codex_bootstrap": "AGENTS.md",
-    "playbooks": ["docs/LEARNING_SYSTEM.md", "docs/AGENTS.md", "docs/EXAM_WORKBOOK.md"]
+    "playbooks": [
+      "docs/LEARNING_SYSTEM.md",
+      "docs/AGENTS.md",
+      "docs/EXAM_WORKBOOK.md"
+    ]
   },
   "strengths": [
     "comfortable with Python and matplotlib",
@@ -60,13 +75,29 @@
       "last_seen": "2026-06-24",
       "addressed_in": "slides/intro-stats-probability/index.html slides 3–4; slides/exam_tasks/task1-bernoulli.html slide 8",
       "status": "resolved"
+    },
+    {
+      "concept": "gamma-rate-vs-scale",
+      "question_asked": "(not yet asked live — flagged as a standing risk)",
+      "clarification_needed": "Hogg, McKean and Craig write the gamma density with beta as a SCALE: f(x) = x^(a-1) e^(-x/beta) / (Gamma(a) beta^a). Scale multiplies, rate divides; mean = shape x scale = shape / rate. In Task 6 reading xi18 = 63 as a scale gives a Bayes estimate of 0.055508, as a rate 0.052073 — 6.19% apart. Always declare the convention before deriving.",
+      "last_seen": "2026-08-22",
+      "addressed_in": "slides/exam_tasks/task6-bayes-99d9e51.html; deliverables/workbook/src/06-task6.md opening paragraph",
+      "status": "addressed_not_tested"
+    },
+    {
+      "concept": "z-test-vs-t-test",
+      "question_asked": "(not yet asked live — flagged as a standing risk)",
+      "clarification_needed": "sigma known from a large historical run -> z. sigma estimated from the sample itself -> t. In Task 4 the same data gives z = 0.5833 or t = 0.2567 on 9 df; the conclusion happens to agree, which is exactly why the distinction is easy to miss.",
+      "last_seen": "2026-08-22",
+      "addressed_in": "slides/exam_tasks/task4-hypothesis-99d9e51.html; deliverables/workbook/src/04-task4.md",
+      "status": "addressed_not_tested"
     }
   ],
   "concepts": {
     "bernoulli-expectation": {
       "mastery": "solid",
       "last_assessed": "2026-06-24",
-      "notes": "Full slide deck built (slides/exam_tasks/task1-bernoulli.html). E[X] confusion resolved via die analogy + seesaw."
+      "notes": "Deck refreshed 2026-08-22 for parameter set 99d9e51e (p = 0.65): slides/exam_tasks/task1-bernoulli-99d9e51.html. E[X] confusion resolved via die analogy + seesaw."
     },
     "stats-probability-foundations": {
       "mastery": "developing",
@@ -81,33 +112,33 @@
     "continuous-survival-pdf": {
       "mastery": "novice",
       "last_assessed": null,
-      "notes": "task2-survival deck exists; notebook not started."
+      "notes": "Deck REWRITTEN 2026-08-22: branch changed to xi4=1, a Weibull-2/Weibull-8 mixture with a bimodal density. slides/exam_tasks/task2-survival-99d9e51.html. Workbook section written. Diagnostic pending."
     },
     "gamma-sum-mle": {
       "mastery": "novice",
       "last_assessed": null,
-      "notes": "task3-gamma-mle deck ready; notebook not started."
+      "notes": "Deck REWRITTEN 2026-08-22: branch changed to xi9=0, so this is now sum-of-exponentials rather than Gamma(7). slides/exam_tasks/task3-exponential-99d9e51.html. Workbook section written. Diagnostic pending."
     },
     "hypothesis-test-mean": {
       "mastery": "novice",
       "last_assessed": null,
-      "notes": "slides/exam_tasks/task4-hypothesis.html"
+      "notes": "Deck rewritten 2026-08-22: new data flips the conclusion to fail-to-reject. slides/exam_tasks/task4-hypothesis-99d9e51.html now covers power and the variance red flag as well as z-vs-t."
     },
     "ols-ridge": {
       "mastery": "novice",
       "last_assessed": null,
-      "notes": "slides/exam_tasks/task5-ridge.html"
+      "notes": "Deck refreshed 2026-08-22 with new data and the conditioning/SVD material. slides/exam_tasks/task5-ridge-99d9e51.html."
     },
     "gamma-conjugate-bayes": {
       "mastery": "novice",
       "last_assessed": null,
-      "notes": "slides/exam_tasks/task6-bayes.html — Hogg rate parameterization for Gamma."
+      "notes": "Deck refreshed 2026-08-22; rate-vs-scale now addressed head-on with both readings quantified (6.19% apart). slides/exam_tasks/task6-bayes-99d9e51.html."
     }
   },
   "calibration": {
     "status": "partial",
-    "sessions_completed": 2,
-    "recommended_next_probe": "hypothesis-test-mean z-vs-t and conjugate-gamma rate vs scale",
-    "notes": "Tasks 4–6 deck created 2026-08-06. Next: live diagnostic on z-test vs t-test trap and Task 6 rate parameterization, then notebook implementation."
+    "sessions_completed": 3,
+    "recommended_next_probe": "z-vs-t and gamma rate-vs-scale — both are now written up but neither has been tested live; also probe whether the Task 2 renormalisation argument (why F̄(0) must be 1) lands",
+    "notes": "2026-08-22: parameter set regenerated to signature 99d9e51e. Six refreshed decks and a first-draft Advanced Workbook (.docx) built under deliverables/workbook/. No teaching diagnostic was run this session — it was production work. The two standing traps are now written into both the decks and the paper, so the next session should test them rather than re-explain them."
   }
 }

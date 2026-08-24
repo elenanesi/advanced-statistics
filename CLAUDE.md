@@ -90,6 +90,7 @@ When Elena states a new preference or misconception: update `profile.json` and a
 | `slides/exam_tasks/task4-hypothesis.html` | Task 4 hammer z-test (higher weights); z-vs-t trap | Created 2026-08-06; Forge |
 | `slides/exam_tasks/task5-ridge.html` | Task 5 degree-10 OLS + ridge | Created 2026-08-06; Ridge |
 | `slides/exam_tasks/task6-bayes.html` | Task 6 Gamma conjugate Bayes (Hogg rate form) | Created 2026-08-06; Bayes |
+| `slides/exam_tasks/task*-99d9e51.html` | **Current** decks for parameter set `99d9e51e` — the six above are superseded | Created 2026-08-22 |
 | `slides/ch3-distributions/` | Unit 3 distribution field guide | 19 slides |
 | `slides/monks-ds-manual/` | Monks problem→concept field manual (marketing/creative/ecom) | Created 2026-08-06 |
 | `slides/causal-inference/` | Causal inference methods (ITS, DiD, SCA) | Separate domain |
@@ -103,18 +104,33 @@ KaTeX and tooltips are already wired into the template — they come for free wh
 
 ---
 
-## Exam task status (as of 2026-08-06)
+## Exam task status (as of 2026-08-22)
 
-| Task | Branch | Status |
-|------|--------|--------|
-| 1 | Bernoulli, p=0.58 | Notebook started; slides complete (KaTeX + tooltips) |
-| 2 | Survival mixture, ξ4=3 | Slides complete (KaTeX + tooltips); notebook not started |
-| 3 | Gamma(7,θ) router MLE, ξ9=2 | Slides: `exam_tasks/task3-gamma-mle.html`; notebook not started. ⚠ 120→720 typo |
-| 4 | "Higher weights?" hypothesis test | Slides: `exam_tasks/task4-hypothesis.html`; notebook not started |
-| 5 | Degree-10 polynomial + ridge | Slides: `exam_tasks/task5-ridge.html`; notebook not started |
-| 6 | Bayesian Gamma posterior | Slides: `exam_tasks/task6-bayes.html`; notebook not started |
+⚠ **The parameter set was regenerated.** Source of truth is now
+`exam_tasks/assignment_values_2.txt`, signature `99d9e51eff0fb88f6911fa8b4392742591f8f6da`.
+`assignment_values.txt` is the superseded first run, kept for provenance only.
+Two branches changed (Task 2: ξ4 3→1; Task 3: ξ9 2→0) and Task 4's conclusion
+flipped from reject to fail-to-reject. Full detail in `docs/EXAM_WORKBOOK.md`.
 
-Notebook: `exam_tasks/bernoulli_vote_analysis.ipynb`
+| Task | Branch (current) | Status |
+|------|------------------|--------|
+| 1 | Bernoulli, p=0.65 | Workbook prose done; deck `task1-bernoulli-99d9e51.html` |
+| 2 | Survival mixture, **ξ4=1** (Weibull shapes 2 and 8) | Workbook prose done; deck `task2-survival-99d9e51.html` |
+| 3 | **Exponential**, ξ9=0 → T~Gamma(2,θ) | Workbook prose done; deck `task3-exponential-99d9e51.html` |
+| 4 | "Higher weights?" — **fail to reject** | Workbook prose done; deck `task4-hypothesis-99d9e51.html` |
+| 5 | Degree-10 polynomial + ridge | Workbook prose done; deck `task5-ridge-99d9e51.html` |
+| 6 | Bayesian Gamma posterior, Gamma(23,63) | Workbook prose done; deck `task6-bayes-99d9e51.html` |
+
+**Deliverable:** `deliverables/workbook/` — run `build.sh` to produce
+`Advanced_Workbook_DLMDSAS01_DRAFT.docx`. `compute.py` owns every number;
+`src/*.md` carries no literal results, only `{{task.key}}` tokens.
+
+The old `exam_tasks/bernoulli_vote_analysis.ipynb` predates the regeneration and
+is built on superseded values. The original slide decks (without the `-99d9e51`
+suffix) are likewise on the old parameter set and are kept only for comparison.
+
+The Task 3 **120→720 typo warning no longer applies** — it only affected the
+ξ9=2 branch, which is no longer the personal one.
 
 ---
 
