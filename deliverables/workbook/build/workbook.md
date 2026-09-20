@@ -688,12 +688,26 @@ sorted by $x$.
 # Appendix B: source code {-}
 
 The listings below are the complete code that produced every number and every
-figure in this workbook. They are included as text so that they can be copied
-from the PDF and re-run. The entry point is `compute.py`, which writes a file of
-results that the workbook text draws on directly; no numeric result in the main
-text is typed by hand.
+figure in this workbook. They are included as text, not as images, so that they
+can be copied from the PDF and re-run.
+
+The calculations live in a Jupyter notebook, `workbook_analysis.ipynb`, which is
+reproduced in section B.2 with its commentary and its code cells in the order in
+which they run. A notebook was chosen over a plain script because the reasoning
+that motivates each calculation can then sit immediately above the code that
+performs it, which is what a colleague taking the work over needs. Cell outputs
+are omitted here: every number and figure the notebook produces already appears
+in the body of the workbook, and repeating them would bury the code.
+
+The notebook writes a file of results that the workbook text draws on directly;
+no numeric result in the main text is typed by hand. Running the notebook from
+top to bottom reproduces the whole document, and the build script does exactly
+that before rendering it, so the two cannot disagree.
 
 **B.1 `params.py`** — parses the generator output and verifies the signature.
+It is a separate module rather than a cell because it is file parsing rather
+than statistics, and because the signature check must fail before any
+calculation begins.
 
 ```python
 """Personal parameters for the DLMDSAS01 Advanced Workbook.
@@ -799,37 +813,61 @@ BRANCHES = {
     5: XI15,
 }
 ```
-**B.2 `compute.py`** — all six tasks.
+**B.2 `workbook_analysis.ipynb`** — all six tasks.
 
-```python
-"""Every number and every figure in the Advanced Workbook.
+**Advanced Workbook DLMDSAS01 — computations**
 
-Running this module writes ``build/results.json`` and the PNG files in
-``figures/``. The prose in ``src/*.md`` never contains a hard-coded numeric
-result: it references keys of ``results.json`` through ``{{...}}`` tokens that
-``render.py`` substitutes. Text and computation therefore cannot drift apart.
+This notebook produces **every number and every figure** that appears in the
+workbook. It is the only place where a result is calculated; the prose in
+`src/*.md` contains no literal numeric result, only `{{task.key}}` tokens that
+`render.py` fills in from the `build/results.json` file written by the last
+cell here. Text and computation therefore cannot drift apart.
 
 Each task follows the same shape: derive the quantity in closed form where one
 exists, evaluate it numerically, and cross-check the two against each other.
-Those cross-checks are what the "trust" paragraph of each task reports.
-"""
+Those cross-checks are what the "Trust" paragraph of each task reports.
 
-from __future__ import annotations
+**How to run.** Either open this notebook and choose *Run All*, or run it
+headlessly with `./build.sh`, which executes it with `run_notebook.py` before
+rendering the document. Both routes write the same `build/results.json`.
+
+**Contents**
+
+| Section | Subject |
+|---|---|
+| Setup | imports, figure style, shared helpers |
+| Parameters | the personal values and the signature check |
+| Task 1 | Bernoulli vote |
+| Task 2 | waiting time for the owl |
+| Task 3 | bandwidth to failure of a pair of routers |
+| Task 4 | hypothesis test on hammer weights |
+| Task 5 | OLS and ridge on a degree-10 polynomial |
+| Task 6 | Bayesian estimate of a gamma rate |
+| Output | assemble and write `build/results.json` |
+
+**Setup**
+
+The figure style is fixed once here so that all seven figures share it: a
+sans-serif face at 9 pt, restrained colours, no top or right spine, and a
+resolution high enough to stay legible when the PNG is placed at 15.5 cm in
+the document. `FIGSIZE` is 6.3 inches wide, which is 16 cm, and so fits the
+17 cm text block that A4 with 2 cm margins leaves.
+
+```python
+%matplotlib inline
 
 import json
 import math
 from pathlib import Path
 
-import matplotlib
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy import integrate, optimize, special, stats
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-from scipy import integrate, optimize, special, stats  # noqa: E402
-
-import params as P  # noqa: E402
-
-HERE = Path(__file__).resolve().parent
+# The notebook has no __file__, so locate the project directory by looking for
+# params.py, starting at the working directory and walking upwards. This keeps
+# the notebook runnable from Jupyter, from Cursor and from run_notebook.py.
+HERE = next(d for d in [Path.cwd(), *Path.cwd().parents] if (d / "params.py").exists())
 FIGDIR = HERE / "figures"
 BUILDDIR = HERE / "build"
 
@@ -848,6 +886,10 @@ plt.rcParams.update({
     "figure.dpi": 200,
     "savefig.bbox": "tight",
     "savefig.pad_inches": 0.02,
+    # Stated rather than inherited: the inline backend defaults to a
+    # transparent canvas, which would put transparent PNGs in the document.
+    "figure.facecolor": "white",
+    "savefig.facecolor": "white",
 })
 
 INK = "#1a1a1a"
@@ -858,8 +900,22 @@ MUTED = "#8a8a8a"
 #: 16 cm wide at the mandated 2 cm margins leaves a 17 cm text block.
 FIGSIZE = (6.3, 3.4)
 
+#: Filled in task by task; the final cell flattens and writes it out.
+results: dict = {}
 
-def _matvec(matrix: np.ndarray, vector: np.ndarray) -> np.ndarray:
+print(f"project directory: {HERE}")
+```
+
+**Shared helpers**
+
+Three small utilities used across the tasks. `matvec` exists only to work
+around a platform warning and is explained in its docstring; `save_figure`
+writes a PNG into `figures/` and returns the file name that the prose will
+reference; `flatten` turns the nested results into the dotted keys that
+`render.py` looks up.
+
+```python
+def matvec(matrix: np.ndarray, vector: np.ndarray) -> np.ndarray:
     """Matrix-vector product guarded against a spurious BLAS warning.
 
     NumPy 2.0 built against Apple's Accelerate framework raises divide-by-zero,
@@ -876,305 +932,537 @@ def _matvec(matrix: np.ndarray, vector: np.ndarray) -> np.ndarray:
     return out
 
 
-def _save(fig, name: str) -> str:
+def save_figure(fig, name: str) -> str:
+    """Write ``figures/<name>.png`` and return the file name.
+
+    The figure is deliberately left open so that the inline backend also shows
+    it underneath the cell; the document uses the file, the reader uses the
+    inline copy, and both come from the same call.
+    """
     FIGDIR.mkdir(parents=True, exist_ok=True)
     path = FIGDIR / f"{name}.png"
     fig.savefig(path)
-    plt.close(fig)
     return path.name
 
 
-# --------------------------------------------------------------------------
-# Task 1 - Bernoulli vote
-# --------------------------------------------------------------------------
+def flatten(nested: dict) -> dict:
+    """Turn ``{"task1": {"p": 0.65}}`` into ``{"task1.p": 0.65}``."""
+    flat = {}
+    for section, values in nested.items():
+        for key, value in values.items():
+            flat[f"{section}.{key}"] = value
+    return flat
+```
 
-def task1() -> dict:
-    p = P.XI2
-    q = 1.0 - p
-    mean, var = p, p * q
+**Parameters**
 
-    fig, ax = plt.subplots(figsize=(4.6, 3.2))
-    bars = ax.bar(["against\n(x = 0)", "for\n(x = 1)"], [100 * q, 100 * p],
-                  width=0.55, color=[MUTED, ACCENT], edgecolor=INK, linewidth=0.7)
-    for bar, value in zip(bars, [100 * q, 100 * p]):
-        ax.text(bar.get_x() + bar.get_width() / 2, value + 1.5, f"{value:.1f} %",
-                ha="center", va="bottom", fontsize=9, fontweight="bold")
-    ax.axhline(100 * mean, color=ALT, linestyle="--", linewidth=1.1,
-               label=f"E[X] = {mean:.2f} (= {100 * mean:.0f} % of the unit scale)")
-    ax.set_ylim(0, 100)
-    ax.set_yticks(range(0, 101, 10))
-    ax.set_ylabel("probability of the outcome (%)")
-    ax.set_xlabel("outcome of the single vote")
-    ax.legend(loc="upper left", frameon=False, fontsize=8)
-    fig1 = _save(fig, "task1_bernoulli")
+`params.py` is the single source of truth for the personal values. It parses
+`exam_tasks/assignment_values_2.txt`, so no number is ever retyped by hand,
+and it refuses to import if the signature in that file is not the one this
+workbook was written against. That check is what makes it impossible to build
+the document against a mixed or regenerated parameter set by accident.
 
-    return {
-        "p": p, "q": q, "mean": mean, "var": var, "sd": math.sqrt(var),
-        "p_pct": 100 * p, "q_pct": 100 * q,
-        "fig": fig1,
-    }
+It stays a separate module rather than a cell because it is file parsing
+rather than statistics, and because `render.py` also lists it in Appendix B.
+
+```python
+import params as P
+
+print(f"signature      {P.SIGNATURE}")
+print("branches       " + ", ".join(f"task {k}: xi = {v:g}"
+                                    for k, v in P.BRANCHES.items()))
+print(f"xi5 + xi7      {P.XI5 + P.XI7:.2f}  ->  renormalised to "
+      f"{P.XI5_STAR:.6f} + {P.XI7_STAR:.6f} = {P.XI5_STAR + P.XI7_STAR:.0f}")
+```
+
+**Task 1 — Bernoulli vote**
+
+A single voter either supports the motion ($x = 1$) with probability
+$p = \xi_2$ or opposes it ($x = 0$) with probability $q = 1 - p$. For a
+Bernoulli variable the mean is $p$ and the variance is $pq$, so there is
+nothing to solve numerically: the cell below evaluates the closed forms and
+draws the two-bar probability mass function with $\mathbb{E}[X]$ marked on it.
+
+The mean is drawn as a horizontal line at $100p$ per cent to make the point
+the prose makes: the expectation of a Bernoulli variable is the proportion of
+the population that votes in favour, not a value the variable can ever take.
+
+```python
+vote_p = P.XI2
+vote_q = 1.0 - vote_p
+vote_mean = vote_p
+vote_var = vote_p * vote_q
+
+fig, ax = plt.subplots(figsize=(4.6, 3.2))
+bars = ax.bar(["against\n(x = 0)", "for\n(x = 1)"], [100 * vote_q, 100 * vote_p],
+              width=0.55, color=[MUTED, ACCENT], edgecolor=INK, linewidth=0.7)
+for bar, value in zip(bars, [100 * vote_q, 100 * vote_p]):
+    ax.text(bar.get_x() + bar.get_width() / 2, value + 1.5, f"{value:.1f} %",
+            ha="center", va="bottom", fontsize=9, fontweight="bold")
+ax.axhline(100 * vote_mean, color=ALT, linestyle="--", linewidth=1.1,
+           label=f"E[X] = {vote_mean:.2f} (= {100 * vote_mean:.0f} % of the unit scale)")
+ax.set_ylim(0, 100)
+ax.set_yticks(range(0, 101, 10))
+ax.set_ylabel("probability of the outcome (%)")
+ax.set_xlabel("outcome of the single vote")
+ax.legend(loc="upper left", frameon=False, fontsize=8)
+vote_fig = save_figure(fig, "task1_bernoulli")
+
+results["task1"] = {
+    "p": vote_p, "q": vote_q, "mean": vote_mean, "var": vote_var,
+    "sd": math.sqrt(vote_var),
+    "p_pct": 100 * vote_p, "q_pct": 100 * vote_q,
+    "fig": vote_fig,
+}
+print(f"E[X] = {vote_mean:.4f}   Var(X) = {vote_var:.4f}   SD(X) = {math.sqrt(vote_var):.4f}")
+```
+
+**Task 2 — waiting time for the owl**
+
+The waiting time $Y \ge 0$ until the owl is first heard has survival function
+
+$$\bar F_Y(y) = P(Y > y) = w_1 e^{-a y^2} + w_2 e^{-b y^8}.$$
+
+Each term is the survival function of a Weibull variable: $e^{-a y^2}$ has
+shape 2 (a Rayleigh distribution) with scale $a^{-1/2}$, and $e^{-b y^8}$ has
+shape 8 with scale $b^{-1/8}$. So $Y$ is a mixture of two Weibull waiting
+times, one that decays early and one that switches on late.
+
+**Why the weights are renormalised.** A survival function must satisfy
+$\bar F_Y(0) = 1$, which forces $w_1 + w_2 = 1$. The generator truncates
+$\xi_5$ and $\xi_7$ to two decimals, so as delivered they sum to 0.99 and
+would leave 1 % of the probability mass unassigned. Dividing each by their sum
+restores the constraint exactly and changes nothing else about the shape;
+`params.py` exposes the corrected weights as `XI5_STAR` and `XI7_STAR`.
+
+The density is minus the derivative of the survival function:
+
+$$f_Y(y) = -\frac{d}{dy}\bar F_Y(y) = 2 a w_1 y e^{-a y^2} + 8 b w_2 y^7 e^{-b y^8}.$$
+
+```python
+owl_w1, owl_w2 = P.XI5_STAR, P.XI7_STAR
+owl_a, owl_b = P.XI6, P.XI8
 
 
-# --------------------------------------------------------------------------
-# Task 2 - waiting time for the owl
-# --------------------------------------------------------------------------
+def owl_survival(y):
+    y = np.asarray(y, dtype=float)
+    return owl_w1 * np.exp(-owl_a * y ** 2) + owl_w2 * np.exp(-owl_b * y ** 8)
 
-def task2() -> dict:
-    w1, w2 = P.XI5_STAR, P.XI7_STAR
-    a, b = P.XI6, P.XI8
 
-    def survival(y):
-        y = np.asarray(y, dtype=float)
-        return w1 * np.exp(-a * y ** 2) + w2 * np.exp(-b * y ** 8)
+def owl_density(y):
+    y = np.asarray(y, dtype=float)
+    return (owl_w1 * 2 * owl_a * y * np.exp(-owl_a * y ** 2)
+            + owl_w2 * 8 * owl_b * y ** 7 * np.exp(-owl_b * y ** 8))
 
-    def density(y):
-        y = np.asarray(y, dtype=float)
-        return (w1 * 2 * a * y * np.exp(-a * y ** 2)
-                + w2 * 8 * b * y ** 7 * np.exp(-b * y ** 8))
 
-    # Closed forms. With Fbar(y) = w1 exp(-a y^2) + w2 exp(-b y^8) and Y >= 0,
-    #   E[Y]   = int_0^inf Fbar = w1/2 sqrt(pi/a) + w2 Gamma(9/8) b^(-1/8)
-    #   E[Y^2] = 2 int_0^inf y Fbar = w1/a + w2 Gamma(1/4) / (4 b^(1/4))
-    mean_exact = (w1 * 0.5 * math.sqrt(math.pi / a)
-                  + w2 * special.gamma(9 / 8) * b ** (-1 / 8))
-    second_exact = w1 / a + w2 * special.gamma(0.25) / (4 * b ** 0.25)
-    var_exact = second_exact - mean_exact ** 2
+print(f"weights   w1 = {owl_w1:.6f}   w2 = {owl_w2:.6f}")
+print(f"shapes    a = {owl_a:g}   b = {owl_b:g}")
+print(f"Fbar(0)   {float(owl_survival(0.0)):.6f}   (must be exactly 1)")
+```
 
-    mean_num = integrate.quad(lambda y: y * density(y), 0, np.inf)[0]
-    second_num = integrate.quad(lambda y: y ** 2 * density(y), 0, np.inf)[0]
-    total_mass = integrate.quad(density, 0, np.inf)[0]
+**Moments, in closed form and numerically**
 
-    quartiles = [optimize.brentq(lambda y: 1 - survival(y) - q, 0, 20)
+For a non-negative variable the expectation is the area under the survival
+function, $\mathbb{E}[Y] = \int_0^\infty \bar F_Y(y)\,dy$, and the second
+moment is $\mathbb{E}[Y^2] = 2\int_0^\infty y \bar F_Y(y)\,dy$. Substituting
+the two exponentials and integrating term by term gives
+
+$$\mathbb{E}[Y] = \frac{w_1}{2}\sqrt{\frac{\pi}{a}} + w_2 \Gamma(9/8) b^{-1/8},
+\qquad
+\mathbb{E}[Y^2] = \frac{w_1}{a} + \frac{w_2 \Gamma(1/4)}{4 b^{1/4}} .$$
+
+The same two quantities are then obtained a second time by numerical
+quadrature against the density, as an independent check on the algebra. The
+total mass $\int_0^\infty f_Y = 1$ is checked at the same time.
+
+```python
+owl_mean_exact = (owl_w1 * 0.5 * math.sqrt(math.pi / owl_a)
+                  + owl_w2 * special.gamma(9 / 8) * owl_b ** (-1 / 8))
+owl_second_exact = owl_w1 / owl_a + owl_w2 * special.gamma(0.25) / (4 * owl_b ** 0.25)
+owl_var_exact = owl_second_exact - owl_mean_exact ** 2
+
+owl_mean_num = integrate.quad(lambda y: y * owl_density(y), 0, np.inf)[0]
+owl_second_num = integrate.quad(lambda y: y ** 2 * owl_density(y), 0, np.inf)[0]
+owl_total_mass = integrate.quad(owl_density, 0, np.inf)[0]
+
+print(f"E[Y]    closed form {owl_mean_exact:.10f}   quadrature {owl_mean_num:.10f}"
+      f"   difference {abs(owl_mean_exact - owl_mean_num):.2e}")
+print(f"E[Y^2]  closed form {owl_second_exact:.10f}   quadrature {owl_second_num:.10f}")
+print(f"total mass {owl_total_mass:.12f}")
+print(f"E[Y] = {owl_mean_exact * 60:.2f} min,  SD = {math.sqrt(owl_var_exact) * 60:.2f} min")
+```
+
+**Quartiles, per-minute probabilities and the two components**
+
+The quartiles solve $F_Y(y) = 1 - \bar F_Y(y) = q$ for $q \in \{0.25, 0.5, 0.75\}$.
+There is no closed form, so each is found by bisection on $[0, 20]$ hours,
+which brackets every root because $\bar F_Y$ falls from 1 to essentially 0 well
+inside that range.
+
+The per-minute probabilities are exact rather than approximated from the
+density: the chance that the owl is first heard during minute $k$ is
+$\bar F_Y\!\left(\frac{k-1}{60}\right) - \bar F_Y\!\left(\frac{k}{60}\right)$.
+
+The component means use the Weibull mean $\text{scale} \times \Gamma(1 + 1/\text{shape})$,
+and the two modes are located by bounded search on either side of the dip that
+separates the early Rayleigh bump from the late shape-8 bump.
+
+```python
+owl_quartiles = [optimize.brentq(lambda y: 1 - owl_survival(y) - q, 0, 20)
                  for q in (0.25, 0.5, 0.75)]
 
-    # Both components are Weibull survival functions: exp(-a y^2) is Weibull
-    # with shape 2 (a Rayleigh) and scale a^(-1/2), and exp(-b y^8) is Weibull
-    # with shape 8 and scale b^(-1/8). Naming them makes the mixture readable.
-    comp1_scale, comp2_scale = a ** -0.5, b ** -0.125
-    comp1_mean = comp1_scale * special.gamma(1 + 1 / 2)
-    comp2_mean = comp2_scale * special.gamma(1 + 1 / 8)
+owl_comp1_scale, owl_comp2_scale = owl_a ** -0.5, owl_b ** -0.125
+owl_comp1_mean = owl_comp1_scale * special.gamma(1 + 1 / 2)
+owl_comp2_mean = owl_comp2_scale * special.gamma(1 + 1 / 8)
 
-    p_2_4 = float(survival(2.0) - survival(4.0))
-    p_within_hour = float(1 - survival(1.0))
+owl_p_2_4 = float(owl_survival(2.0) - owl_survival(4.0))
+owl_p_within_hour = float(1 - owl_survival(1.0))
 
-    # Probability that the owl is first heard during minute k.
-    minutes = np.arange(1, 61)
-    per_minute = survival((minutes - 1) / 60) - survival(minutes / 60)
+# Probability that the owl is first heard during minute k.
+owl_minutes = np.arange(1, 61)
+owl_per_minute = owl_survival((owl_minutes - 1) / 60) - owl_survival(owl_minutes / 60)
 
-    grid = np.linspace(0, 1.4, 1400)
-    fig, ax = plt.subplots(figsize=FIGSIZE)
-    ax.plot(grid, density(grid), color=ACCENT, linewidth=1.6,
-            label=r"$f_Y(y)$")
-    ax.fill_between(grid, density(grid), color=ACCENT, alpha=0.12)
-    top = ax.get_ylim()[1]
-    for value, label, colour, height in zip(
-            quartiles, [r"$Q_1$", "median", r"$Q_3$"],
-            [MUTED, ALT, MUTED], [0.62, 0.44, 0.62]):
-        ax.axvline(value, color=colour, linestyle=":", linewidth=1.1)
-        ax.text(value, top * height, f" {label}\n {value * 60:.1f} min",
-                fontsize=7.5, color=colour, va="top")
-    ax.axvline(mean_exact, color=ALT, linestyle="--", linewidth=1.3,
-               label=f"E[Y] = {mean_exact:.4f} h = {mean_exact * 60:.1f} min")
-    ax.set_xlabel("waiting time y (hours)")
-    ax.set_ylabel(r"probability density $f_Y(y)$  (hour$^{-1}$)")
-    ax.set_xlim(0, 1.4)
-    ax.set_ylim(bottom=0)
-    ax.legend(loc="upper right", frameon=False, fontsize=8)
-    fig_pdf = _save(fig, "task2_density")
+owl_mode1 = float(optimize.minimize_scalar(
+    lambda y: -owl_density(y), bounds=(0.01, 0.5), method="bounded").x)
+owl_mode2 = float(optimize.minimize_scalar(
+    lambda y: -owl_density(y), bounds=(0.6, 1.2), method="bounded").x)
 
-    fig, ax = plt.subplots(figsize=FIGSIZE)
-    ax.bar(minutes, 100 * per_minute, width=0.85, color=ACCENT,
-           edgecolor=INK, linewidth=0.25)
-    ax.axvline(mean_exact * 60, color=ALT, linestyle="--", linewidth=1.3,
-               label=f"E[Y] = {mean_exact * 60:.1f} min")
-    ax.axvline(quartiles[1] * 60, color=MUTED, linestyle=":", linewidth=1.2,
-               label=f"median = {quartiles[1] * 60:.1f} min")
-    ax.set_xlabel("minute k after opening the window")
-    ax.set_ylabel("P(owl first heard during minute k)  (%)")
-    ax.set_xlim(0, 61)
-    ax.legend(loc="upper right", frameon=False, fontsize=8)
-    fig_hist = _save(fig, "task2_minutes")
+print(f"Q1 {owl_quartiles[0] * 60:.2f} min   median {owl_quartiles[1] * 60:.2f} min"
+      f"   Q3 {owl_quartiles[2] * 60:.2f} min")
+print(f"P(within the hour) = {100 * owl_p_within_hour:.3f} %")
+print(f"P(2 h < Y < 4 h)   = {owl_p_2_4:.3e}")
+print(f"modes at {owl_mode1 * 60:.2f} min and {owl_mode2 * 60:.2f} min")
+```
 
-    return {
-        "xi5": P.XI5, "xi7": P.XI7, "xi5_plus_xi7": P.XI5 + P.XI7,
-        # The mass the delivered weights leave unassigned at y = 0.
-        "xi_deficit": 1 - (P.XI5 + P.XI7),
-        "xi6": a, "xi8": b,
-        "w1": w1, "w2": w2,
-        "w1_frac": "2/3", "w2_frac": "1/3",
-        "survival_at_0_raw": P.XI5 + P.XI7,
-        "survival_at_0": float(survival(0.0)),
-        "mass": total_mass,
-        "mean_h": mean_exact, "mean_min": mean_exact * 60,
-        "mean_num_h": mean_num,
-        "mean_abs_err": abs(mean_exact - mean_num),
-        "second_exact": second_exact, "second_num": second_num,
-        "var_h2": var_exact, "var_min2": var_exact * 3600,
-        "sd_h": math.sqrt(var_exact), "sd_min": math.sqrt(var_exact) * 60,
-        "q1_h": quartiles[0], "q1_min": quartiles[0] * 60,
-        "median_h": quartiles[1], "median_min": quartiles[1] * 60,
-        "q3_h": quartiles[2], "q3_min": quartiles[2] * 60,
-        "iqr_min": (quartiles[2] - quartiles[0]) * 60,
-        "p_2_4": p_2_4,
-        "p_within_hour": p_within_hour,
-        "p_within_hour_pct": 100 * p_within_hour,
-        "peak_minute": int(minutes[int(np.argmax(per_minute))]),
-        "peak_minute_pct": float(100 * per_minute.max()),
-        # The two leading minutes differ in the fourth decimal of a per cent, so
-        # the prose reports them as a tie rather than naming a single winner.
-        "peak_minute_2": int(minutes[int(np.argsort(per_minute)[-2])]),
-        "peak_minute_2_pct": float(100 * np.sort(per_minute)[-2]),
-        "comp1_shape": 2, "comp2_shape": 8,
-        "comp1_scale": comp1_scale, "comp2_scale": comp2_scale,
-        "comp1_mean_min": comp1_mean * 60, "comp2_mean_min": comp2_mean * 60,
-        "mode1_min": 60 * float(optimize.minimize_scalar(
-            lambda y: -density(y), bounds=(0.01, 0.5), method="bounded").x),
-        "mode2_min": 60 * float(optimize.minimize_scalar(
-            lambda y: -density(y), bounds=(0.6, 1.2), method="bounded").x),
-        "fig_pdf": fig_pdf, "fig_hist": fig_hist,
-    }
+**Figure 2 — the density with its quartiles**
 
+Plotted on $[0, 1.4]$ hours, which contains essentially all of the mass. The
+bimodality is the visible signature of the mixture.
 
-# --------------------------------------------------------------------------
-# Task 3 - dual router system
-# --------------------------------------------------------------------------
+```python
+owl_grid = np.linspace(0, 1.4, 1400)
+fig, ax = plt.subplots(figsize=FIGSIZE)
+ax.plot(owl_grid, owl_density(owl_grid), color=ACCENT, linewidth=1.6,
+        label=r"$f_Y(y)$")
+ax.fill_between(owl_grid, owl_density(owl_grid), color=ACCENT, alpha=0.12)
+owl_top = ax.get_ylim()[1]
+for value, label, colour, height in zip(
+        owl_quartiles, [r"$Q_1$", "median", r"$Q_3$"],
+        [MUTED, ALT, MUTED], [0.62, 0.44, 0.62]):
+    ax.axvline(value, color=colour, linestyle=":", linewidth=1.1)
+    ax.text(value, owl_top * height, f" {label}\n {value * 60:.1f} min",
+            fontsize=7.5, color=colour, va="top")
+ax.axvline(owl_mean_exact, color=ALT, linestyle="--", linewidth=1.3,
+           label=f"E[Y] = {owl_mean_exact:.4f} h = {owl_mean_exact * 60:.1f} min")
+ax.set_xlabel("waiting time y (hours)")
+ax.set_ylabel(r"probability density $f_Y(y)$  (hour$^{-1}$)")
+ax.set_xlim(0, 1.4)
+ax.set_ylim(bottom=0)
+ax.legend(loc="upper right", frameon=False, fontsize=8)
+owl_fig_pdf = save_figure(fig, "task2_density")
+```
 
-def task3() -> dict:
-    t = np.array(P.XI10, dtype=float)
-    n = t.size
-    total = t.sum()
-    theta_hat = total / (2 * n)
+**Figure 3 — the same distribution, minute by minute**
 
-    def loglik(theta):
-        theta = np.asarray(theta, dtype=float)
-        return np.sum(np.log(t)) - 2 * n * np.log(theta) - total / theta
+The same information as a bar chart over the 60 minutes of the first hour,
+which is the form a reader can act on.
 
-    # Numerical maximisation as an independent check on the closed form.
-    numeric = optimize.minimize_scalar(lambda th: -loglik(th),
-                                       bracket=(theta_hat / 2, theta_hat * 2))
+```python
+fig, ax = plt.subplots(figsize=FIGSIZE)
+ax.bar(owl_minutes, 100 * owl_per_minute, width=0.85, color=ACCENT,
+       edgecolor=INK, linewidth=0.25)
+ax.axvline(owl_mean_exact * 60, color=ALT, linestyle="--", linewidth=1.3,
+           label=f"E[Y] = {owl_mean_exact * 60:.1f} min")
+ax.axvline(owl_quartiles[1] * 60, color=MUTED, linestyle=":", linewidth=1.2,
+           label=f"median = {owl_quartiles[1] * 60:.1f} min")
+ax.set_xlabel("minute k after opening the window")
+ax.set_ylabel("P(owl first heard during minute k)  (%)")
+ax.set_xlim(0, 61)
+ax.legend(loc="upper right", frameon=False, fontsize=8)
+owl_fig_hist = save_figure(fig, "task2_minutes")
+```
 
-    expected_t = 2 * theta_hat
-    fisher = 2 * n / theta_hat ** 2
-    se = 1 / math.sqrt(fisher)
+```python
+results["task2"] = {
+    "xi5": P.XI5, "xi7": P.XI7, "xi5_plus_xi7": P.XI5 + P.XI7,
+    # The mass the delivered weights leave unassigned at y = 0.
+    "xi_deficit": 1 - (P.XI5 + P.XI7),
+    "xi6": owl_a, "xi8": owl_b,
+    "w1": owl_w1, "w2": owl_w2,
+    "w1_frac": "2/3", "w2_frac": "1/3",
+    "survival_at_0_raw": P.XI5 + P.XI7,
+    "survival_at_0": float(owl_survival(0.0)),
+    "mass": owl_total_mass,
+    "mean_h": owl_mean_exact, "mean_min": owl_mean_exact * 60,
+    "mean_num_h": owl_mean_num,
+    "mean_abs_err": abs(owl_mean_exact - owl_mean_num),
+    "second_exact": owl_second_exact, "second_num": owl_second_num,
+    "var_h2": owl_var_exact, "var_min2": owl_var_exact * 3600,
+    "sd_h": math.sqrt(owl_var_exact), "sd_min": math.sqrt(owl_var_exact) * 60,
+    "q1_h": owl_quartiles[0], "q1_min": owl_quartiles[0] * 60,
+    "median_h": owl_quartiles[1], "median_min": owl_quartiles[1] * 60,
+    "q3_h": owl_quartiles[2], "q3_min": owl_quartiles[2] * 60,
+    "iqr_min": (owl_quartiles[2] - owl_quartiles[0]) * 60,
+    "p_2_4": owl_p_2_4,
+    "p_within_hour": owl_p_within_hour,
+    "p_within_hour_pct": 100 * owl_p_within_hour,
+    "peak_minute": int(owl_minutes[int(np.argmax(owl_per_minute))]),
+    "peak_minute_pct": float(100 * owl_per_minute.max()),
+    # The two leading minutes differ in the fourth decimal of a per cent, so
+    # the prose reports them as a tie rather than naming a single winner.
+    "peak_minute_2": int(owl_minutes[int(np.argsort(owl_per_minute)[-2])]),
+    "peak_minute_2_pct": float(100 * np.sort(owl_per_minute)[-2]),
+    "comp1_shape": 2, "comp2_shape": 8,
+    "comp1_scale": owl_comp1_scale, "comp2_scale": owl_comp2_scale,
+    "comp1_mean_min": owl_comp1_mean * 60, "comp2_mean_min": owl_comp2_mean * 60,
+    "mode1_min": 60 * owl_mode1,
+    "mode2_min": 60 * owl_mode2,
+    "fig_pdf": owl_fig_pdf, "fig_hist": owl_fig_hist,
+}
+print(f"task2: {len(results['task2'])} results")
+```
 
-    cv_obs = t.std(ddof=1) / t.mean()
-    cv_model = 1 / math.sqrt(2)
+**Task 3 — bandwidth to failure of a pair of routers**
 
-    grid = np.linspace(theta_hat * 0.35, theta_hat * 2.6, 600)
-    fig, axes = plt.subplots(1, 2, figsize=(6.6, 2.9))
+With $\xi_9 = 0$ a single router carries an exponentially distributed volume
+$S$ with mean $\theta$, and the standby pair delivers $T = S_1 + S_2$, which is
+$\operatorname{Gamma}(2, \theta)$. The log-likelihood of an independent sample
+$T_1,\dots,T_n$ is
 
-    ax = axes[0]
-    ax.plot(grid, loglik(grid), color=ACCENT, linewidth=1.5)
-    ax.axvline(theta_hat, color=ALT, linestyle="--", linewidth=1.2,
-               label=fr"$\hat\theta$ = {theta_hat:.2f} TB")
-    ax.set_xlabel(r"$\theta$  (terabytes)")
-    ax.set_ylabel(r"log-likelihood $\ell(\theta)$")
-    ax.legend(loc="lower center", frameon=False, fontsize=8)
+$$\ell(\theta) = \sum_i \log T_i - 2n\log\theta - \frac{1}{\theta}\sum_i T_i ,$$
 
-    ax = axes[1]
-    tt = np.linspace(0, max(t.max(), 4 * expected_t) * 1.05, 500)
-    ax.plot(tt, stats.gamma.pdf(tt, a=2, scale=theta_hat), color=ACCENT,
-            linewidth=1.5, label=r"fitted $f_T(t)$, Gamma(2, $\hat\theta$)")
-    ax.plot(t, np.zeros_like(t), "|", color=ALT, markersize=12,
-            markeredgewidth=1.4, label="observed sample")
-    ax.axvline(expected_t, color=ALT, linestyle="--", linewidth=1.2,
-               label=f"E[T] = {expected_t:.1f} TB")
-    ax.set_xlabel("bandwidth to failure t of the pair  (terabytes)")
-    ax.set_ylabel(r"density $f_T(t)$  (TB$^{-1}$)")
-    ax.set_ylim(bottom=0)
-    ax.legend(loc="upper right", frameon=False, fontsize=7.5)
+and setting $\ell'(\theta) = 0$ gives $\hat\theta = \bar T / 2$.
 
-    fig.tight_layout()
-    fig_t3 = _save(fig, "task3_mle")
+The cell below evaluates that closed form and then maximises $\ell$ numerically
+as an independent check. It also computes the Fisher information
+$I(\theta) = 2n/\theta^2$, whose inverse square root is the standard error, and
+compares the observed coefficient of variation with the $1/\sqrt{2}$ that
+$\operatorname{Gamma}(2, \theta)$ implies — a cheap goodness-of-fit look.
 
-    return {
-        "n": n, "sample": ", ".join(f"{v:g}" for v in t),
-        "total": total, "mean": t.mean(),
-        "theta_hat": theta_hat,
-        "theta_numeric": float(numeric.x),
-        "theta_abs_err": abs(theta_hat - float(numeric.x)),
-        "expected_t": expected_t,
-        "se": se, "fisher": fisher,
-        "ci_lo": theta_hat - 1.959964 * se, "ci_hi": theta_hat + 1.959964 * se,
-        "cv_obs": cv_obs, "cv_model": cv_model,
-        "sd_t": math.sqrt(2) * theta_hat,
-        "fig": fig_t3,
-    }
+```python
+router_t = np.array(P.XI10, dtype=float)
+router_n = router_t.size
+router_total = router_t.sum()
+theta_hat = router_total / (2 * router_n)
 
 
-# --------------------------------------------------------------------------
-# Task 4 - hypothesis test on hammer weights
-# --------------------------------------------------------------------------
-
-def task4() -> dict:
-    x = np.array(P.XI14, dtype=float)
-    n = x.size
-    mu0, sigma0 = P.XI11, P.XI12
-    xbar = x.mean()
-    s = x.std(ddof=1)
-
-    se = sigma0 / math.sqrt(n)
-    z = (xbar - mu0) / se
-    alpha = 0.05
-    z_crit = stats.norm.ppf(1 - alpha)
-    p_value = float(stats.norm.sf(z))
-    crit_weight = mu0 + z_crit * se
-
-    t_stat = (xbar - mu0) / (s / math.sqrt(n))
-    t_crit = stats.t.ppf(1 - alpha, df=n - 1)
-    t_p = float(stats.t.sf(t_stat, df=n - 1))
-
-    # Power of the z-test at the observed mean, and the difference the design
-    # could detect with 80 % power.
-    power_at_obs = float(stats.norm.sf(z_crit - (xbar - mu0) / se))
-    delta_80 = (z_crit + stats.norm.ppf(0.80)) * se
-    n_for_obs = ((z_crit + stats.norm.ppf(0.80)) * sigma0 / (xbar - mu0)) ** 2
-
-    grid = np.linspace(mu0 - 4 * se, mu0 + 4.5 * se, 700)
-    fig, ax = plt.subplots(figsize=FIGSIZE)
-    ax.plot(grid, stats.norm.pdf(grid, mu0, se), color=ACCENT, linewidth=1.6,
-            label=r"sampling density of $\bar{X}$ under $H_0$")
-    reject = grid >= crit_weight
-    ax.fill_between(grid[reject], stats.norm.pdf(grid[reject], mu0, se),
-                    color=ALT, alpha=0.25,
-                    label=fr"rejection region, $\alpha$ = {alpha:.2f}")
-    ax.axvline(crit_weight, color=ALT, linestyle="--", linewidth=1.2,
-               label=f"critical value = {crit_weight:.1f} g")
-    ax.axvline(xbar, color=INK, linestyle="-", linewidth=1.6,
-               label=fr"observed $\bar{{x}}$ = {xbar:.1f} g")
-    ax.set_xlabel("mean weight of a sample of 10 hammers  (grams)")
-    ax.set_ylabel(r"density  (g$^{-1}$)")
-    ax.set_ylim(bottom=0)
-    ax.legend(loc="upper left", frameon=False, fontsize=7.5)
-    fig_t4 = _save(fig, "task4_test")
-
-    return {
-        "n": n, "sample": ", ".join(f"{v:g}" for v in x),
-        "mu0": mu0, "sigma0": sigma0,
-        "xbar": xbar, "s": s, "se": se,
-        "diff": xbar - mu0,
-        "z": z, "z_crit": z_crit, "p_value": p_value,
-        "crit_weight": crit_weight,
-        "alpha": alpha, "alpha_pct": 100 * alpha,
-        "t_stat": t_stat, "t_crit": t_crit, "t_p": t_p, "df": n - 1,
-        "power_at_obs": power_at_obs, "power_at_obs_pct": 100 * power_at_obs,
-        "beta_at_obs_pct": 100 * (1 - power_at_obs),
-        "delta_80": delta_80,
-        "n_for_obs": math.ceil(n_for_obs),
-        "var_ratio": (s / sigma0) ** 2,
-        "fig": fig_t4,
-    }
+def router_loglik(theta):
+    theta = np.asarray(theta, dtype=float)
+    return (np.sum(np.log(router_t)) - 2 * router_n * np.log(theta)
+            - router_total / theta)
 
 
-# --------------------------------------------------------------------------
-# Task 5 - OLS and ridge on a degree-10 polynomial
-# --------------------------------------------------------------------------
+# Numerical maximisation as an independent check on the closed form.
+router_numeric = optimize.minimize_scalar(
+    lambda th: -router_loglik(th), bracket=(theta_hat / 2, theta_hat * 2))
 
-def _design(x_scaled: np.ndarray, degree: int) -> np.ndarray:
+router_expected_t = 2 * theta_hat
+router_fisher = 2 * router_n / theta_hat ** 2
+router_se = 1 / math.sqrt(router_fisher)
+
+router_cv_obs = router_t.std(ddof=1) / router_t.mean()
+router_cv_model = 1 / math.sqrt(2)
+
+print(f"sample     {', '.join(f'{v:g}' for v in router_t)}  (n = {router_n})")
+print(f"theta_hat  closed form {theta_hat:.6f}   numeric {float(router_numeric.x):.6f}"
+      f"   difference {abs(theta_hat - float(router_numeric.x)):.2e}")
+print(f"E[T]       {router_expected_t:.2f} TB    standard error {router_se:.2f} TB")
+print(f"CV         observed {router_cv_obs:.4f}   model {router_cv_model:.4f}")
+```
+
+**Figure 4 — the log-likelihood and the fitted density**
+
+Panel (a) shows that $\ell$ has a single interior maximum, which is what makes
+the estimate well defined. Panel (b) puts the fitted $\operatorname{Gamma}(2, \hat\theta)$
+density against the five observations, drawn as ticks, so the reader can see
+how little the sample constrains the fit.
+
+```python
+router_grid = np.linspace(theta_hat * 0.35, theta_hat * 2.6, 600)
+fig, axes = plt.subplots(1, 2, figsize=(6.6, 2.9))
+
+ax = axes[0]
+ax.plot(router_grid, router_loglik(router_grid), color=ACCENT, linewidth=1.5)
+ax.axvline(theta_hat, color=ALT, linestyle="--", linewidth=1.2,
+           label=fr"$\hat\theta$ = {theta_hat:.2f} TB")
+ax.set_xlabel(r"$\theta$  (terabytes)")
+ax.set_ylabel(r"log-likelihood $\ell(\theta)$")
+ax.legend(loc="lower center", frameon=False, fontsize=8)
+
+ax = axes[1]
+router_tt = np.linspace(0, max(router_t.max(), 4 * router_expected_t) * 1.05, 500)
+ax.plot(router_tt, stats.gamma.pdf(router_tt, a=2, scale=theta_hat), color=ACCENT,
+        linewidth=1.5, label=r"fitted $f_T(t)$, Gamma(2, $\hat\theta$)")
+ax.plot(router_t, np.zeros_like(router_t), "|", color=ALT, markersize=12,
+        markeredgewidth=1.4, label="observed sample")
+ax.axvline(router_expected_t, color=ALT, linestyle="--", linewidth=1.2,
+           label=f"E[T] = {router_expected_t:.1f} TB")
+ax.set_xlabel("bandwidth to failure t of the pair  (terabytes)")
+ax.set_ylabel(r"density $f_T(t)$  (TB$^{-1}$)")
+ax.set_ylim(bottom=0)
+ax.legend(loc="upper right", frameon=False, fontsize=7.5)
+
+fig.tight_layout()
+router_fig = save_figure(fig, "task3_mle")
+```
+
+```python
+results["task3"] = {
+    "n": router_n, "sample": ", ".join(f"{v:g}" for v in router_t),
+    "total": router_total, "mean": router_t.mean(),
+    "theta_hat": theta_hat,
+    "theta_numeric": float(router_numeric.x),
+    "theta_abs_err": abs(theta_hat - float(router_numeric.x)),
+    "expected_t": router_expected_t,
+    "se": router_se, "fisher": router_fisher,
+    "ci_lo": theta_hat - 1.959964 * router_se,
+    "ci_hi": theta_hat + 1.959964 * router_se,
+    "cv_obs": router_cv_obs, "cv_model": router_cv_model,
+    "sd_t": math.sqrt(2) * theta_hat,
+    "fig": router_fig,
+}
+print(f"task3: {len(results['task3'])} results")
+```
+
+**Task 4 — hypothesis test on hammer weights**
+
+The population standard deviation $\sigma_0 = \xi_{12}$ is given, so the
+correct test of $H_0: \mu = \mu_0$ against $H_1: \mu > \mu_0$ is the one-sided
+**z-test**, not a t-test. The two are easy to confuse: the t-test is what you
+use when $\sigma$ has to be estimated from the sample by $s$. Here it does not,
+so the standard error is $\sigma_0/\sqrt{n}$ and the reference distribution is
+the standard normal.
+
+$$Z = \frac{\bar X - \mu_0}{\sigma_0/\sqrt{n}} \;\sim\; N(0, 1) \text{ under } H_0 .$$
+
+The t-statistic is computed anyway, purely so the workbook can state what the
+other reading would have given and show that the conclusion does not hinge on
+the choice.
+
+Two design quantities follow the test: the power at the observed mean, and the
+difference $\delta$ that this sample size could detect with 80 % power. They
+are what turn "fail to reject" into a statement about what the experiment was
+capable of seeing.
+
+```python
+hammer_x = np.array(P.XI14, dtype=float)
+hammer_n = hammer_x.size
+mu0, sigma0 = P.XI11, P.XI12
+hammer_xbar = hammer_x.mean()
+hammer_s = hammer_x.std(ddof=1)
+
+hammer_se = sigma0 / math.sqrt(hammer_n)
+hammer_z = (hammer_xbar - mu0) / hammer_se
+hammer_alpha = 0.05
+hammer_z_crit = stats.norm.ppf(1 - hammer_alpha)
+hammer_p_value = float(stats.norm.sf(hammer_z))
+hammer_crit_weight = mu0 + hammer_z_crit * hammer_se
+
+hammer_t_stat = (hammer_xbar - mu0) / (hammer_s / math.sqrt(hammer_n))
+hammer_t_crit = stats.t.ppf(1 - hammer_alpha, df=hammer_n - 1)
+hammer_t_p = float(stats.t.sf(hammer_t_stat, df=hammer_n - 1))
+
+# Power of the z-test at the observed mean, and the difference the design
+# could detect with 80 % power.
+hammer_power = float(stats.norm.sf(hammer_z_crit - (hammer_xbar - mu0) / hammer_se))
+hammer_delta_80 = (hammer_z_crit + stats.norm.ppf(0.80)) * hammer_se
+hammer_n_for_obs = ((hammer_z_crit + stats.norm.ppf(0.80)) * sigma0
+                    / (hammer_xbar - mu0)) ** 2
+
+print(f"xbar {hammer_xbar:.2f} g   mu0 {mu0:.0f} g   difference {hammer_xbar - mu0:+.2f} g")
+print(f"z    {hammer_z:.4f}  vs critical {hammer_z_crit:.4f}   p = {hammer_p_value:.4f}")
+print(f"t    {hammer_t_stat:.4f}  vs critical {hammer_t_crit:.4f}   p = {hammer_t_p:.4f}")
+print(f"decision at alpha = {hammer_alpha:.2f}: "
+      f"{'reject H0' if hammer_z > hammer_z_crit else 'fail to reject H0'}")
+print(f"power at the observed mean {100 * hammer_power:.1f} %; "
+      f"80 % power would need a shift of {hammer_delta_80:.1f} g "
+      f"or n = {math.ceil(hammer_n_for_obs)}")
+```
+
+**Figure 5 — the test, drawn**
+
+The sampling density of $\bar X$ under $H_0$, with the 5 % rejection region
+shaded and the observed mean marked. The picture is the argument: the observed
+mean sits inside the region the null model comfortably produces.
+
+```python
+hammer_grid = np.linspace(mu0 - 4 * hammer_se, mu0 + 4.5 * hammer_se, 700)
+fig, ax = plt.subplots(figsize=FIGSIZE)
+ax.plot(hammer_grid, stats.norm.pdf(hammer_grid, mu0, hammer_se), color=ACCENT,
+        linewidth=1.6, label=r"sampling density of $\bar{X}$ under $H_0$")
+hammer_reject = hammer_grid >= hammer_crit_weight
+ax.fill_between(hammer_grid[hammer_reject],
+                stats.norm.pdf(hammer_grid[hammer_reject], mu0, hammer_se),
+                color=ALT, alpha=0.25,
+                label=fr"rejection region, $\alpha$ = {hammer_alpha:.2f}")
+ax.axvline(hammer_crit_weight, color=ALT, linestyle="--", linewidth=1.2,
+           label=f"critical value = {hammer_crit_weight:.1f} g")
+ax.axvline(hammer_xbar, color=INK, linestyle="-", linewidth=1.6,
+           label=fr"observed $\bar{{x}}$ = {hammer_xbar:.1f} g")
+ax.set_xlabel("mean weight of a sample of 10 hammers  (grams)")
+ax.set_ylabel(r"density  (g$^{-1}$)")
+ax.set_ylim(bottom=0)
+ax.legend(loc="upper left", frameon=False, fontsize=7.5)
+hammer_fig = save_figure(fig, "task4_test")
+```
+
+```python
+results["task4"] = {
+    "n": hammer_n, "sample": ", ".join(f"{v:g}" for v in hammer_x),
+    "mu0": mu0, "sigma0": sigma0,
+    "xbar": hammer_xbar, "s": hammer_s, "se": hammer_se,
+    "diff": hammer_xbar - mu0,
+    "z": hammer_z, "z_crit": hammer_z_crit, "p_value": hammer_p_value,
+    "crit_weight": hammer_crit_weight,
+    "alpha": hammer_alpha, "alpha_pct": 100 * hammer_alpha,
+    "t_stat": hammer_t_stat, "t_crit": hammer_t_crit, "t_p": hammer_t_p,
+    "df": hammer_n - 1,
+    "power_at_obs": hammer_power, "power_at_obs_pct": 100 * hammer_power,
+    "beta_at_obs_pct": 100 * (1 - hammer_power),
+    "delta_80": hammer_delta_80,
+    "n_for_obs": math.ceil(hammer_n_for_obs),
+    "var_ratio": (hammer_s / sigma0) ** 2,
+    "fig": hammer_fig,
+}
+print(f"task4: {len(results['task4'])} results")
+```
+
+**Task 5 — OLS and ridge on a degree-10 polynomial**
+
+Eleven coefficients are fitted to a small sample whose $x$ values span two
+orders of magnitude and whose $y$ values span thirteen. Two numerical points
+dominate everything else here and are dealt with before any statistics.
+
+**Rescaling.** Both axes are divided by their largest absolute value, so the
+fit is done on dimensionless quantities. This matters twice: it cuts the
+condition number of the design matrix by orders of magnitude, and it makes the
+ridge penalty $\lambda$ meaningful at all — $\lambda$ trades against the
+squared residual, so it has no scale-free interpretation until $x$ and $y$ are
+dimensionless. Coefficients are mapped back to the original units at the end.
+
+**Solving by SVD rather than the normal equations.** Forming and inverting
+$X'X$ squares the condition number. Even after rescaling the design has a
+condition number near $4\times 10^3$, so $X'X$ sits near $10^7$ and small
+penalties lose all precision. The class below therefore reads the penalised
+solution straight off the singular value decomposition, following Hastie,
+Tibshirani and Friedman (2009, sec. 3.4.1), and centres the columns so that
+the intercept is not penalised:
+
+$$\beta(\lambda) = V \operatorname{diag}\!\left(\frac{d}{d^2 + \lambda}\right) U' y_c ,$$
+
+which is stable for every $\lambda \ge 0$. Setting $\lambda = 0$ recovers OLS,
+which is checked against NumPy's own least-squares solver further down.
+
+The class also exposes the leverages (the diagonal of the hat matrix) so that
+leave-one-out cross-validation can be evaluated in closed form, without
+refitting the model $n$ times.
+
+```python
+def poly_design(x_scaled: np.ndarray, degree: int) -> np.ndarray:
     return np.vander(x_scaled, degree + 1, increasing=True)
 
 
-class _Ridge:
+class Ridge:
     """Ridge regression with an unpenalised intercept, solved by SVD.
 
     Forming and inverting the Gram matrix X'X squares the condition number and
@@ -1200,29 +1488,207 @@ class _Ridge:
     def coefficients(self, lam: float) -> np.ndarray:
         """Return coefficients in the original basis, intercept first."""
         shrunk = self.d / (self.d ** 2 + lam)
-        slope = _matvec(self.Vt.T, shrunk * _matvec(self.U.T, self.yc))
+        slope = matvec(self.Vt.T, shrunk * matvec(self.U.T, self.yc))
         intercept = self.y_mean - float(self.x_mean @ slope)
         return np.concatenate([[intercept], slope])
 
     def leverages(self, lam: float) -> np.ndarray:
         """Diagonal of the hat matrix, including the unpenalised intercept."""
         factors = self.d ** 2 / (self.d ** 2 + lam)
-        return 1.0 / self.n + _matvec(self.U ** 2, factors)
+        return 1.0 / self.n + matvec(self.U ** 2, factors)
 
     def loo_mse(self, lam: float) -> float:
         """Leave-one-out mean squared error via the closed-form shortcut."""
         beta = self.coefficients(lam)
-        residual = self.yc - _matvec(self.Xc, beta[1:])
+        residual = self.yc - matvec(self.Xc, beta[1:])
         return float(np.mean((residual / (1.0 - self.leverages(lam))) ** 2))
+```
+
+**Building the design and fitting OLS**
+
+`cond_raw` and `cond_scaled` are reported in the workbook to justify the
+rescaling, and `ols_check` is the largest coefficient discrepancy between the
+SVD route at $\lambda = 0$ and `numpy.linalg.lstsq` — an independent
+confirmation that the class really does reduce to ordinary least squares.
+
+```python
+poly_pairs = sorted(P.XI16)
+poly_x = np.array([a for a, _ in poly_pairs], dtype=float)
+poly_y = np.array([b for _, b in poly_pairs], dtype=float)
+poly_n, poly_degree = poly_x.size, 10
+
+poly_x_scale = np.abs(poly_x).max()
+poly_y_scale = np.abs(poly_y).max()
+poly_xs, poly_ys = poly_x / poly_x_scale, poly_y / poly_y_scale
+
+poly_X_raw = poly_design(poly_x, poly_degree)
+poly_X = poly_design(poly_xs, poly_degree)
+poly_cond_raw = float(np.linalg.cond(poly_X_raw))
+poly_cond_scaled = float(np.linalg.cond(poly_X))
+
+poly_fit = Ridge(poly_X, poly_ys)
+
+beta_ols = poly_fit.coefficients(0.0)
+poly_resid_ols = poly_ys - matvec(poly_X, beta_ols)
+poly_rmse_ols = float(np.sqrt(np.mean(poly_resid_ols ** 2)))
+
+# Independent check that the SVD route at lambda = 0 is ordinary least
+# squares: compare against NumPy's own least-squares solver.
+beta_lstsq = np.linalg.lstsq(poly_X, poly_ys, rcond=None)[0]
+poly_ols_check = float(np.abs(beta_ols - beta_lstsq).max())
+
+print(f"n = {poly_n} points, degree {poly_degree}, {poly_degree + 1} coefficients")
+print(f"condition number  raw {poly_cond_raw:.3e}   scaled {poly_cond_scaled:.3e}"
+      f"   ratio {poly_cond_raw / poly_cond_scaled:.3e}")
+print(f"SVD vs lstsq at lambda = 0: max coefficient difference {poly_ols_check:.2e}")
+```
+
+**Choosing the penalty by leave-one-out cross-validation**
+
+The criterion is evaluated on a logarithmic grid from $10^{-12}$ to $10^{2}$
+for the figure, then refined inside the bracketing grid cell. The refinement
+is not cosmetic: at 20 points per decade the grid spacing is 12 %, so reading
+$\lambda^*$ off a grid node would fix its second significant digit by accident.
+
+The criterion is also shallow near its minimum, so the range of penalties
+scoring within 1 % of the best is reported alongside $\lambda^*$ rather than
+implying that the minimiser is sharply determined.
+
+```python
+poly_lambdas = np.logspace(-12, 2, 281)
+poly_loo = np.array([poly_fit.loo_mse(lam) for lam in poly_lambdas])
+poly_coarse = int(np.argmin(poly_loo))
+
+poly_lo = math.log10(poly_lambdas[max(poly_coarse - 1, 0)])
+poly_hi = math.log10(poly_lambdas[min(poly_coarse + 1, poly_lambdas.size - 1)])
+lam_star = float(10 ** optimize.minimize_scalar(
+    lambda t: poly_fit.loo_mse(10 ** t), bounds=(poly_lo, poly_hi),
+    method="bounded", options={"xatol": 1e-6}).x)
+
+poly_loo_star = poly_fit.loo_mse(lam_star)
+poly_band = np.logspace(poly_lo - 1, poly_hi + 1, 2001)
+poly_inside = poly_band[np.array([poly_fit.loo_mse(l) for l in poly_band])
+                        <= poly_loo_star * 1.01]
+lam_band_lo, lam_band_hi = float(poly_inside.min()), float(poly_inside.max())
+
+print(f"lambda*        {lam_star:.4e}")
+print(f"within 1 % of the best score: [{lam_band_lo:.2e}, {lam_band_hi:.2e}]")
+```
+
+**The three fits, and what they cost**
+
+Three penalties are compared: $\lambda = 0$ (OLS), the cross-validated
+$\lambda^*$, and a deliberately heavy $\lambda = 10^{-2}$ that shows what the
+trade-off looks like when shrinkage is pushed too far.
+
+Least squares on these data is dominated by the largest $|y|$, so a global
+RMSE says almost nothing about the small-$|x|$ region where $|y|$ stays below
+$2\times 10^9$. `small_rel_err` measures the worst relative error over exactly
+that region, and it is the number the workbook uses to argue that neither
+estimate should be trusted there.
+
+```python
+beta_ridge = poly_fit.coefficients(lam_star)
+poly_resid_ridge = poly_ys - matvec(poly_X, beta_ridge)
+poly_rmse_ridge = float(np.sqrt(np.mean(poly_resid_ridge ** 2)))
+
+# A deliberately heavy penalty, to show what the trade-off looks like.
+lam_heavy = 1e-2
+beta_heavy = poly_fit.coefficients(lam_heavy)
+poly_rmse_heavy = float(np.sqrt(np.mean((poly_ys - matvec(poly_X, beta_heavy)) ** 2)))
+
+poly_small = np.abs(poly_x) <= 7
 
 
-def _pairs_table(pairs: list[tuple[float, float]]) -> str:
-    """Render the Task 5 coordinate pairs as Markdown rows, two pairs per row.
+def small_rel_err(beta):
+    fitted = poly_y_scale * matvec(poly_X[poly_small], beta)
+    return float(np.max(np.abs((fitted - poly_y[poly_small]) / poly_y[poly_small])))
 
-    The generator prints these to two decimals, so ``.2f`` reproduces them
-    verbatim; building the appendix table here rather than typing it keeps it
-    from drifting if the parameter set is ever regenerated.
-    """
+
+def to_original(beta_scaled: np.ndarray) -> np.ndarray:
+    """Map coefficients of the scaled fit back to the original x and y."""
+    return beta_scaled * poly_y_scale / poly_x_scale ** np.arange(poly_degree + 1)
+
+
+alpha_ols = to_original(beta_ols)
+alpha_ridge = to_original(beta_ridge)
+alpha_heavy = to_original(beta_heavy)
+
+print(f"RMSE (original units)  OLS {poly_rmse_ols * poly_y_scale:.4e}"
+      f"   ridge {poly_rmse_ridge * poly_y_scale:.4e}"
+      f"   heavy {poly_rmse_heavy * poly_y_scale:.4e}")
+print(f"coefficient norm       OLS {np.linalg.norm(beta_ols[1:]):.6f}"
+      f"   ridge {np.linalg.norm(beta_ridge[1:]):.6f}")
+print(f"worst relative error on the {int(poly_small.sum())} points with |x| <= 7:"
+      f"  OLS {small_rel_err(beta_ols):.3f}   ridge {small_rel_err(beta_ridge):.3f}")
+```
+
+**Figure 6 — three panels**
+
+Panel (a) is the full range, on which the two fits are indistinguishable from
+the data — which is exactly why panel (b) is needed. Panel (b) zooms into
+$|x| \le 7$, where both fits are worthless. Panel (c) shows how the penalty
+was chosen.
+
+```python
+poly_grid = np.linspace(poly_x.min() - 0.5, poly_x.max() + 0.5, 800)
+poly_Xg = poly_design(poly_grid / poly_x_scale, poly_degree)
+poly_fit_ols = poly_y_scale * matvec(poly_Xg, beta_ols)
+poly_fit_ridge = poly_y_scale * matvec(poly_Xg, beta_ridge)
+
+fig, axes = plt.subplots(1, 3, figsize=(7.0, 2.5))
+
+# (a) Full range. On this scale both estimates are indistinguishable from
+# the data, which is the entire reason panel (b) is needed.
+ax = axes[0]
+ax.plot(poly_x, poly_y / 1e13, "o", color=INK, markersize=3.0,
+        label="sample", zorder=5)
+ax.plot(poly_grid, poly_fit_ols / 1e13, color=ACCENT, linewidth=1.2, label="OLS")
+ax.plot(poly_grid, poly_fit_ridge / 1e13, color=ALT, linewidth=1.2, linestyle="--",
+        label="ridge")
+ax.set_xlabel("x")
+ax.set_ylabel(r"y  ($\times 10^{13}$)")
+ax.set_title("(a) full range", fontsize=8.5)
+ax.legend(loc="lower center", frameon=False, fontsize=7)
+
+# (b) The small-|x| region, where both fits are worthless.
+ax = axes[1]
+poly_zoom = np.abs(poly_grid) <= 7
+ax.plot(poly_x[poly_small], poly_y[poly_small] / 1e11, "o", color=INK,
+        markersize=3.0, label="sample", zorder=5)
+ax.plot(poly_grid[poly_zoom], poly_fit_ols[poly_zoom] / 1e11, color=ACCENT,
+        linewidth=1.2, label="OLS")
+ax.plot(poly_grid[poly_zoom], poly_fit_ridge[poly_zoom] / 1e11, color=ALT,
+        linewidth=1.2, linestyle="--", label="ridge")
+ax.axhline(0, color=MUTED, linewidth=0.6)
+ax.set_xlabel("x")
+ax.set_ylabel(r"y  ($\times 10^{11}$)")
+ax.set_title(r"(b) zoom, $|x| \leq 7$", fontsize=8.5)
+ax.legend(loc="upper right", frameon=False, fontsize=7)
+
+# (c) How the penalty was chosen.
+ax = axes[2]
+ax.loglog(poly_lambdas, poly_loo, color=ACCENT, linewidth=1.3)
+ax.axvline(lam_star, color=ALT, linestyle="--", linewidth=1.2,
+           label=fr"$\lambda^*$ = {lam_star:.1e}")
+ax.set_xlabel(r"penalty $\lambda$")
+ax.set_ylabel("leave-one-out MSE")
+ax.set_title("(c) penalty choice", fontsize=8.5)
+ax.legend(loc="upper left", frameon=False, fontsize=7)
+
+fig.tight_layout()
+poly_fig = save_figure(fig, "task5_ridge")
+```
+
+**The coordinate table for Appendix A**
+
+The generator prints the pairs to two decimals, so `.2f` reproduces them
+verbatim. Building the table here rather than typing it keeps it from drifting
+if the parameter set is ever regenerated.
+
+```python
+def pairs_table(pairs: list) -> str:
+    """Render the Task 5 coordinate pairs as Markdown rows, two pairs per row."""
     half = (len(pairs) + 1) // 2
     left, right = pairs[:half], pairs[half:]
     rows = []
@@ -1238,292 +1704,195 @@ def _pairs_table(pairs: list[tuple[float, float]]) -> str:
     return "\n".join(rows)
 
 
-def task5() -> dict:
-    pairs = sorted(P.XI16)
-    x = np.array([a for a, _ in pairs], dtype=float)
-    y = np.array([b for _, b in pairs], dtype=float)
-    n, degree = x.size, 10
+def fmt_vector(vec: np.ndarray) -> str:
+    return ", ".join(f"{v:.4g}" for v in vec)
+```
 
-    x_scale = np.abs(x).max()
-    y_scale = np.abs(y).max()
-    xs, ys = x / x_scale, y / y_scale
+```python
+results["task5"] = {
+    "n": poly_n, "degree": poly_degree, "n_params": poly_degree + 1,
+    "x_min": poly_x.min(), "x_max": poly_x.max(),
+    "y_min": poly_y.min(), "y_max": poly_y.max(),
+    "x_scale": poly_x_scale, "y_scale": poly_y_scale,
+    "cond_raw": poly_cond_raw, "cond_scaled": poly_cond_scaled,
+    "cond_ratio": poly_cond_raw / poly_cond_scaled,
+    "lam_star": lam_star, "lam_heavy": lam_heavy,
+    "lam_band_lo": lam_band_lo, "lam_band_hi": lam_band_hi,
+    "pairs_rows": pairs_table(poly_pairs),
+    "rmse_ols": poly_rmse_ols * poly_y_scale,
+    "rmse_ridge": poly_rmse_ridge * poly_y_scale,
+    "rmse_heavy": poly_rmse_heavy * poly_y_scale,
+    "rmse_ols_rel": poly_rmse_ols, "rmse_ridge_rel": poly_rmse_ridge,
+    "rmse_heavy_rel": poly_rmse_heavy,
+    "norm_ols": float(np.linalg.norm(beta_ols[1:])),
+    "norm_ridge": float(np.linalg.norm(beta_ridge[1:])),
+    "norm_heavy": float(np.linalg.norm(beta_heavy[1:])),
+    "norm_shrink_pct": 100 * (1 - float(np.linalg.norm(beta_ridge[1:]))
+                              / float(np.linalg.norm(beta_ols[1:]))),
+    "alpha_ols": fmt_vector(alpha_ols), "alpha_ridge": fmt_vector(alpha_ridge),
+    "alpha_heavy": fmt_vector(alpha_heavy),
+    "a0_ols": alpha_ols[0], "a0_ridge": alpha_ridge[0],
+    "a10_ols": alpha_ols[10], "a10_ridge": alpha_ridge[10],
+    "y_at_zero": float(poly_y[poly_x == 0][0]) if np.any(poly_x == 0) else float("nan"),
+    "n_small": int(poly_small.sum()),
+    "small_rel_ols": small_rel_err(beta_ols),
+    "small_rel_ridge": small_rel_err(beta_ridge),
+    "ols_check": poly_ols_check,
+    "fig": poly_fig,
+}
+print(f"task5: {len(results['task5'])} results")
+```
 
-    X_raw = _design(x, degree)
-    X = _design(xs, degree)
-    cond_raw = float(np.linalg.cond(X_raw))
-    cond_scaled = float(np.linalg.cond(X))
+**Task 6 — Bayesian estimate of a gamma rate**
 
-    fit = _Ridge(X, ys)
+Ten observations $x_1,\dots,x_{10}$ are drawn from a gamma density with known
+shape $\alpha = 3$ and unknown rate $\theta$, and $\theta$ carries a gamma
+prior. The gamma family is conjugate to itself in this setting, so the
+posterior is again gamma with
 
-    beta_ols = fit.coefficients(0.0)
-    resid_ols = ys - _matvec(X, beta_ols)
-    rmse_ols = float(np.sqrt(np.mean(resid_ols ** 2)))
+$$\text{shape} = \xi_{17} + \alpha n , \qquad \text{rate} = \frac{1}{\xi_{18}} + \sum_i x_i .$$
 
-    # Independent check that the SVD route at lambda = 0 is ordinary least
-    # squares: compare against NumPy's own least-squares solver.
-    beta_lstsq = np.linalg.lstsq(X, ys, rcond=None)[0]
-    ols_check = float(np.abs(beta_ols - beta_lstsq).max())
+**The convention trap.** Hogg, McKean and Craig write the gamma density with
+$\beta$ as a **scale**, and the workbook follows them without exception. Read
+consistently, the prior rate is therefore $1/\xi_{18}$, not $\xi_{18}$. A
+reader using the other convention would get a visibly different posterior, so
+the alternative reading is computed as well and reported, with the size of the
+discrepancy, rather than left as a silent assumption.
 
-    # Penalty weight by leave-one-out cross-validation on the standardised
-    # problem. Both axes are rescaled first: lambda trades against the squared
-    # residual, so it is meaningless until x and y are dimensionless.
-    lambdas = np.logspace(-12, 2, 281)
-    loo = np.array([fit.loo_mse(lam) for lam in lambdas])
-    coarse = int(np.argmin(loo))
+The maximum likelihood estimate $\alpha/\bar x$ is computed for comparison: it
+is what the data alone would say, and its distance from the posterior mean is
+the visible contribution of the prior.
 
-    # The grid is only for the figure: at 20 points per decade its spacing is
-    # 12 %, which would fix the second significant digit of lambda* by accident.
-    # Refine within the bracketing grid cell so the quoted value is the actual
-    # minimiser rather than the nearest grid node.
-    lo = math.log10(lambdas[max(coarse - 1, 0)])
-    hi = math.log10(lambdas[min(coarse + 1, lambdas.size - 1)])
-    lam_star = float(10 ** optimize.minimize_scalar(
-        lambda t: fit.loo_mse(10 ** t), bounds=(lo, hi), method="bounded",
-        options={"xatol": 1e-6}).x)
+```python
+bayes_n, bayes_alpha = P.TASK6_N, P.TASK6_ALPHA
+prior_shape, prior_beta = P.XI17, P.XI18
+bayes_xbar = P.XI19
+bayes_total = bayes_n * bayes_xbar
 
-    # The criterion is shallow near its minimum, so report the range of
-    # penalties that are within 1 % of the best score rather than implying that
-    # lambda* is sharply determined.
-    loo_star = fit.loo_mse(lam_star)
-    band = np.logspace(lo - 1, hi + 1, 2001)
-    inside = band[np.array([fit.loo_mse(l) for l in band]) <= loo_star * 1.01]
-    lam_band_lo, lam_band_hi = float(inside.min()), float(inside.max())
+# Hogg, McKean and Craig write the gamma density with beta as a scale.
+# Read consistently, the prior rate is 1/xi18.
+post_shape = prior_shape + bayes_alpha * bayes_n
+post_rate = 1.0 / prior_beta + bayes_total
+post_mean = post_shape / post_rate
+post_mode = (post_shape - 1) / post_rate
 
-    beta_ridge = fit.coefficients(lam_star)
-    resid_ridge = ys - _matvec(X, beta_ridge)
-    rmse_ridge = float(np.sqrt(np.mean(resid_ridge ** 2)))
+# The alternative reading, in which xi18 is a rate, is reported so that a
+# reader who uses the other convention can locate the difference at once.
+alt_rate = prior_beta + bayes_total
+alt_mean = post_shape / alt_rate
+alt_mode = (post_shape - 1) / alt_rate
 
-    # A deliberately heavy penalty, to show what the trade-off looks like.
-    lam_heavy = 1e-2
-    beta_heavy = fit.coefficients(lam_heavy)
-    rmse_heavy = float(np.sqrt(np.mean((ys - _matvec(X, beta_heavy)) ** 2)))
+prior_mean = prior_shape * prior_beta
+bayes_mle = bayes_alpha / bayes_xbar
 
-    # Absolute-error least squares is dominated by the largest |y|. Measuring
-    # the fit on the points with |x| <= 7, where |y| stays below 2e9, shows how
-    # little either estimate says about that part of the curve.
-    small = np.abs(x) <= 7
-    def small_rel_err(beta):
-        fitted = y_scale * _matvec(X[small], beta)
-        return float(np.max(np.abs((fitted - y[small]) / y[small])))
+cred_lo = stats.gamma.ppf(0.025, a=post_shape, scale=1 / post_rate)
+cred_hi = stats.gamma.ppf(0.975, a=post_shape, scale=1 / post_rate)
 
-    def to_original(beta_scaled: np.ndarray) -> np.ndarray:
-        """Map coefficients of the scaled fit back to the original x and y."""
-        return beta_scaled * y_scale / x_scale ** np.arange(degree + 1)
+print(f"prior      Gamma(shape {prior_shape:.0f}, scale {prior_beta:.0f})"
+      f"  ->  rate {1 / prior_beta:.6f}, mean {prior_mean:.0f}")
+print(f"data       n = {bayes_n}, xbar = {bayes_xbar}, sum = {bayes_total:.0f}")
+print(f"posterior  Gamma(shape {post_shape:.0f}, rate {post_rate:.1f})")
+print(f"           mean {post_mean:.6f}   mode {post_mode:.6f}   MLE {bayes_mle:.6f}")
+print(f"           95 % credible interval [{cred_lo:.6f}, {cred_hi:.6f}]")
+print(f"alternative reading (xi18 as a rate): mean {alt_mean:.6f}"
+      f"   differs by {100 * abs(alt_mean - post_mean) / post_mean:.3f} %")
+print(f"the prior contributes {100 * (1 / prior_beta) / post_rate:.4f} % of the posterior rate")
+```
 
-    alpha_ols = to_original(beta_ols)
-    alpha_ridge = to_original(beta_ridge)
-    alpha_heavy = to_original(beta_heavy)
+**Figure 7 — prior and posterior**
 
-    grid = np.linspace(x.min() - 0.5, x.max() + 0.5, 800)
-    Xg = _design(grid / x_scale, degree)
-    fit_ols = y_scale * _matvec(Xg, beta_ols)
-    fit_ridge = y_scale * _matvec(Xg, beta_ridge)
+Two panels rather than one, because they cannot share an axis: the prior is
+spread over hundreds of units while the posterior is concentrated near
+$5\times 10^{-3}$. That gap is the point — ten observations move the estimate
+by five orders of magnitude, so the prior is almost irrelevant here.
 
-    fig, axes = plt.subplots(1, 3, figsize=(7.0, 2.5))
+```python
+fig, axes = plt.subplots(1, 2, figsize=(6.8, 2.9))
 
-    # (a) Full range. On this scale both estimates are indistinguishable from
-    # the data, which is the entire reason panel (b) is needed.
-    ax = axes[0]
-    ax.plot(x, y / 1e13, "o", color=INK, markersize=3.0,
-            label="sample", zorder=5)
-    ax.plot(grid, fit_ols / 1e13, color=ACCENT, linewidth=1.2, label="OLS")
-    ax.plot(grid, fit_ridge / 1e13, color=ALT, linewidth=1.2, linestyle="--",
-            label="ridge")
-    ax.set_xlabel("x")
-    ax.set_ylabel(r"y  ($\times 10^{13}$)")
-    ax.set_title("(a) full range", fontsize=8.5)
-    ax.legend(loc="lower center", frameon=False, fontsize=7)
+ax = axes[0]
+bayes_grid = np.linspace(0, prior_mean * 2.4, 600)
+ax.plot(bayes_grid, stats.gamma.pdf(bayes_grid, a=prior_shape, scale=prior_beta),
+        color=MUTED, linewidth=1.5,
+        label=fr"prior Gamma({prior_shape:.0f}, scale {prior_beta:.0f})")
+ax.axvline(prior_mean, color=MUTED, linestyle=":", linewidth=1.1,
+           label=f"prior mean = {prior_mean:.0f}")
+ax.set_xlabel(r"$\theta$  (rate, per unit of x)")
+ax.set_ylabel(r"prior density $h(\theta)$")
+ax.set_title("(a) prior", fontsize=8.5)
+ax.set_ylim(bottom=0)
+ax.legend(loc="upper right", frameon=False, fontsize=7)
 
-    # (b) The small-|x| region, where both fits are worthless.
-    ax = axes[1]
-    zoom = np.abs(grid) <= 7
-    ax.plot(x[small], y[small] / 1e11, "o", color=INK, markersize=3.0,
-            label="sample", zorder=5)
-    ax.plot(grid[zoom], fit_ols[zoom] / 1e11, color=ACCENT, linewidth=1.2,
-            label="OLS")
-    ax.plot(grid[zoom], fit_ridge[zoom] / 1e11, color=ALT, linewidth=1.2,
-            linestyle="--", label="ridge")
-    ax.axhline(0, color=MUTED, linewidth=0.6)
-    ax.set_xlabel("x")
-    ax.set_ylabel(r"y  ($\times 10^{11}$)")
-    ax.set_title(r"(b) zoom, $|x| \leq 7$", fontsize=8.5)
-    ax.legend(loc="upper right", frameon=False, fontsize=7)
+ax = axes[1]
+bayes_grid = np.linspace(post_mean * 0.5, post_mean * 1.55, 600)
+bayes_density = stats.gamma.pdf(bayes_grid, a=post_shape, scale=1 / post_rate)
+ax.plot(bayes_grid, bayes_density, color=ACCENT, linewidth=1.6,
+        label=fr"posterior Gamma({post_shape:.0f}, rate {post_rate:.1f})")
+bayes_band = (bayes_grid >= cred_lo) & (bayes_grid <= cred_hi)
+ax.fill_between(bayes_grid[bayes_band], bayes_density[bayes_band], color=ACCENT,
+                alpha=0.15, label=f"95 % credible: [{cred_lo:.4f}, {cred_hi:.4f}]")
+ax.axvline(post_mean, color=ALT, linestyle="--", linewidth=1.3,
+           label=f"mean = {post_mean:.5f}")
+ax.axvline(post_mode, color=INK, linestyle=":", linewidth=1.3,
+           label=f"mode = {post_mode:.5f}")
+ax.axvline(bayes_mle, color=MUTED, linestyle="-.", linewidth=1.3,
+           label=fr"MLE $\alpha/\bar{{x}}$ = {bayes_mle:.5f}")
+ax.set_xlabel(r"$\theta$")
+ax.set_ylabel(r"posterior density $h(\theta \mid \mathbf{x})$")
+ax.set_title("(b) posterior", fontsize=8.5)
+ax.set_ylim(bottom=0)
+ax.legend(loc="upper left", frameon=False, fontsize=6.5)
 
-    # (c) How the penalty was chosen.
-    ax = axes[2]
-    ax.loglog(lambdas, loo, color=ACCENT, linewidth=1.3)
-    ax.axvline(lam_star, color=ALT, linestyle="--", linewidth=1.2,
-               label=fr"$\lambda^*$ = {lam_star:.1e}")
-    ax.set_xlabel(r"penalty $\lambda$")
-    ax.set_ylabel("leave-one-out MSE")
-    ax.set_title("(c) penalty choice", fontsize=8.5)
-    ax.legend(loc="upper left", frameon=False, fontsize=7)
+fig.tight_layout()
+bayes_fig = save_figure(fig, "task6_posterior")
+```
 
-    fig.tight_layout()
-    fig_t5 = _save(fig, "task5_ridge")
+```python
+results["task6"] = {
+    "n": bayes_n, "alpha_lik": bayes_alpha,
+    "prior_shape": prior_shape, "prior_beta": prior_beta,
+    "prior_rate": 1 / prior_beta, "prior_mean": prior_mean,
+    "xbar": bayes_xbar, "total": bayes_total,
+    "post_shape": post_shape, "post_rate": post_rate,
+    "post_scale": 1 / post_rate,
+    "post_mean": post_mean, "post_mode": post_mode,
+    "post_sd": math.sqrt(post_shape) / post_rate,
+    "alt_rate": alt_rate, "alt_mean": alt_mean, "alt_mode": alt_mode,
+    "alt_mean_diff_pct": 100 * abs(alt_mean - post_mean) / post_mean,
+    "mle": bayes_mle,
+    "cred_lo": float(cred_lo), "cred_hi": float(cred_hi),
+    "prior_weight_pct": 100 * (1 / prior_beta) / post_rate,
+    "fig": bayes_fig,
+}
+print(f"task6: {len(results['task6'])} results")
+```
 
-    def fmt(vec: np.ndarray) -> str:
-        return ", ".join(f"{v:.4g}" for v in vec)
+**Output**
 
-    return {
-        "n": n, "degree": degree, "n_params": degree + 1,
-        "x_min": x.min(), "x_max": x.max(),
-        "y_min": y.min(), "y_max": y.max(),
-        "x_scale": x_scale, "y_scale": y_scale,
-        "cond_raw": cond_raw, "cond_scaled": cond_scaled,
-        "cond_ratio": cond_raw / cond_scaled,
-        "lam_star": lam_star, "lam_heavy": lam_heavy,
-        "lam_band_lo": lam_band_lo, "lam_band_hi": lam_band_hi,
-        "pairs_rows": _pairs_table(pairs),
-        "rmse_ols": rmse_ols * y_scale, "rmse_ridge": rmse_ridge * y_scale,
-        "rmse_heavy": rmse_heavy * y_scale,
-        "rmse_ols_rel": rmse_ols, "rmse_ridge_rel": rmse_ridge,
-        "rmse_heavy_rel": rmse_heavy,
-        "norm_ols": float(np.linalg.norm(beta_ols[1:])),
-        "norm_ridge": float(np.linalg.norm(beta_ridge[1:])),
-        "norm_heavy": float(np.linalg.norm(beta_heavy[1:])),
-        "norm_shrink_pct": 100 * (1 - float(np.linalg.norm(beta_ridge[1:]))
-                                  / float(np.linalg.norm(beta_ols[1:]))),
-        "alpha_ols": fmt(alpha_ols), "alpha_ridge": fmt(alpha_ridge),
-        "alpha_heavy": fmt(alpha_heavy),
-        "a0_ols": alpha_ols[0], "a0_ridge": alpha_ridge[0],
-        "a10_ols": alpha_ols[10], "a10_ridge": alpha_ridge[10],
-        "y_at_zero": float(y[x == 0][0]) if np.any(x == 0) else float("nan"),
-        "n_small": int(small.sum()),
-        "small_rel_ols": small_rel_err(beta_ols),
-        "small_rel_ridge": small_rel_err(beta_ridge),
-        "ols_check": ols_check,
-        "fig": fig_t5,
-    }
+The personal parameters are recorded alongside the six tasks so that Appendix A
+and the title page draw their values from the same file as everything else.
+The result is flattened to dotted keys and written to `build/results.json`,
+which is the only interface between this notebook and the document.
 
+```python
+results["meta"] = {
+    "signature": P.SIGNATURE,
+    "signature_short": P.SIGNATURE[:8],
+    "xi1": P.XI1, "xi2": P.XI2, "xi4": P.XI4, "xi5": P.XI5, "xi6": P.XI6,
+    "xi7": P.XI7, "xi8": P.XI8, "xi9": P.XI9,
+    "xi10": ", ".join(f"{v:g}" for v in P.XI10),
+    "xi11": P.XI11, "xi12": P.XI12, "xi13": P.XI13,
+    "xi14": ", ".join(f"{v:g}" for v in P.XI14),
+    "xi15": P.XI15,
+    "xi16_n": len(P.XI16),
+    "xi17": P.XI17, "xi18": P.XI18, "xi19": P.XI19,
+}
 
-# --------------------------------------------------------------------------
-# Task 6 - Bayesian estimate of the gamma rate
-# --------------------------------------------------------------------------
+BUILDDIR.mkdir(parents=True, exist_ok=True)
+flat = flatten(results)
+out = BUILDDIR / "results.json"
+out.write_text(json.dumps(flat, indent=2, sort_keys=True, default=float),
+               encoding="utf-8")
 
-def task6() -> dict:
-    n, alpha_lik = P.TASK6_N, P.TASK6_ALPHA
-    prior_shape, prior_beta = P.XI17, P.XI18
-    xbar = P.XI19
-    total = n * xbar
-
-    # Hogg, McKean and Craig write the gamma density with beta as a scale.
-    # Read consistently, the prior rate is 1/xi18.
-    post_shape = prior_shape + alpha_lik * n
-    post_rate = 1.0 / prior_beta + total
-    post_mean = post_shape / post_rate
-    post_mode = (post_shape - 1) / post_rate
-
-    # The alternative reading, in which xi18 is a rate, is reported so that a
-    # reader who uses the other convention can locate the difference at once.
-    alt_rate = prior_beta + total
-    alt_mean = post_shape / alt_rate
-    alt_mode = (post_shape - 1) / alt_rate
-
-    prior_mean = prior_shape * prior_beta
-    mle = alpha_lik / xbar
-
-    lo = stats.gamma.ppf(0.025, a=post_shape, scale=1 / post_rate)
-    hi = stats.gamma.ppf(0.975, a=post_shape, scale=1 / post_rate)
-
-    fig, axes = plt.subplots(1, 2, figsize=(6.8, 2.9))
-
-    ax = axes[0]
-    grid = np.linspace(0, prior_mean * 2.4, 600)
-    ax.plot(grid, stats.gamma.pdf(grid, a=prior_shape, scale=prior_beta),
-            color=MUTED, linewidth=1.5,
-            label=fr"prior Gamma({prior_shape:.0f}, scale {prior_beta:.0f})")
-    ax.axvline(prior_mean, color=MUTED, linestyle=":", linewidth=1.1,
-               label=f"prior mean = {prior_mean:.0f}")
-    ax.set_xlabel(r"$\theta$  (rate, per unit of x)")
-    ax.set_ylabel(r"prior density $h(\theta)$")
-    ax.set_title("(a) prior", fontsize=8.5)
-    ax.set_ylim(bottom=0)
-    ax.legend(loc="upper right", frameon=False, fontsize=7)
-
-    ax = axes[1]
-    grid = np.linspace(post_mean * 0.5, post_mean * 1.55, 600)
-    density = stats.gamma.pdf(grid, a=post_shape, scale=1 / post_rate)
-    ax.plot(grid, density, color=ACCENT, linewidth=1.6,
-            label=fr"posterior Gamma({post_shape:.0f}, rate {post_rate:.1f})")
-    band = (grid >= lo) & (grid <= hi)
-    ax.fill_between(grid[band], density[band], color=ACCENT, alpha=0.15,
-                    label=f"95 % credible: [{lo:.4f}, {hi:.4f}]")
-    ax.axvline(post_mean, color=ALT, linestyle="--", linewidth=1.3,
-               label=f"mean = {post_mean:.5f}")
-    ax.axvline(post_mode, color=INK, linestyle=":", linewidth=1.3,
-               label=f"mode = {post_mode:.5f}")
-    ax.axvline(mle, color=MUTED, linestyle="-.", linewidth=1.3,
-               label=fr"MLE $\alpha/\bar{{x}}$ = {mle:.5f}")
-    ax.set_xlabel(r"$\theta$")
-    ax.set_ylabel(r"posterior density $h(\theta \mid \mathbf{x})$")
-    ax.set_title("(b) posterior", fontsize=8.5)
-    ax.set_ylim(bottom=0)
-    ax.legend(loc="upper left", frameon=False, fontsize=6.5)
-
-    fig.tight_layout()
-    fig_t6 = _save(fig, "task6_posterior")
-
-    return {
-        "n": n, "alpha_lik": alpha_lik,
-        "prior_shape": prior_shape, "prior_beta": prior_beta,
-        "prior_rate": 1 / prior_beta, "prior_mean": prior_mean,
-        "xbar": xbar, "total": total,
-        "post_shape": post_shape, "post_rate": post_rate,
-        "post_scale": 1 / post_rate,
-        "post_mean": post_mean, "post_mode": post_mode,
-        "post_sd": math.sqrt(post_shape) / post_rate,
-        "alt_rate": alt_rate, "alt_mean": alt_mean, "alt_mode": alt_mode,
-        "alt_mean_diff_pct": 100 * abs(alt_mean - post_mean) / post_mean,
-        "mle": mle,
-        "cred_lo": float(lo), "cred_hi": float(hi),
-        "prior_weight_pct": 100 * (1 / prior_beta) / post_rate,
-        "fig": fig_t6,
-    }
-
-
-# --------------------------------------------------------------------------
-
-def flatten(nested: dict) -> dict:
-    """Turn ``{"task1": {"p": 0.65}}`` into ``{"task1.p": 0.65}``."""
-    flat = {}
-    for section, values in nested.items():
-        for key, value in values.items():
-            flat[f"{section}.{key}"] = value
-    return flat
-
-
-def main() -> int:
-    BUILDDIR.mkdir(parents=True, exist_ok=True)
-    results = {
-        "task1": task1(),
-        "task2": task2(),
-        "task3": task3(),
-        "task4": task4(),
-        "task5": task5(),
-        "task6": task6(),
-    }
-    results["meta"] = {
-        "signature": P.SIGNATURE,
-        "signature_short": P.SIGNATURE[:8],
-        "xi1": P.XI1, "xi2": P.XI2, "xi4": P.XI4, "xi5": P.XI5, "xi6": P.XI6,
-        "xi7": P.XI7, "xi8": P.XI8, "xi9": P.XI9,
-        "xi10": ", ".join(f"{v:g}" for v in P.XI10),
-        "xi11": P.XI11, "xi12": P.XI12, "xi13": P.XI13,
-        "xi14": ", ".join(f"{v:g}" for v in P.XI14),
-        "xi15": P.XI15,
-        "xi16_n": len(P.XI16),
-        "xi17": P.XI17, "xi18": P.XI18, "xi19": P.XI19,
-    }
-
-    out = BUILDDIR / "results.json"
-    out.write_text(json.dumps(flatten(results), indent=2, sort_keys=True,
-                              default=float), encoding="utf-8")
-    print(f"wrote {out.relative_to(HERE)} with {len(flatten(results))} keys")
-    print(f"wrote {len(list(FIGDIR.glob('*.png')))} figures to figures/")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+print(f"wrote {out.relative_to(HERE)} with {len(flat)} keys")
+print(f"wrote {len(list(FIGDIR.glob('*.png')))} figures to figures/")
 ```

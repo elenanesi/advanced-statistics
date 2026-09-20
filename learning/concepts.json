@@ -289,7 +289,7 @@
         "deliverable",
         "draft"
       ],
-      "notes": "2026-08-22 first draft. Built by deliverables/workbook/build.sh: compute.py -> results.json + figures, render.py substitutes {{token}}s into src/*.md (the prose holds no literal numbers), pandoc -> native Word equations, postprocess.py -> Roman front matter / Arabic body page numbers. Open: [[PLACEHOLDER]] title-page fields; final submission must be PDF; affidavit filed separately beforehand."
+      "notes": "2026-08-22 first draft. Built by deliverables/workbook/build.sh: run_notebook.py executes workbook_analysis.ipynb -> results.json + figures, render.py substitutes {{token}}s into src/*.md (the prose holds no literal numbers) and inlines params.py + the notebook into Appendix B, pandoc -> native Word equations, postprocess.py -> Roman front matter / Arabic body page numbers. 2026-08-30: compute.py replaced by the notebook so the reasoning sits next to the code; output verified byte-identical (179 keys, 7 figures). Open: [[PLACEHOLDER]] title-page fields; final submission must be PDF; affidavit filed separately beforehand."
     }
   ]
 }

@@ -122,8 +122,11 @@ flipped from reject to fail-to-reject. Full detail in `docs/EXAM_WORKBOOK.md`.
 | 6 | Bayesian Gamma posterior, Gamma(23,63) | Workbook prose done; deck `task6-bayes-99d9e51.html` |
 
 **Deliverable:** `deliverables/workbook/` — run `build.sh` to produce
-`Advanced_Workbook_DLMDSAS01_DRAFT.docx`. `compute.py` owns every number;
-`src/*.md` carries no literal results, only `{{task.key}}` tokens.
+`Advanced_Workbook_DLMDSAS01_DRAFT.docx`. `workbook_analysis.ipynb` owns every
+number and is executed by the build (`run_notebook.py`) rather than read;
+`src/*.md` carries no literal results, only `{{task.key}}` tokens. The notebook
+is reproduced as copyable text in Appendix B, which is what the task sheet
+requires: code supports the presentation, it is not the presentation.
 
 The old `exam_tasks/bernoulli_vote_analysis.ipynb` predates the regeneration and
 is built on superseded values. The original slide decks (without the `-99d9e51`

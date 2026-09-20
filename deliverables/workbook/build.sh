@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Build the Advanced Workbook .docx from source.
 #
-#   compute.py     -> build/results.json + figures/*.png
-#   render.py      -> build/workbook.md   (results substituted into the prose)
-#   pandoc         -> the .docx, with native Word equations
-#   postprocess.py -> Roman/Arabic page numbering via section breaks
+#   run_notebook.py -> executes workbook_analysis.ipynb, which writes
+#                      build/results.json and figures/*.png
+#   render.py       -> build/workbook.md  (results substituted into the prose)
+#   pandoc          -> the .docx, with native Word equations
+#   postprocess.py  -> Roman/Arabic page numbering via section breaks
 #
 # Run from anywhere; paths are resolved relative to this script.
 set -euo pipefail
@@ -19,13 +20,13 @@ cd "$HERE"
 for tool in "$PY" "$(command -v pandoc || true)"; do
   if [ ! -x "$tool" ]; then
     echo "missing required tool: $tool" >&2
-    echo "run: brew install pandoc && python3 -m venv .venv && .venv/bin/pip install matplotlib scipy numpy python-docx pypdf" >&2
+    echo "run: brew install pandoc && python3 -m venv .venv && .venv/bin/pip install matplotlib scipy numpy python-docx pypdf nbformat nbclient ipykernel" >&2
     exit 1
   fi
 done
 
-echo "1/4  computing results and figures"
-"$PY" compute.py
+echo "1/4  running the notebook (results and figures)"
+"$PY" run_notebook.py
 
 echo "2/4  rendering prose"
 "$PY" render.py

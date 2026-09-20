@@ -4,7 +4,7 @@ Official document: `exam_tasks/Task_Advanced_Workbook_DLMDSAS011.pdf` (IU DLMDSA
 
 **Rule from the PDF:** If a task says “If \(\xi_k\) is …”, **only perform that sub-task** when your personal value matches. Otherwise skip and state that the branch does not apply.
 
-**Implementation home:** `deliverables/workbook/` — `compute.py` produces every number and figure, `src/*.md` holds the prose, `build.sh` emits the .docx. `exam_tasks/bernoulli_vote_analysis.ipynb` predates this and is built on the superseded parameter set.
+**Implementation home:** `deliverables/workbook/` — `workbook_analysis.ipynb` produces every number and figure, `src/*.md` holds the prose, `build.sh` emits the .docx. `exam_tasks/bernoulli_vote_analysis.ipynb` predates this and is built on the superseded parameter set.
 
 ---
 
@@ -189,9 +189,10 @@ Cross-link to slide: `learning/concepts.json` entry if a deck exists.
 | File | Role |
 |------|------|
 | `params.py` | Parses `assignment_values_2.txt`; **fails loudly if the signature changes** |
-| `compute.py` | Every number and figure; writes `build/results.json` and `figures/*.png` |
+| `workbook_analysis.ipynb` | Every number and figure; writes `build/results.json` and `figures/*.png` |
+| `run_notebook.py` | Executes the notebook in place; a failing cell or an unwritten `results.json` aborts the build |
 | `src/*.md` | Prose. Contains **no literal numeric results** — only `{{task4.z:.3f}}` tokens |
-| `render.py` | Substitutes tokens; unknown key = hard error. Also inlines code into the appendix |
+| `render.py` | Substitutes tokens; unknown key = hard error. Also inlines `params.py` and the notebook into the appendix |
 | `make_reference.py` | Builds `assets/reference.docx` with the IU formatting rules |
 | `postprocess.py` | Section breaks for Roman front matter / Arabic body page numbers |
 | `check_length.py` | Per-task A4 page budget estimate |

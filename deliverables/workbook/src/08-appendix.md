@@ -37,15 +37,29 @@ sorted by $x$.
 # Appendix B: source code {-}
 
 The listings below are the complete code that produced every number and every
-figure in this workbook. They are included as text so that they can be copied
-from the PDF and re-run. The entry point is `compute.py`, which writes a file of
-results that the workbook text draws on directly; no numeric result in the main
-text is typed by hand.
+figure in this workbook. They are included as text, not as images, so that they
+can be copied from the PDF and re-run.
+
+The calculations live in a Jupyter notebook, `workbook_analysis.ipynb`, which is
+reproduced in section B.2 with its commentary and its code cells in the order in
+which they run. A notebook was chosen over a plain script because the reasoning
+that motivates each calculation can then sit immediately above the code that
+performs it, which is what a colleague taking the work over needs. Cell outputs
+are omitted here: every number and figure the notebook produces already appears
+in the body of the workbook, and repeating them would bury the code.
+
+The notebook writes a file of results that the workbook text draws on directly;
+no numeric result in the main text is typed by hand. Running the notebook from
+top to bottom reproduces the whole document, and the build script does exactly
+that before rendering it, so the two cannot disagree.
 
 **B.1 `params.py`** — parses the generator output and verifies the signature.
+It is a separate module rather than a cell because it is file parsing rather
+than statistics, and because the signature check must fail before any
+calculation begins.
 
 <!-- CODE: params.py -->
 
-**B.2 `compute.py`** — all six tasks.
+**B.2 `workbook_analysis.ipynb`** — all six tasks.
 
-<!-- CODE: compute.py -->
+<!-- NOTEBOOK: workbook_analysis.ipynb -->
