@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TASK 5 — OLS + Ridge (99d9e51)</title>
+  <!-- Technique C pixel-art favicon: Ridge the penguin -->
+  <link rel="icon" href='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect x=%223%22 y=%226%22 width=%2210%22 height=%226%22 fill=%22%23485880%22/%3E%3Crect x=%225%22 y=%227%22 width=%226%22 height=%224%22 fill=%22%23e8e0d8%22/%3E%3C/svg%3E' />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <!-- KaTeX — proper math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:     #f0ebe0;   /* warm parchment */
+      --card:   #fffef8;   /* near-white */
+      --accent: #1a5ca8;   /* deep sapphire — h1, checkpoints */
+      --rose:   #c42848;   /* vivid crimson — speech bubbles, callouts */
+      --honey:  #b86800;   /* deep amber — h2, formulas */
+      --text:   #1c1a30;   /* dark navy — body text */
+      --mist:   #6a5888;   /* muted plum — secondary, counters */
+      --teal:   #0d7a6e;   /* deep teal — positive signals */
+      --slate:  #3a4d7a;   /* slate blue — methodology callouts */
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      /* Consolas for body — matches slides/causal-impact/index.html */
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      /* subtle dot-grid: retro feel, not distracting */
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 720px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    /* Side navigation — jump to any slide by title */
+    .side-nav {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 52px;
+      width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto;
+      z-index: 9;
+    }
+    .side-nav-title {
+      font-family: "DotGothic16", monospace;
+      font-size: 8px;
+      color: var(--mist);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .side-nav-btn:hover {
+      background: rgba(26,92,168,.06);
+      border-color: #ccc4e0;
+    }
+    .side-nav-btn.active {
+      background: rgba(26,92,168,.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .side-nav-num {
+      flex-shrink: 0;
+      color: var(--mist);
+      font-size: 10px;
+      min-width: 1.2em;
+    }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9px;
+      color: var(--mist);
+      margin: 10px 0 4px;
+      padding-top: 10px;
+      border-top: 1px solid #d0c8e0;
+      letter-spacing: 1px;
+      line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+    .badge-sub {
+      border: 2px solid var(--slate);
+      color: var(--slate);
+      font-size: 10px;
+      padding: 4px 8px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    .slide {
+      display: none;
+      background: var(--card);
+      border: 2px solid #ccc4e0;
+      box-shadow: 4px 4px 0 rgba(80,60,140,.18);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .slide.active { display: block; }
+    h1 {
+      font-family: "DotGothic16", monospace;
+      font-size: 13px;
+      color: var(--accent);
+      margin: 0 0 16px;
+      letter-spacing: .5px;
+    }
+    h2 {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      color: var(--honey);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 18px 0 8px;
+    }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .buddy-speech {
+      flex: 1;
+      background: #fff8f2;
+      border: 2px solid var(--rose);
+      padding: 12px;
+      position: relative;
+    }
+    .buddy-speech::before {
+      content: "";
+      position: absolute;
+      left: -11px;
+      top: 14px;
+      border: 7px solid transparent;
+      border-right-color: var(--rose);
+    }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    .formula {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(26,92,168,.06);
+      padding: 14px 16px;
+      border: 2px solid rgba(26,92,168,.3);
+      margin: 12px 0;
+      overflow-x: auto;
+      line-height: 1.8;
+    }
+    .formula em { color: var(--honey); font-style: normal; }
+    .formula .katex { font-size: 1.08em; }
+    .formula .katex-display { margin: 6px 0; }
+
+    /* ── hover tooltips for jargon terms ── */
+    .tip { border-bottom: 2px dashed var(--honey); cursor: help; }
+    #tip-box {
+      position: fixed; display: none;
+      background: #fff8f2;
+      border: 2px solid var(--honey);
+      box-shadow: 4px 4px 0 rgba(80,60,140,.22);
+      padding: 10px 14px; max-width: 300px;
+      font-size: 11px; z-index: 99998;
+      color: var(--text); line-height: 1.6; pointer-events: none;
+    }
+    .tip-label {
+      font-weight: bold; color: var(--honey); display: block;
+      margin-bottom: 4px; font-size: 10px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    table.data { width:100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+    table.data th, table.data td { border: 1px solid #ccc4e0; padding: 6px 8px; text-align: left; }
+    table.data th { background: rgba(26,92,168,.08); color: var(--accent); }
+    .callout { border: 2px solid var(--teal); background: rgba(13,122,110,.06); padding: 10px 12px; margin: 10px 0; }
+    .warn { border: 2px solid var(--rose); background: rgba(196,40,72,.06); padding: 10px 12px; margin: 10px 0; }
+    .badge { display:inline-block; border:2px solid var(--accent); color:var(--accent); font-size:10px; padding:3px 8px; margin-bottom:10px; }
+    .prob { border-left: 3px solid var(--honey); padding-left: 10px; margin: 10px 0; }
+    .concept-link { color: var(--accent); font-weight: bold; }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 8px; }
+
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+
+    nav.deck-controls {
+      position: fixed;
+      bottom: 0;
+      left: 212px;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      background: rgba(240,235,224,.97);
+      border-top: 3px solid var(--honey);
+      z-index: 10;
+    }
+    #counter {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      color: var(--mist);
+    }
+    button {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fffef8;
+      border: 2px solid #0d3d7a;
+      box-shadow: 3px 3px 0 rgba(26,92,168,.25);
+      cursor: pointer;
+    }
+    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+
+    /* Fairydust trail & click explosion — effect elements */
+    .fd-particle, .fd-petal { position: fixed; z-index: 99999; pointer-events: none; }
+
+    /* Laser pointer cursor */
+    body { cursor: none; }
+    button, a, summary, [role="button"],
+    .side-nav, .side-nav-btn, details { cursor: none !important; }
+    #laser-dot {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, #c42848 45%, transparent 70%);
+      box-shadow: 0 0 6px 2px #c42848, 0 0 14px 4px #c4284855;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.05s ease;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #laser-dot { display: none; }
+      body { cursor: auto; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="side-nav" aria-label="Slide contents">
+    <p class="side-nav-title">CONTENTS</p>
+    <div id="side-nav-list" class="side-nav-list"></div>
+  </aside>
+
+  <div class="deck" id="deck">
+
+<!-- Slide 0: Title -->
+<section class="slide active" data-slide="0">
+    <h1>TASK 5: DEGREE-10 OLS + RIDGE</h1>
+    <div class="buddy-row"><svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="4" y="2" width="8" height="4" fill="#485880"/><rect x="3" y="6" width="10" height="6" fill="#485880"/>
+    <rect x="5" y="4" width="6" height="3" fill="#e8e0d8"/><rect x="5" y="7" width="6" height="4" fill="#e8e0d8"/>
+    <rect x="6" y="4" width="1" height="1" fill="#3a3040"/><rect x="9" y="4" width="1" height="1" fill="#3a3040"/>
+    <rect x="5" y="5" width="1" height="1" fill="#c8a0a8"/><rect x="10" y="5" width="1" height="1" fill="#c8a0a8"/>
+    <rect x="7" y="6" width="2" height="1" fill="#d4a060"/>
+    <rect x="5" y="12" width="2" height="1" fill="#d4a060"/><rect x="9" y="12" width="2" height="1" fill="#d4a060"/>
+  </svg>
+      <div class="buddy-speech"><span class="speaker">Ridge:</span> 22 points, 11 coefficients, and $y$ values ranging from −0.98 to −6×10¹³. The statistics here is easy. The <b>arithmetic</b> is what will bite you.</div>
+    </div>
+    <p>Branch ξ₁₅=2 → polynomial of degree 10, so 11 coefficients $\alpha_0,\dots,\alpha_{10}$. Parameter signature <code>99d9e51</code>. Book: Unit 6.2 (OLS) + 6.4 (ridge).</p>
+    <svg viewBox="0 0 420 155" width="100%" style="max-width:100%;margin:8px 0" role="img" aria-label="The 22 data points plotted with y on a linear scale. Almost all points sit flat against zero in the middle, while the points at the extremes of x plunge to minus six times ten to the thirteenth.">
+  <line x1="40" y1="39.3" x2="400" y2="39.3" stroke="#6a5888" stroke-width="1"/>
+  <line x1="215.6" y1="25" x2="215.6" y2="140" stroke="#6a5888" stroke-width="1" stroke-dasharray="2 3"/>
+  <text x="404" y="42" font-size="9" font-family="Consolas,monospace" fill="#6a5888">0</text>
+  <text x="404" y="58" font-size="9" font-family="Consolas,monospace" fill="#6a5888">−1e13</text>
+  <text x="404" y="104" font-size="9" font-family="Consolas,monospace" fill="#6a5888">−4e13</text>
+  <line x1="40" y1="54.7" x2="400" y2="54.7" stroke="#d0c8e0" stroke-width="1"/>
+  <line x1="40" y1="101.0" x2="400" y2="101.0" stroke="#d0c8e0" stroke-width="1"/>
+  <polyline fill="none" stroke="#ccc4e0" stroke-width="1.5" points="48.8,96.0 66.3,59.5 83.9,44.9 101.5,40.6 110.2,39.9 119.0,39.5 127.8,39.4 136.6,39.3 154.1,39.3 162.9,39.3 215.6,39.3 233.2,39.3 242.0,39.3 250.7,39.3 268.3,39.3 277.1,39.3 303.4,39.3 329.8,40.4 347.3,44.3 364.9,56.7 382.4,91.1 391.2,131.7"/>
+  <circle cx="48.8" cy="96.0" r="3.2" fill="#1a5ca8"/><circle cx="66.3" cy="59.5" r="3.2" fill="#1a5ca8"/>
+  <circle cx="83.9" cy="44.9" r="3.2" fill="#1a5ca8"/><circle cx="101.5" cy="40.6" r="3.2" fill="#1a5ca8"/>
+  <circle cx="110.2" cy="39.9" r="3.2" fill="#1a5ca8"/><circle cx="119.0" cy="39.5" r="3.2" fill="#1a5ca8"/>
+  <circle cx="127.8" cy="39.4" r="3.2" fill="#1a5ca8"/><circle cx="136.6" cy="39.3" r="3.2" fill="#1a5ca8"/>
+  <circle cx="154.1" cy="39.3" r="3.2" fill="#1a5ca8"/><circle cx="162.9" cy="39.3" r="3.2" fill="#1a5ca8"/>
+  <circle cx="215.6" cy="39.3" r="3.2" fill="#c42848"/><circle cx="233.2" cy="39.3" r="3.2" fill="#1a5ca8"/>
+  <circle cx="242.0" cy="39.3" r="3.2" fill="#1a5ca8"/><circle cx="250.7" cy="39.3" r="3.2" fill="#1a5ca8"/>
+  <circle cx="268.3" cy="39.3" r="3.2" fill="#1a5ca8"/><circle cx="277.1" cy="39.3" r="3.2" fill="#1a5ca8"/>
+  <circle cx="303.4" cy="39.3" r="3.2" fill="#1a5ca8"/><circle cx="329.8" cy="40.4" r="3.2" fill="#1a5ca8"/>
+  <circle cx="347.3" cy="44.3" r="3.2" fill="#1a5ca8"/><circle cx="364.9" cy="56.7" r="3.2" fill="#1a5ca8"/>
+  <circle cx="382.4" cy="91.1" r="3.2" fill="#1a5ca8"/><circle cx="391.2" cy="131.7" r="3.2" fill="#1a5ca8"/>
+  <text x="40" y="152" font-size="9" font-family="Consolas,monospace" fill="#6a5888">x=−20</text>
+  <text x="215.6" y="152" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#c42848">x=0, y=−0.98</text>
+  <text x="391.2" y="152" text-anchor="end" font-size="9" font-family="Consolas,monospace" fill="#6a5888">x=20</text>
+  <text x="170" y="80" font-size="10" font-family="Consolas,monospace" fill="#6a5888">14 points look like exactly zero here…</text>
+  <text x="230" y="120" font-size="10" font-family="Consolas,monospace" fill="#c42848">…because the edges are 10¹³ times bigger</text>
+</svg>
+    <p>Everything in this deck follows from that picture: on a linear scale, most of the dataset is <b>indistinguishable from zero</b>.</p>
+</section>
+
+<!-- Slide 1: What the task asks -->
+<section class="slide" data-slide="1">
+    <h1>What the task actually asks</h1>
+    <ol>
+      <li>Fit a polynomial of degree 10 to the 22 given points by <b>ordinary least squares</b> (OLS — the classic "minimise the sum of squared vertical distances" fit).</li>
+      <li>Fit the same model by <b>ridge regression</b> (least squares plus a penalty on the size of the coefficients).</li>
+      <li><b>Justify the penalty weight</b> $\lambda$ — not just pick one.</li>
+      <li>Discuss <b>the qualities of each solution</b>. This is the part that earns marks, and slide 16 is the honest answer to it.</li>
+    </ol>
+    <h2>Sanity check on the sizes first</h2>
+    <table class="data">
+      <tr><th>Quantity</th><th>Value</th><th>Consequence</th></tr>
+      <tr><td>Data points $n$</td><td>22</td><td rowspan="3">22 equations, 11 unknowns → the system is <b>overdetermined</b>, so a unique least-squares solution exists and nothing is under-identified</td></tr>
+      <tr><td>Distinct $x$ values</td><td>22 (all different)</td></tr>
+      <tr><td>Parameters $\alpha_0..\alpha_{10}$</td><td>11</td></tr>
+      <tr><td>Range of $x$</td><td>−19 … 20</td><td>$x^{10}$ reaches $1.024\times10^{13}$</td></tr>
+      <tr><td>Range of $y$</td><td>−0.98 … −5.98×10¹³</td><td>14 orders of magnitude in one column</td></tr>
+    </table>
+    <div class="callout">Had there been fewer than 11 distinct $x$ values, or duplicates leaving fewer than 11, the degree-10 fit would have been undetermined and ridge would be the only way to get any answer at all. That is worth one sentence in the workbook — it is <i>not</i> the situation here.</div>
+</section>
+
+<!-- Slide 2: The data -->
+<section class="slide" data-slide="2">
+    <h1>The data, and its dynamic range</h1>
+    <p>All 22 $y$ values are <b>negative</b>, and they are roughly symmetric in $|x|$ — consistent with an even-degree polynomial with a negative leading coefficient. Here are a few, sorted by $|x|$:</p>
+    <table class="data">
+      <tr><th>$x$</th><th>$y$</th><th>Order of magnitude</th></tr>
+      <tr><td>0</td><td>−0.98</td><td>$10^{0}$</td></tr>
+      <tr><td>2</td><td>−2 544.05</td><td>$10^{3}$</td></tr>
+      <tr><td>4</td><td>−4 555 356.86</td><td>$10^{6}$</td></tr>
+      <tr><td>7</td><td>−1 469 352 876.27</td><td>$10^{9}$</td></tr>
+      <tr><td>−13</td><td>−883 231 318 602.85</td><td>$10^{11}$</td></tr>
+      <tr><td>−19</td><td>−36 772 660 717 185.11</td><td>$10^{13}$</td></tr>
+      <tr><td>20</td><td>−59 833 403 918 809.97</td><td>$10^{13}$</td></tr>
+    </table>
+    <div class="warn"><b>Why this matters so much.</b> Least squares minimises <b>absolute</b> squared error. One unit of error at $x=20$ costs the same as one unit of error at $x=0$ — but the values at $x=20$ are $10^{13}$ times larger. So the fit will be decided almost entirely by the six or so points at the edges, and it will treat everything in the middle as "close enough to zero". Keep this in mind: it comes back as the punchline on slide 16.</div>
+</section>
+
+<!-- Slide 3: Linear in parameters -->
+<section class="slide" data-slide="3">
+    <h1>The key insight: this is linear regression</h1>
+    <p>"Degree-10 polynomial" sounds like a nonlinear problem. It is not — and seeing why is the single most useful idea in this task.</p>
+    <div class="formula">$y \approx \alpha_0 + \alpha_1 x + \alpha_2 x^{2} + \cdots + \alpha_{10}x^{10}$</div>
+    <p>The curve is bendy in $x$, yes. But look at how the <b>unknowns</b> enter: every $\alpha_j$ is multiplied by something and added. No $\alpha^2$, no $\sin(\alpha)$, no $\alpha_1\alpha_2$. That is the definition of <b>linear in the parameters</b> — which is all that ordinary least squares requires.</p>
+    <div class="callout"><b>The trick:</b> treat $x, x^2, \ldots, x^{10}$ as <b>ten separate predictor columns</b> that you happened to compute from one variable. Then this is just multiple linear regression with 10 predictors plus an intercept, and every standard formula applies unchanged.</div>
+    <p>Analogy: a recipe can call for flour, flour², and flour³ as if they were three different ingredients. Once they are in separate jars, the cook does not care where they came from — they just weigh them and mix.</p>
+    <div class="prob">Terminology to keep straight: <b>linear in the parameters</b> (what OLS needs — satisfied here) is not the same as <b>a straight line in $x$</b> (visibly false here). The exam loves this distinction.</div>
+</section>
+
+<!-- Slide 4: Design matrix -->
+<section class="slide" data-slide="4">
+    <h1>The design matrix</h1>
+    <p>Stack one row per data point, one column per power. That gives the 22×11 <span class="tip" data-tip-title="Vandermonde matrix" data-tip="A matrix whose rows are the successive powers of a number: $[1, x, x^2, \ldots]$. It is the standard design matrix for polynomial fitting, and it is notoriously ill-conditioned for high degrees.">Vandermonde</span> design matrix:</p>
+    <div class="formula">$X=\begin{pmatrix} 1 &amp; x_1 &amp; x_1^{2} &amp; \cdots &amp; x_1^{10}\\ 1 &amp; x_2 &amp; x_2^{2} &amp; \cdots &amp; x_2^{10}\\ \vdots &amp; &amp; &amp; &amp; \vdots\\ 1 &amp; x_{22} &amp; x_{22}^{2} &amp; \cdots &amp; x_{22}^{10}\end{pmatrix},\qquad y=X\alpha+\varepsilon$</div>
+    <p>Two concrete rows, so the problem is visible rather than abstract:</p>
+    <table class="data">
+      <tr><th>Row</th><th>1</th><th>$x$</th><th>$x^2$</th><th>…</th><th>$x^{10}$</th></tr>
+      <tr><td>$x=2$</td><td>1</td><td>2</td><td>4</td><td>…</td><td>1 024</td></tr>
+      <tr><td>$x=20$</td><td>1</td><td>20</td><td>400</td><td>…</td><td>1.024×10¹³</td></tr>
+    </table>
+    <div class="formula">$\hat\alpha_{\text{OLS}}=\arg\min_{\alpha}\ \lVert y-X\alpha\rVert_2^{2}$</div>
+    <div class="warn">Look at the last column against the first. Inside a single matrix we have entries of size 1 and entries of size $10^{13}$. That is not a cosmetic annoyance — the next two slides show it destroys most of the precision available in double-precision arithmetic.</div>
+</section>
+
+<!-- Slide 5: The anchor -->
+<section class="slide" data-slide="5">
+    <h1>Free gift: $x=0$ is in the sample</h1>
+    <p>Substitute $x=0$ into the polynomial. Every power term vanishes:</p>
+    <div class="formula">$y(0)=\alpha_0+\alpha_1\cdot 0+\alpha_2\cdot 0^{2}+\cdots+\alpha_{10}\cdot 0^{10}=\alpha_0$</div>
+    <p>And the dataset contains exactly that point: $(0,\ -0.98)$. So the true intercept is, up to observation noise, <b>$\alpha_0 \approx -0.98$</b> — read straight off the data, with no fitting at all.</p>
+    <div class="callout"><b>Use this as a diagnostic, not as a constraint.</b> Fit normally, then compare the fitted intercept against −0.98. If a fit returns an intercept of, say, $+1.9\times10^{11}$, you have learned something devastating about that fit without any further analysis. (Spoiler: OLS returns exactly that. Slide 16.)</div>
+    <p>Anchors like this are cheap and worth hunting for in any regression task: a point where most terms switch off turns an opaque coefficient into something you can check by eye.</p>
+</section>
+
+<!-- Slide 6: Precision -->
+<section class="slide" data-slide="6">
+    <h1>Why raw powers destroy precision</h1>
+    <p>A computer stores each number in <span class="tip" data-tip-title="Double precision" data-tip="The standard 64-bit floating point format. It keeps about 15–16 significant decimal digits; the smallest relative step it can represent is about $2.2\times10^{-16}$.">double precision</span>: about <b>16 significant digits</b>, and no more.</p>
+    <div class="formula">$20^{10}=1.024\times10^{13},\qquad \text{machine precision }\epsilon\approx 2.2\times10^{-16}$</div>
+    <p>Analogy: imagine a tape measure that always shows 16 digits total. If the first 13 digits are spent on kilometres, only 3 digits are left for millimetres. When the same matrix mixes 1 with $10^{13}$, the small entries are working with the leftover digits.</p>
+    <table class="data">
+      <tr><th>Path</th><th>Condition number</th><th>Digits left of the 16</th></tr>
+      <tr><td>Raw $x$, design matrix $X$</td><td>1.02×10¹³</td><td>≈ 3</td></tr>
+      <tr><td>Raw $x$, normal equations $X^\top X$</td><td>1.03×10²⁶</td><td><b>none</b> — worse than the noise floor</td></tr>
+      <tr><td>Rescaled $x/20$, design matrix</td><td>3.74×10³</td><td>≈ 12</td></tr>
+    </table>
+    <div class="warn"><b>Read the middle row again.</b> Forming $X^\top X$ <b>squares</b> the condition number. At $10^{26}$ the matrix is, to the computer, numerically singular: the answer you get back is noise wearing a suit. This is why we will never write <code>inv(X.T @ X)</code> in this task.</div>
+</section>
+
+<!-- Slide 7: Condition number -->
+<section class="slide" data-slide="7">
+    <h1>What a condition number means</h1>
+    <p>Forget the formula for a second. A condition number answers one question:</p>
+    <div class="callout"><b>"If I nudge the input by 0.0001%, how much can the answer move?"</b> A condition number of $10^{13}$ means: up to $10^{13}$ times as much. Relative input error gets <b>amplified</b> by that factor.</div>
+    <p>Two mechanical pictures. A well-conditioned problem is a bicycle: turn the handlebars a little, the wheel turns a little. An ill-conditioned problem is a wobbly shopping trolley: nudge it a hair and it veers into the shelves.</p>
+    <p>Formally it is the ratio of the largest to the smallest <span class="tip" data-tip-title="Singular value" data-tip="From the singular value decomposition $X = U D V^\top$. Each singular value $d_j$ says how much the matrix stretches one particular direction of coefficient space. A tiny $d_j$ means that direction is barely visible in the data, so its coefficient is very poorly determined.">singular value</span> of $X$ — how much the matrix stretches its most-stretched direction versus its least:</p>
+    <div class="formula">$\kappa(X)=\dfrac{d_{\max}}{d_{\min}}$</div>
+    <svg viewBox="0 0 420 170" width="100%" style="max-width:100%;margin:8px 0" role="img" aria-label="The eleven singular values on a base-ten logarithmic scale. For the raw design matrix they fall from ten to the thirteen down to about one, spanning thirteen orders of magnitude. For the rescaled matrix they all sit within a narrow band of three and a half orders of magnitude near one.">
+  <line x1="45" y1="140" x2="400" y2="140" stroke="#6a5888" stroke-width="1.5"/>
+  <line x1="45" y1="25" x2="45" y2="140" stroke="#6a5888" stroke-width="1.5"/>
+  <line x1="45" y1="38.5" x2="400" y2="38.5" stroke="#d0c8e0" stroke-width="1"/>
+  <line x1="45" y1="65.6" x2="400" y2="65.6" stroke="#d0c8e0" stroke-width="1"/>
+  <line x1="45" y1="92.6" x2="400" y2="92.6" stroke="#d0c8e0" stroke-width="1"/>
+  <line x1="45" y1="119.7" x2="400" y2="119.7" stroke="#d0c8e0" stroke-width="1"/>
+  <text x="41" y="42" text-anchor="end" font-size="9" font-family="Consolas,monospace" fill="#6a5888">10¹²</text>
+  <text x="41" y="69" text-anchor="end" font-size="9" font-family="Consolas,monospace" fill="#6a5888">10⁸</text>
+  <text x="41" y="96" text-anchor="end" font-size="9" font-family="Consolas,monospace" fill="#6a5888">10⁴</text>
+  <text x="41" y="123" text-anchor="end" font-size="9" font-family="Consolas,monospace" fill="#6a5888">1</text>
+  <polyline fill="none" stroke="#c42848" stroke-width="2.2" points="55,30.8 88,40.0 121,55.5 154,64.0 187,76.3 220,84.1 253,94.6 286,101.5 319,109.2 352,115.0 385,118.8"/>
+  <circle cx="55" cy="30.8" r="3" fill="#c42848"/><circle cx="88" cy="40.0" r="3" fill="#c42848"/>
+  <circle cx="121" cy="55.5" r="3" fill="#c42848"/><circle cx="154" cy="64.0" r="3" fill="#c42848"/>
+  <circle cx="187" cy="76.3" r="3" fill="#c42848"/><circle cx="220" cy="84.1" r="3" fill="#c42848"/>
+  <circle cx="253" cy="94.6" r="3" fill="#c42848"/><circle cx="286" cy="101.5" r="3" fill="#c42848"/>
+  <circle cx="319" cy="109.2" r="3" fill="#c42848"/><circle cx="352" cy="115.0" r="3" fill="#c42848"/>
+  <circle cx="385" cy="118.8" r="3" fill="#c42848"/>
+  <polyline fill="none" stroke="#0d7a6e" stroke-width="2.2" points="55,114.7 88,115.5 121,117.1 154,119.0 187,121.1 220,123.8 253,126.0 286,129.4 319,131.8 352,136.6 385,138.9"/>
+  <circle cx="55" cy="114.7" r="3" fill="#0d7a6e"/><circle cx="88" cy="115.5" r="3" fill="#0d7a6e"/>
+  <circle cx="121" cy="117.1" r="3" fill="#0d7a6e"/><circle cx="154" cy="119.0" r="3" fill="#0d7a6e"/>
+  <circle cx="187" cy="121.1" r="3" fill="#0d7a6e"/><circle cx="220" cy="123.8" r="3" fill="#0d7a6e"/>
+  <circle cx="253" cy="126.0" r="3" fill="#0d7a6e"/><circle cx="286" cy="129.4" r="3" fill="#0d7a6e"/>
+  <circle cx="319" cy="131.8" r="3" fill="#0d7a6e"/><circle cx="352" cy="136.6" r="3" fill="#0d7a6e"/>
+  <circle cx="385" cy="138.9" r="3" fill="#0d7a6e"/>
+  <text x="90" y="27" font-size="10" font-family="Consolas,monospace" fill="#c42848">raw x — spans 13 decades → κ = 1.02×10¹³</text>
+  <text x="120" y="152" font-size="10" font-family="Consolas,monospace" fill="#0d7a6e">rescaled x/20 — κ = 3.74×10³</text>
+  <text x="222" y="165" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#6a5888">singular value index, largest to smallest</text>
+</svg>
+    <p>The crimson staircase falls off a cliff; the teal one barely slopes. Same data, same model, different units.</p>
+</section>
+
+<!-- Slide 8: Scaling -->
+<section class="slide" data-slide="8">
+    <h1>Rescaling is mandatory, not optional</h1>
+    <p>The fix costs one line of code and buys back nine orders of magnitude.</p>
+    <div class="formula">$t=\dfrac{x}{\max|x|}=\dfrac{x}{20}\in[-1,1] \qquad\Longrightarrow\qquad \kappa:\ 1.02\times10^{13}\ \longrightarrow\ 3.74\times10^{3}$</div>
+    <table class="data">
+      <tr><th>Before</th><th>After</th><th>Improvement</th></tr>
+      <tr><td>$\kappa(X)=1.02\times10^{13}$</td><td>$\kappa(X)=3.74\times10^{3}$</td><td><b>factor 2.7×10⁹</b></td></tr>
+    </table>
+    <p>Why it works: on $[-1,1]$ every power $t^{j}$ also lives in $[-1,1]$, so no column dwarfs any other. On $[-19,20]$ the columns differ by 13 decades.</p>
+    <h2>Rescale $y$ too</h2>
+    <div class="formula">$\tilde y=\dfrac{y}{\max|y|}=\dfrac{y}{5.98\times10^{13}}$</div>
+    <p>Now the whole problem is <b>dimensionless</b>, and that matters for one specific reason: the ridge penalty compares $\lVert y-X\alpha\rVert^2$ against $\lambda\lVert\alpha\rVert^2$, adding a squared response to a squared coefficient. Those only live on the same scale if both have been standardised.</p>
+    <div class="warn"><b>Therefore $\lambda$ is only meaningful on the standardised problem.</b> A $\lambda$ quoted on raw data means nothing to a reader — and a $\lambda$ transplanted from raw to scaled data will be wrong by many orders of magnitude. Always say which problem your $\lambda$ belongs to. Transform coefficients back at the end if you want to report the polynomial in original units.</div>
+</section>
+
+<!-- Slide 9: OLS by SVD -->
+<section class="slide" data-slide="9">
+    <h1>Solve by SVD, never by inverting $X^\top X$</h1>
+    <p>Textbooks write the <span class="tip" data-tip-title="Normal equations" data-tip="The system $X^\top X\alpha = X^\top y$ obtained by setting the derivative of the squared error to zero. Algebraically correct, numerically a bad idea for ill-conditioned X because forming $X^\top X$ squares the condition number.">normal equations</span> solution, and it is algebraically right:</p>
+    <div class="formula">$\hat\alpha_{\text{OLS}}=(X^\top X)^{-1}X^\top y$</div>
+    <p>But we saw it: $\kappa(X^\top X)=\kappa(X)^2=1.03\times10^{26}$. Squaring an already-bad condition number is how you turn a hard problem into an impossible one. Use the <b>singular value decomposition</b> (SVD) instead — it works on $X$ directly and never forms the squared matrix.</p>
+    <div class="formula">$X=UDV^\top,\qquad \hat\alpha_{\text{OLS}}=V\,D^{-1}U^\top y=\sum_{j}\frac{u_j^\top y}{d_j}\,v_j$</div>
+    <p>Read the sum: each direction $v_j$ in coefficient space gets a contribution divided by its singular value $d_j$. Directions the data barely constrains (tiny $d_j$) get divided by almost nothing, so they blow up. <b>That single division is the entire instability of OLS here</b>, and it is exactly what ridge will fix.</p>
+    <div class="callout">In practice: <code>numpy.linalg.lstsq</code> (which uses SVD internally) or <code>numpy.linalg.svd</code> explicitly. Name the solver in the workbook — the graders want to see that the numerical route was a deliberate choice.</div>
+</section>
+
+<!-- Slide 10: What ridge does -->
+<section class="slide" data-slide="10">
+    <h1>Ridge: the same fit, on a leash</h1>
+    <p>OLS has exactly one instruction: make the residuals small. Nothing stops it using enormous coefficients that cancel each other out. Ridge adds a second instruction: <b>and keep the coefficients small</b>.</p>
+    <div class="formula">$\hat\alpha_\lambda=\arg\min_{\alpha}\ \Big(\underbrace{\lVert y-X\alpha\rVert_2^{2}}_{\text{fit the data}}+\underbrace{\lambda\lVert\alpha\rVert_2^{2}}_{\text{stay small}}\Big)$</div>
+    <p>Picture a spring attached from each coefficient to zero. $\lambda$ is the stiffness. Weak spring: the coefficients go wherever the data pulls them (OLS). Stiff spring: they are dragged toward zero and the curve flattens out.</p>
+    <table class="data">
+      <tr><th>$\lambda$</th><th>What happens</th><th>Failure mode</th></tr>
+      <tr><td>$0$</td><td>Exactly OLS</td><td>Wild, unstable coefficients (variance)</td></tr>
+      <tr><td>moderate</td><td>Slightly worse fit, far smaller coefficients</td><td>— the sweet spot</td></tr>
+      <tr><td>$\to\infty$</td><td>Coefficients collapse to zero, curve flattens</td><td>Systematically wrong (bias)</td></tr>
+    </table>
+    <div class="prob"><b>Two different reasons people reach for ridge</b>, often conflated: (1) the design matrix is ill-conditioned or singular and OLS has no stable answer — that is our situation; (2) there are more predictors than observations — not our situation (22 &gt; 11). Say which one you mean.</div>
+</section>
+
+<!-- Slide 11: Ridge by SVD -->
+<section class="slide" data-slide="11">
+    <h1>Ridge through the SVD lens</h1>
+    <p>Same decomposition, one character changed in the denominator — and that character is the whole idea.</p>
+    <div class="formula">$\hat\alpha_{\text{OLS}}=\sum_j \frac{u_j^\top y}{d_j}v_j \qquad\longrightarrow\qquad \hat\alpha_\lambda=\sum_j \frac{d_j}{d_j^{2}+\lambda}\,(u_j^\top y)\,v_j$</div>
+    <p>In matrix form, the version to implement:</p>
+    <div class="formula">$\hat\alpha_\lambda=V\,\operatorname{diag}\!\left(\frac{d_j}{d_j^{2}+\lambda}\right)U^\top y$</div>
+    <p>The factor $d_j^2/(d_j^2+\lambda)$ is a <b>shrinkage filter</b> applied direction by direction:</p>
+    <ul>
+      <li>$d_j^2 \gg \lambda$ → factor ≈ 1: well-determined directions pass through untouched.</li>
+      <li>$d_j^2 \ll \lambda$ → factor ≈ 0: the barely-visible directions, the ones that blow up in OLS, get switched off.</li>
+    </ul>
+    <div class="callout">So ridge is not a blunt "shrink everything" instrument. It shrinks <b>selectively</b>, and it shrinks hardest exactly where the data has least to say. That is why it stabilises an ill-conditioned problem instead of merely damaging it.</div>
+    <div class="warn"><b>Do not penalise the intercept.</b> Shrinking $\alpha_0$ toward zero means asserting the curve should pass near the origin — an arbitrary claim that depends on where you happened to put the zero of your $y$ axis. Standard practice: centre the ten power columns, keep the intercept out of the penalty, and recover it as $\hat\alpha_0=\bar{\tilde y}-\bar{x}^\top\hat\beta$.</div>
+</section>
+
+<!-- Slide 12: Choosing lambda -->
+<section class="slide" data-slide="12">
+    <h1>Choosing λ by cross-validation</h1>
+    <p>$\lambda$ cannot be chosen by minimising the training error — that always picks $\lambda=0$, i.e. OLS, by construction. We need a proxy for performance on data the fit has <b>not</b> seen.</p>
+    <h2>Leave-one-out cross-validation (LOOCV)</h2>
+    <ol>
+      <li>Hide point 1. Fit ridge with penalty $\lambda$ on the other 21. Predict point 1. Record the error.</li>
+      <li>Repeat for all 22 points.</li>
+      <li>The root mean square of those 22 held-out errors is the LOOCV score for that $\lambda$.</li>
+      <li>Sweep $\lambda$ on a logarithmic grid and take the minimum.</li>
+    </ol>
+    <svg viewBox="0 0 420 205" width="100%" style="max-width:100%;margin:8px 0" role="img" aria-label="Top panel: the leave-one-out cross-validation error as a function of lambda, forming a shallow valley with its minimum near lambda equals four times ten to the minus four. Bottom panel: the coefficient norm falling steadily from about six point six towards zero as lambda increases.">
+  <line x1="55" y1="96" x2="400" y2="96" stroke="#6a5888" stroke-width="1.2"/>
+  <line x1="55" y1="24" x2="55" y2="96" stroke="#6a5888" stroke-width="1.2"/>
+  <polyline fill="none" stroke="#1a5ca8" stroke-width="2.2" points="55.0,59.0 63.5,58.8 72.0,58.5 80.5,57.9 89.0,57.2 97.5,56.0 106.0,54.3 114.5,52.0 123.0,49.0 131.5,45.6 140.0,42.1 148.5,39.2 157.0,37.2 165.5,36.3 174.0,36.2 182.5,36.4 191.0,36.5 199.5,36.1 208.0,35.1 216.5,33.5 225.0,31.5 233.5,29.7 242.0,28.5 250.5,28.0 259.0,28.2 267.5,29.1 276.0,30.7 284.5,33.3 293.0,37.1 301.5,41.9 310.0,47.2 318.5,52.3 327.0,57.1 335.5,61.8 344.0,66.5 352.5,71.6 361.0,77.0 369.5,82.4 378.0,87.4 386.5,91.9 395.0,96.0"/>
+  <line x1="252.6" y1="24" x2="252.6" y2="96" stroke="#0d7a6e" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="252.6" cy="28.0" r="4" fill="#0d7a6e"/>
+  <text x="60" y="34" font-size="10" font-family="Consolas,monospace" fill="#1a5ca8">LOOCV error (held-out)</text>
+  <text x="258" y="22" font-size="10" font-family="Consolas,monospace" fill="#0d7a6e">λ* ≈ 4.5×10⁻⁴</text>
+  <text x="300" y="60" font-size="9" font-family="Consolas,monospace" fill="#c42848">over-smoothed →</text>
+  <text x="63" y="72" font-size="9" font-family="Consolas,monospace" fill="#c42848">← unstable</text>
+  <line x1="55" y1="178" x2="400" y2="178" stroke="#6a5888" stroke-width="1.2"/>
+  <line x1="55" y1="112" x2="55" y2="178" stroke="#6a5888" stroke-width="1.2"/>
+  <polyline fill="none" stroke="#b86800" stroke-width="2.2" points="55.0,118.5 63.5,118.6 72.0,118.7 80.5,119.0 89.0,119.3 97.5,119.8 106.0,120.6 114.5,121.7 123.0,123.4 131.5,125.7 140.0,128.8 148.5,132.6 157.0,137.0 165.5,141.9 174.0,147.1 182.5,152.2 191.0,156.9 199.5,160.6 208.0,163.4 216.5,165.2 225.0,166.4 233.5,167.4 242.0,168.1 250.5,168.8 259.0,169.3 267.5,169.8 276.0,170.2 284.5,170.5 293.0,170.9 301.5,171.3 310.0,171.6 318.5,172.0 327.0,172.3 335.5,172.5 344.0,172.8 352.5,173.0 361.0,173.3 369.5,173.7 378.0,174.0 386.5,174.4 395.0,174.7"/>
+  <line x1="252.6" y1="112" x2="252.6" y2="178" stroke="#0d7a6e" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="252.6" cy="168.9" r="4" fill="#0d7a6e"/>
+  <text x="60" y="124" font-size="10" font-family="Consolas,monospace" fill="#b86800">‖β‖₂  (6.63 at λ→0)</text>
+  <text x="258" y="164" font-size="10" font-family="Consolas,monospace" fill="#0d7a6e">1.007 here</text>
+  <text x="55" y="192" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#6a5888">10⁻⁸</text>
+  <text x="140" y="192" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#6a5888">10⁻⁶</text>
+  <text x="225" y="192" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#6a5888">10⁻⁴</text>
+  <text x="310" y="192" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#6a5888">10⁻²</text>
+  <text x="395" y="192" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#6a5888">1</text>
+  <text x="228" y="203" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#6a5888">penalty weight λ (standardised problem, log scale)</text>
+</svg>
+    <div class="callout"><b>Result: $\lambda^\star \approx 4.47\times10^{-4}$</b> on the standardised problem. The valley is <b>shallow</b> — anything from roughly $10^{-4}$ to $10^{-3}$ scores about the same. Say so in the workbook: a flat optimum means the exact digits of $\lambda^\star$ do not matter, which is a much more honest claim than quoting six decimals.</div>
+    <p>With $n=22$, leave-one-out is 22 tiny fits — essentially free. On a bigger dataset you would use 5- or 10-fold cross-validation for speed.</p>
+</section>
+
+<!-- Slide 13: Results -->
+<section class="slide" data-slide="13">
+    <h1>The results table</h1>
+    <p>Root mean squared error (RMSE) is quoted in original $y$ units; the coefficient norm excludes the intercept and refers to the standardised problem.</p>
+    <table class="data">
+      <tr><th>Solution</th><th>RMSE (original units)</th><th>‖β‖₂</th><th>Fitted intercept</th></tr>
+      <tr><td><b>OLS</b> ($\lambda=0$)</td><td><b>1.63×10¹¹</b></td><td>6.63</td><td>+1.90×10¹¹</td></tr>
+      <tr><td><b>Ridge</b> at $\lambda^\star=4.47\times10^{-4}$</td><td>2.98×10¹¹</td><td><b>1.007</b></td><td>−3.84×10⁹</td></tr>
+      <tr><td><b>Heavy ridge</b>, $\lambda=10^{-2}$</td><td>5.54×10¹¹</td><td>0.708</td><td>−1.64×10¹¹</td></tr>
+      <tr><td colspan="4" style="background:rgba(13,122,110,.06)">For reference: the observed $y(0)=-0.98$, and $\max|y|=5.98\times10^{13}$</td></tr>
+    </table>
+    <div class="callout"><b>OLS wins on in-sample error — as it must.</b> OLS is by definition the minimiser of that exact quantity, so no ridge fit can ever beat it there. Reporting "OLS has the lowest training error" is therefore not a finding; it is arithmetic. The interesting column is the next one.</div>
+    <p>Ridge cuts the coefficient norm from 6.63 to 1.007 — an <b>84.8% reduction</b> — while the in-sample RMSE grows by a factor of only 1.8. Push to $\lambda=10^{-2}$ and you buy a further 30% shrinkage for a 3.4× worse fit: clearly past the point of diminishing returns, which is what makes $\lambda^\star$ defensible.</p>
+</section>
+
+<!-- Slide 14: Bias-variance -->
+<section class="slide" data-slide="14">
+    <h1>Reading the table: bias vs variance</h1>
+    <p>Every prediction error decomposes into three pieces. Two of them we can trade against each other.</p>
+    <div class="formula">$\mathbb{E}\big[(y-\hat f(x))^{2}\big]=\underbrace{\text{bias}^{2}}_{\text{systematically off}}+\underbrace{\text{variance}}_{\text{jumps with the sample}}+\underbrace{\sigma^{2}}_{\text{irreducible noise}}$</div>
+    <table class="data">
+      <tr><th></th><th>Bias</th><th>Variance</th><th>In-sample fit</th></tr>
+      <tr><td>OLS</td><td>Zero (unbiased)</td><td><b>Enormous</b> — κ=10¹³ means tiny data changes swing the coefficients wildly</td><td>Best possible</td></tr>
+      <tr><td>Ridge at $\lambda^\star$</td><td>Small, deliberately introduced</td><td>Much smaller — norm down 84.8%</td><td>1.8× worse</td></tr>
+      <tr><td>Heavy ridge</td><td>Large</td><td>Smallest</td><td>3.4× worse</td></tr>
+    </table>
+    <p><b>The bargain:</b> ridge accepts a little systematic error in exchange for a solution that would barely move if you re-measured the data. On a problem with $\kappa=10^{13}$ that is an excellent trade — an unbiased estimator whose value is dominated by noise is not useful, however unbiased it is.</p>
+    <div class="prob"><b>Lookalike alert — OLS vs ridge.</b> They are not "two competing models". They are the <i>same</i> model (degree-10 polynomial) fitted with two different objectives. OLS optimises fit alone; ridge optimises fit plus stability. Choosing between them is choosing what you want the fit <b>for</b>: OLS if you only ever describe these 22 points, ridge if any number will be reused, extrapolated, or interpreted.</div>
+</section>
+
+<!-- Slide 15: The small-x failure -->
+<section class="slide" data-slide="15">
+    <h1>Where both solutions fail badly</h1>
+    <p>This is the answer to "what are the qualities of each of the solutions?" — and it is not flattering to either.</p>
+    <p>Least squares minimises <b>absolute</b> squared error, so the fit is bought and paid for by the handful of points where $|y|\approx 6\times10^{13}$. In the region $|x|\le 7$, where the true values never exceed $1.8\times10^{9}$, neither fit is worth anything:</p>
+    <svg viewBox="0 0 420 155" width="100%" style="max-width:100%;margin:8px 0" role="img" aria-label="Zoomed view of the region where the absolute value of x is at most seven. The eight data points lie flat on the zero line. The OLS curve oscillates between plus two point six times ten to the eleven and minus one point three times ten to the eleven, and the ridge curve also wanders far from zero.">
+  <line x1="45" y1="94.4" x2="400" y2="94.4" stroke="#1c1a30" stroke-width="1.5"/>
+  <line x1="220" y1="25" x2="220" y2="130" stroke="#6a5888" stroke-width="1" stroke-dasharray="2 3"/>
+  <line x1="45" y1="50.0" x2="400" y2="50.0" stroke="#d0c8e0" stroke-width="1"/>
+  <line x1="45" y1="72.2" x2="400" y2="72.2" stroke="#d0c8e0" stroke-width="1"/>
+  <line x1="45" y1="116.7" x2="400" y2="116.7" stroke="#d0c8e0" stroke-width="1"/>
+  <text x="404" y="53" font-size="9" font-family="Consolas,monospace" fill="#6a5888">+2e11</text>
+  <text x="404" y="75" font-size="9" font-family="Consolas,monospace" fill="#6a5888">+1e11</text>
+  <text x="404" y="97" font-size="9" font-family="Consolas,monospace" fill="#1c1a30">0</text>
+  <text x="404" y="120" font-size="9" font-family="Consolas,monospace" fill="#6a5888">−1e11</text>
+  <polyline fill="none" stroke="#c42848" stroke-width="2.2" points="45.0,114.5 53.8,112.1 62.5,108.4 71.2,103.6 80.0,97.8 88.8,91.2 97.5,84.0 106.2,76.5 115.0,68.9 123.8,61.7 132.5,54.9 141.2,48.9 150.0,43.8 158.8,40.0 167.5,37.5 176.2,36.4 185.0,36.8 193.8,38.6 202.5,41.9 211.2,46.5 220.0,52.3 228.8,59.1 237.5,66.6 246.2,74.6 255.0,82.8 263.8,91.0 272.5,98.7 281.2,105.9 290.0,112.0 298.8,117.0 307.5,120.6 316.2,122.7 325.0,123.1 333.8,121.8 342.5,118.8 351.2,114.2 360.0,108.1 368.8,100.9 377.5,92.7 386.2,84.0 395.0,75.1"/>
+  <polyline fill="none" stroke="#0d7a6e" stroke-width="2.2" stroke-dasharray="5 3" points="45.0,105.0 53.8,108.2 62.5,111.2 71.2,113.9 80.0,116.1 88.8,118.0 97.5,119.3 106.2,120.2 115.0,120.5 123.8,120.3 132.5,119.7 141.2,118.6 150.0,117.1 158.8,115.1 167.5,112.9 176.2,110.3 185.0,107.6 193.8,104.6 202.5,101.5 211.2,98.4 220.0,95.3 228.8,92.3 237.5,89.3 246.2,86.6 255.0,84.2 263.8,82.1 272.5,80.4 281.2,79.1 290.0,78.3 298.8,78.1 307.5,78.4 316.2,79.3 325.0,80.9 333.8,83.1 342.5,85.9 351.2,89.3 360.0,93.3 368.8,97.9 377.5,102.9 386.2,108.4 395.0,114.3"/>
+  <circle cx="56.7" cy="94.8" r="3.5" fill="#1a5ca8"/><circle cx="80.0" cy="94.5" r="3.5" fill="#1a5ca8"/>
+  <circle cx="220.0" cy="94.4" r="3.5" fill="#1a5ca8"/><circle cx="266.7" cy="94.4" r="3.5" fill="#1a5ca8"/>
+  <circle cx="290.0" cy="94.4" r="3.5" fill="#1a5ca8"/><circle cx="313.3" cy="94.4" r="3.5" fill="#1a5ca8"/>
+  <circle cx="360.0" cy="94.5" r="3.5" fill="#1a5ca8"/><circle cx="383.3" cy="94.8" r="3.5" fill="#1a5ca8"/>
+  <text x="80" y="150" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#6a5888">x=−6</text>
+  <text x="220" y="150" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#6a5888">x=0</text>
+  <text x="360" y="150" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#6a5888">x=6</text>
+  <text x="150" y="33" font-size="10" font-family="Consolas,monospace" fill="#c42848">OLS</text>
+  <text x="290" y="70" font-size="10" font-family="Consolas,monospace" fill="#0d7a6e">ridge</text>
+  <text x="60" y="140" font-size="9" font-family="Consolas,monospace" fill="#1a5ca8">● data — all 8 points sit on the zero line at this scale</text>
+</svg>
+    <table class="data">
+      <tr><th>At $x=0$</th><th>Value</th></tr>
+      <tr><td>Observed $y(0)$</td><td><b>−0.98</b></td></tr>
+      <tr><td>OLS fitted intercept</td><td><b>+1.90×10¹¹</b> — wrong by eleven orders of magnitude, and the wrong sign</td></tr>
+      <tr><td>Ridge fitted intercept</td><td>−3.84×10⁹ — better, still a billion times too big</td></tr>
+      <tr><td>OLS swing across $|x|\le7$</td><td>from −1.3×10¹¹ up to +2.6×10¹¹</td></tr>
+      <tr><td>True $|y|$ across $|x|\le7$</td><td>at most 1.8×10⁹</td></tr>
+    </table>
+    <div class="warn"><b>Both fits are worthless on the interior.</b> They oscillate by hundreds of billions around data that is, on their scale, indistinguishable from zero — and remember from slide 5 that the correct intercept was sitting in the dataset all along. Ridge improves matters roughly fiftyfold but does not fix the cause: it penalises coefficient size, not error <i>relative</i> to the local magnitude of $y$.</div>
+</section>
+
+<!-- Slide 16: The honest fix (sub-chapter) -->
+<section class="slide" data-slide="16" data-nav-tier="sub" data-nav-section="╰ CRITIQUE">
+    <span class="badge badge-sub">SUB-CHAPTER</span>
+    <h1>If the small-x region mattered</h1>
+    <p>The failure on slide 15 is not a bug in ridge or in the solver. It is the <b>loss function</b> doing precisely what it was told: absolute squared error says an error of $10^{9}$ at $x=0$ is negligible, because it is negligible <i>compared with $10^{13}$</i>.</p>
+    <p>So if the interior mattered, the criterion — not the estimator — is what to change:</p>
+    <table class="data">
+      <tr><th>Approach</th><th>Minimise</th><th>Effect</th></tr>
+      <tr><td>Relative error</td><td>$\sum\big((y_i-\hat y_i)/y_i\big)^{2}$</td><td>Every point counts equally in percentage terms</td></tr>
+      <tr><td>Weighted least squares</td><td>$\sum w_i(y_i-\hat y_i)^{2}$ with $w_i=1/y_i^{2}$</td><td>Same idea, standard machinery, easy to defend</td></tr>
+      <tr><td>Log-scale fit</td><td>$\sum\big(\log|y_i|-\log|\hat y_i|\big)^{2}$</td><td>Natural here: all $y&lt;0$, and $\log|y|$ is nearly linear in $|x|$</td></tr>
+    </table>
+    <div class="callout"><b>Say this in the workbook, but do not substitute it for the requested task.</b> The exam asks for OLS and ridge on squared error — deliver exactly that, then add the remark. Diagnosing <i>why</i> a correctly-executed method gives a useless answer in part of the domain is the difference between running a recipe and understanding it.</div>
+    <p>Do not reweight silently either. Weighted least squares answers a different question from the one asked; changing the question without flagging it is the kind of thing that makes a workbook untrustworthy.</p>
+</section>
+
+<!-- Slide 17: Recap -->
+<section class="slide" data-slide="17">
+    <h1>Quest complete</h1>
+    <div class="buddy-row"><svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="4" y="2" width="8" height="4" fill="#485880"/><rect x="3" y="6" width="10" height="6" fill="#485880"/>
+    <rect x="5" y="4" width="6" height="3" fill="#e8e0d8"/><rect x="5" y="7" width="6" height="4" fill="#e8e0d8"/>
+    <rect x="6" y="4" width="1" height="1" fill="#3a3040"/><rect x="9" y="4" width="1" height="1" fill="#3a3040"/>
+    <rect x="5" y="5" width="1" height="1" fill="#c8a0a8"/><rect x="10" y="5" width="1" height="1" fill="#c8a0a8"/>
+    <rect x="7" y="6" width="2" height="1" fill="#d4a060"/>
+    <rect x="5" y="12" width="2" height="1" fill="#d4a060"/><rect x="9" y="12" width="2" height="1" fill="#d4a060"/>
+  </svg>
+      <div class="buddy-speech"><span class="speaker">Ridge:</span> Scale first, SVD second, cross-validate third, and be honest about the interior. That last one is what separates a report from a script.</div>
+    </div>
+    <ul class="checkpoint">
+      <li>Degree 10 → 11 coefficients; 22 points, 22 distinct $x$ → overdetermined, unique OLS solution exists</li>
+      <li>Polynomial regression is <b>linear in the parameters</b>: treat $x,\dots,x^{10}$ as 11 columns of a Vandermonde design matrix</li>
+      <li>$x=0$ is in the sample, so $\alpha_0\approx y(0)=-0.98$ — a free sanity anchor</li>
+      <li>Conditioning is the headline: $\kappa=1.02\times10^{13}$ raw, $3.74\times10^{3}$ after $t=x/20$ — a factor $2.7\times10^{9}$. Rescaling is mandatory; rescale $y$ too so $\lambda$ is meaningful</li>
+      <li>Solve by SVD, never via $X^\top X$ ($\kappa^2=1.03\times10^{26}$ is numerically singular)</li>
+      <li>Ridge = least squares + $\lambda\lVert\alpha\rVert^2$; via SVD it applies filter $d_j^2/(d_j^2+\lambda)$, shrinking hardest where the data says least. Intercept unpenalised</li>
+      <li>LOOCV gives $\lambda^\star\approx4.47\times10^{-4}$, with a deliberately-flagged <b>shallow</b> optimum</li>
+      <li>RMSE 1.63×10¹¹ (OLS) / 2.98×10¹¹ (ridge) / 5.54×10¹¹ (heavy); ‖β‖ 6.63 → 1.007 → 0.708, an 84.8% shrink. OLS must win in-sample; ridge wins on stability</li>
+      <li>Quality verdict: on $|x|\le7$ <b>both</b> fits are worthless (OLS intercept +1.90×10¹¹ against an observed −0.98) because squared error is dominated by the $10^{13}$ edges. The fix would be a relative or log-scale criterion</li>
+    </ul>
+    <details><summary>Quick self-check before the notebook</summary>
+      <p><b>Q1.</b> Why can we not choose $\lambda$ by minimising the fitted residual sum of squares?<br/>
+      <i>Because that quantity is minimised at $\lambda=0$ by definition — it would always select OLS. $\lambda$ has to be judged on data the fit has not seen.</i></p>
+      <p><b>Q2.</b> Rescaling $x$ to $[-1,1]$ does not change the fitted curve at all. So why bother?<br/>
+      <i>Mathematically it is the same fit; numerically it is the difference between 3 reliable digits and 12. It also makes $\lambda$ interpretable.</i></p>
+      <p><b>Q3.</b> Ridge has larger in-sample error than OLS. In what sense is it then "better"?<br/>
+      <i>It is not better at describing these 22 points — it cannot be. It is better at being reproducible: its coefficient vector is 84.8% smaller and would barely move under re-measurement, whereas the OLS solution is dominated by directions the data barely constrains.</i></p>
+      <p><b>Q4.</b> What single number best exposes the weakness of both fits?<br/>
+      <i>The fitted value at $x=0$: OLS says $+1.90\times10^{11}$, the data says $-0.98$.</i></p>
+    </details>
+</section>
+
+  </div>
+
+<nav class="deck-controls">
+    <button type="button" id="prev">◀ PREV</button>
+    <span id="counter">1 / 18</span>
+    <button type="button" id="next">NEXT ▶</button>
+  </nav>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const sideNavList = document.getElementById("side-nav-list");
+    const navButtons = [];
+
+    let mainNum = 0;
+    let subParentNum = 0;
+    let subIndex = 0;
+    const sectionHeadersAdded = new Set();
+    const sectionDefaults = {
+      "sub-control": "╰ WITH A CONTROL GROUP",
+      "sub-its": "╰ INTERRUPTED TIME SERIES",
+    };
+
+    slides.forEach((slide, j) => {
+      const tier = slide.dataset.navTier || "core";
+      let displayNum;
+
+      if (tier === "core") {
+        mainNum++;
+        subParentNum = mainNum;
+        subIndex = 0;
+        displayNum = String(mainNum);
+      } else if (tier.startsWith("sub")) {
+        const sectionLabel = slide.dataset.navSection || sectionDefaults[tier] || "╰ DETAILS";
+        if (!sectionHeadersAdded.has(sectionLabel)) {
+          const head = document.createElement("p");
+          head.className = "side-nav-section";
+          head.textContent = sectionLabel;
+          sideNavList.appendChild(head);
+          sectionHeadersAdded.add(sectionLabel);
+        }
+        subIndex++;
+        displayNum = `${subParentNum}.${subIndex}`;
+      } else {
+        displayNum = String(j + 1);
+      }
+
+      const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      const isSub = tier.startsWith("sub");
+      btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+      btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
+      btn.addEventListener("click", () => show(j));
+      sideNavList.appendChild(btn);
+      navButtons.push(btn);
+    });
+    const headCore = document.createElement("p");
+    headCore.className = "side-nav-section";
+    headCore.textContent = "RIDGE PATH — start here";
+    sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
+    let i = 0;
+    const counter = document.getElementById("counter");
+    function show(n) {
+      i = Math.max(0, Math.min(n, slides.length - 1));
+      slides.forEach((s, j) => s.classList.toggle("active", j === i));
+      navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+      counter.textContent = `${i + 1} / ${slides.length}`;
+      navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+    document.getElementById("prev").onclick = () => show(i - 1);
+    document.getElementById("next").onclick = () => show(i + 1);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") show(i + 1);
+      if (e.key === "ArrowLeft") show(i - 1);
+    });
+    show(0);
+  </script>
+
+  <div id="laser-dot"></div>
+  <script>
+  /* ── Cursor effects: fairydust trail + click explosion ── */
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var PALETTE = ['#1a5ca8','#c42848','#b86800','#0d7a6e','#6a5888','#f5c842','#e87060','#a8d870'];
+    var PETAL_COLORS = ['#c42848','#b86800','#f5c842','#6a5888','#1a5ca8','#e87060','#0d7a6e'];
+    var PISTIL_COLORS = ['#f5c842','#1c1a30','#c42848'];
+    var LEAF_COLORS = ['#a8d870','#4a9a40','#7bc860','#e8a040','#c84828'];
+    var STAR_COLORS = ['#1a5ca8','#b86800','#c42848','#0d7a6e'];
+    var PARTICLE_CAP = 40;
+    var lastSpawn = 0;
+    var particleCount = 0;
+    var laser = document.getElementById('laser-dot');
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function rnd(min, max) { return min + Math.random() * (max - min); }
+
+    function makeFlower() {
+      var color = pick(PETAL_COLORS);
+      var pistil = pick(PISTIL_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var g = document.createElementNS(NS, 'g');
+      g.setAttribute('transform', 'translate(8,8)');
+      for (var i = 0; i < 5; i++) {
+        var petal = document.createElementNS(NS, 'ellipse');
+        petal.setAttribute('cx', '0');
+        petal.setAttribute('cy', '-4');
+        petal.setAttribute('rx', '2.5');
+        petal.setAttribute('ry', '4');
+        petal.setAttribute('fill', color);
+        petal.setAttribute('opacity', '0.9');
+        if (i > 0) petal.setAttribute('transform', 'rotate(' + (i * 72) + ')');
+        g.appendChild(petal);
+      }
+      var pistilEl = document.createElementNS(NS, 'circle');
+      pistilEl.setAttribute('cx', '0');
+      pistilEl.setAttribute('cy', '0');
+      pistilEl.setAttribute('r', '2.5');
+      pistilEl.setAttribute('fill', pistil);
+      g.appendChild(pistilEl);
+      svg.appendChild(g);
+      return svg;
+    }
+
+    function makeLeaf() {
+      var color = pick(LEAF_COLORS);
+      var angle = Math.floor(rnd(0, 360));
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var ellipse = document.createElementNS(NS, 'ellipse');
+      ellipse.setAttribute('cx', '8');
+      ellipse.setAttribute('cy', '8');
+      ellipse.setAttribute('rx', '3.5');
+      ellipse.setAttribute('ry', '6.5');
+      ellipse.setAttribute('fill', color);
+      ellipse.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      var line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', '8');
+      line.setAttribute('y1', '2');
+      line.setAttribute('x2', '8');
+      line.setAttribute('y2', '14');
+      line.setAttribute('stroke', '#2a5a20');
+      line.setAttribute('stroke-width', '0.8');
+      line.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      svg.appendChild(ellipse);
+      svg.appendChild(line);
+      return svg;
+    }
+
+    function makeStar() {
+      var color = pick(STAR_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var polygon = document.createElementNS(NS, 'polygon');
+      polygon.setAttribute('points', '8,1 9.5,6.5 15,8 9.5,9.5 8,15 6.5,9.5 1,8 6.5,6.5');
+      polygon.setAttribute('fill', color);
+      svg.appendChild(polygon);
+      return svg;
+    }
+
+    /* Effect 1 — Fairydust trail */
+    document.addEventListener('mousemove', function (e) {
+      if (laser) {
+        laser.style.left = e.clientX + 'px';
+        laser.style.top = e.clientY + 'px';
+      }
+      var now = Date.now();
+      if (now - lastSpawn < 30 || particleCount >= PARTICLE_CAP) return;
+      lastSpawn = now;
+
+      var size = 4 + Math.floor(rnd(0, 3));
+      var el = document.createElement('div');
+      el.className = 'fd-particle';
+      el.style.cssText = [
+        'width:' + size + 'px',
+        'height:' + size + 'px',
+        'background:' + pick(PALETTE),
+        'border-radius:0',
+        'left:' + (e.clientX + rnd(-6, 6) - size / 2) + 'px',
+        'top:' + (e.clientY + rnd(-6, 6) - size / 2) + 'px'
+      ].join(';');
+      document.body.appendChild(el);
+      particleCount++;
+
+      var ty = -rnd(20, 40);
+      el.animate(
+        [{ opacity: 1, transform: 'translateY(0)' },
+         { opacity: 0, transform: 'translateY(' + ty + 'px)' }],
+        { duration: rnd(600, 800), easing: 'ease-out', fill: 'forwards' }
+      ).addEventListener('finish', function () { el.remove(); particleCount--; });
+    });
+
+    /* Effect 2 — Click explosion with random theme (flower / leaf / star) */
+    document.addEventListener('click', function (e) {
+      var themes = ['flower', 'leaf', 'star'];
+      var theme = themes[Math.floor(Math.random() * 3)];
+      var count = 12 + Math.floor(rnd(0, 5));
+      for (var k = 0; k < count; k++) {
+        var angle = rnd(0, 360) * Math.PI / 180;
+        var dist = rnd(40, 80);
+        var dx = Math.cos(angle) * dist;
+        var dy = Math.sin(angle) * dist;
+        var rotate = rnd(0, 360);
+        var el;
+        if (theme === 'flower') { el = makeFlower(); }
+        else if (theme === 'leaf') { el = makeLeaf(); }
+        else { el = makeStar(); }
+        el.setAttribute('class', 'fd-petal');
+        el.style.cssText = [
+          'left:' + (e.clientX - 7) + 'px',
+          'top:' + (e.clientY - 7) + 'px',
+          'transform:rotate(' + rotate + 'deg)'
+        ].join(';');
+        document.body.appendChild(el);
+
+        (function (el, rotate, dx, dy) {
+          el.animate(
+            [{ opacity: 1, transform: 'rotate(' + rotate + 'deg) translate(0,0)' },
+             { opacity: 0, transform: 'rotate(' + (rotate + 180) + 'deg) translate(' + dx + 'px,' + dy + 'px)' }],
+            { duration: rnd(700, 900), easing: 'ease-out', fill: 'forwards' }
+          ).addEventListener('finish', function () { el.remove(); });
+        }(el, rotate, dx, dy));
+      }
+    });
+  }());
+  </script>
+  <script>
+  /* ── hover tooltip engine ── */
+  (function () {
+    var box = document.createElement('div');
+    box.id = 'tip-box';
+    document.body.appendChild(box);
+    document.querySelectorAll('.tip').forEach(function (el) {
+      el.addEventListener('mouseenter', function (e) {
+        var lbl = el.dataset.tipTitle ? '<span class="tip-label">' + el.dataset.tipTitle + '</span>' : '';
+        box.innerHTML = lbl + (el.dataset.tip || '');
+        if (window.renderMathInElement) renderMathInElement(box, {
+          delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+          throwOnError: false
+        });
+        box.style.display = 'block'; move(e);
+      });
+      el.addEventListener('mousemove', move);
+      el.addEventListener('mouseleave', function () { box.style.display = 'none'; });
+    });
+    function move(e) {
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 310 > window.innerWidth)  x = e.clientX - 316;
+      if (y + 200 > window.innerHeight) y = e.clientY - 206;
+      box.style.left = x + 'px'; box.style.top = y + 'px';
+    }
+  }());
+  </script>
+</body>
+</html>

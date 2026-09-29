@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Task 1: Bernoulli Vote — Advanced Stats Quest</title>
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="2" width="2" height="3" fill="%23c4919e"/><rect x="11" y="2" width="2" height="3" fill="%23c4919e"/><rect x="3" y="5" width="10" height="8" fill="%23f0dcc0"/><rect x="5" y="7" width="1" height="2" fill="%233a3040"/><rect x="10" y="7" width="1" height="2" fill="%233a3040"/><rect x="7" y="9" width="2" height="1" fill="%23c4919e"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:     #f0ebe0;
+      --card:   #fffef8;
+      --accent: #1a5ca8;
+      --rose:   #c42848;
+      --honey:  #b86800;
+      --text:   #1c1a30;
+      --mist:   #6a5888;
+      --teal:   #0d7a6e;
+      --slate:  #3a4d7a;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 720px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    .side-nav {
+      position: fixed; left: 0; top: 0; bottom: 52px; width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto; z-index: 9;
+    }
+    .side-nav-title { font-family: "DotGothic16", monospace; font-size: 8px; color: var(--mist); margin-bottom: 12px; letter-spacing: 1px; }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex; gap: 8px; align-items: flex-start; width: 100%;
+      text-align: left; font-family: Consolas, "Courier New", monospace;
+      font-size: 11px; line-height: 1.35; padding: 8px;
+      border: 2px solid transparent; background: transparent;
+      color: var(--text); cursor: pointer; box-shadow: none;
+    }
+    .side-nav-btn:hover { background: rgba(26,92,168,.06); border-color: #ccc4e0; }
+    .side-nav-btn.active { background: rgba(26,92,168,.1); border-color: var(--accent); color: var(--accent); font-weight: bold; }
+    .side-nav-num { flex-shrink: 0; color: var(--mist); font-size: 10px; min-width: 1.2em; }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace; font-size: 9px;
+      color: var(--mist); margin: 10px 0 4px; padding-top: 10px;
+      border-top: 1px solid #d0c8e0; letter-spacing: 1px; line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+
+    .slide { display: none; background: var(--card); border: 2px solid #ccc4e0; box-shadow: 4px 4px 0 rgba(80,60,140,.18); padding: 24px; margin-bottom: 16px; }
+    .slide.active { display: block; }
+    h1 { font-family: "DotGothic16", monospace; font-size: 13px; color: var(--accent); margin: 0 0 16px; letter-spacing: .5px; }
+    h2 { font-family: Consolas, "Courier New", monospace; font-size: 11px; color: var(--honey); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin: 18px 0 8px; }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+    .buddy-speech { flex: 1; background: #fff8f2; border: 2px solid var(--rose); padding: 12px; position: relative; }
+    .buddy-speech::before { content: ""; position: absolute; left: -11px; top: 14px; border: 7px solid transparent; border-right-color: var(--rose); }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    .formula { font-family: Consolas, "Courier New", monospace; font-size: 12px; color: var(--accent); background: rgba(26,92,168,.06); padding: 14px 16px; border: 2px solid rgba(26,92,168,.3); margin: 12px 0; overflow-x: auto; line-height: 1.8; }
+    .formula em { color: var(--honey); font-style: normal; }
+    .formula .katex { font-size: 1.08em; }
+    .formula .katex-display { margin: 6px 0; }
+    .tip { border-bottom: 2px dashed var(--honey); cursor: help; }
+    #tip-box { position: fixed; display: none; background: #fff8f2; border: 2px solid var(--honey); box-shadow: 4px 4px 0 rgba(80,60,140,.22); padding: 10px 14px; max-width: 300px; font-size: 11px; z-index: 99998; color: var(--text); line-height: 1.6; pointer-events: none; }
+    .tip-label { font-weight: bold; color: var(--honey); display: block; margin-bottom: 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+    .callout { background: rgba(13,122,110,.08); border: 2px solid var(--teal); padding: 12px; margin: 12px 0; color: var(--teal); }
+    .warn { background: rgba(196,40,72,.06); border: 2px solid var(--rose); padding: 12px; margin: 12px 0; }
+    .warn strong { color: var(--rose); }
+
+    .visual-center { display: flex; justify-content: center; margin: 16px 0; }
+    .visual-row { display: flex; gap: 24px; align-items: center; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+    .visual-label { text-align: center; font-size: 11px; color: var(--mist); margin-top: 6px; }
+    .visual-caption { text-align: center; font-size: 11px; color: var(--mist); font-style: italic; margin-top: 4px; }
+
+    .table-wrap { overflow-x: auto; margin: 12px 0; }
+    table { border-collapse: collapse; width: 100%; font-size: 12px; }
+    th { background: rgba(26,92,168,.1); color: var(--accent); font-weight: bold; padding: 8px; border: 1px solid #ccc4e0; text-align: left; }
+    td { padding: 8px; border: 1px solid #ccc4e0; }
+    tr:nth-child(even) td { background: rgba(26,92,168,.03); }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 8px; }
+
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+
+    .badge-exam { border: 2px solid var(--honey); color: var(--honey); font-size: 10px; padding: 4px 8px; margin-bottom: 12px; display: inline-block; }
+    .badge-sub { border: 2px solid var(--slate); color: var(--slate); font-size: 10px; padding: 4px 8px; margin-bottom: 12px; display: inline-block; }
+    .badge-visual { border: 2px solid var(--teal); color: var(--teal); font-size: 10px; padding: 4px 8px; margin-bottom: 12px; display: inline-block; }
+
+    .code-block { background: #1c1a30; color: #a8d870; font-family: Consolas, "Courier New", monospace; font-size: 11px; padding: 14px; border: 2px solid #3a3060; margin: 12px 0; line-height: 1.8; overflow-x: auto; white-space: pre; }
+    .code-block .c { color: #6a5888; }
+    .code-block .k { color: #1a5ca8; font-weight: bold; }
+    .code-block .s { color: #b86800; }
+    .code-block .n { color: #f0dcc0; }
+
+    nav.deck-controls {
+      position: fixed; bottom: 0; left: 212px; right: 0;
+      display: flex; justify-content: center; align-items: center;
+      gap: 16px; padding: 12px;
+      background: rgba(240,235,224,.97); border-top: 3px solid var(--honey); z-index: 10;
+    }
+    #counter { font-family: "DotGothic16", monospace; font-size: 9px; color: var(--mist); }
+    button { font-family: "DotGothic16", monospace; font-size: 9px; padding: 10px 16px; background: var(--accent); color: #fffef8; border: 2px solid #0d3d7a; box-shadow: 3px 3px 0 rgba(26,92,168,.25); cursor: pointer; }
+    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+
+    .fd-particle, .fd-petal { position: fixed; z-index: 99999; pointer-events: none; }
+    body { cursor: none; }
+    button, a, summary, [role="button"], .side-nav, .side-nav-btn, details { cursor: none !important; }
+    #laser-dot {
+      position: fixed; width: 12px; height: 12px; border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, #c42848 45%, transparent 70%);
+      box-shadow: 0 0 6px 2px #c42848, 0 0 14px 4px #c4284855;
+      pointer-events: none; z-index: 99999;
+      transform: translate(-50%, -50%); transition: transform 0.05s ease;
+    }
+    @media (prefers-reduced-motion: reduce) { #laser-dot { display: none; } body { cursor: auto; } }
+  </style>
+</head>
+<body>
+  <aside class="side-nav" aria-label="Slide contents">
+    <p class="side-nav-title">CONTENTS</p>
+    <div id="side-nav-list" class="side-nav-list"></div>
+  </aside>
+
+  <div class="deck" id="deck">
+
+  <!-- ══ 0: Title ══ -->
+  <section class="slide active" data-slide="0">
+    <span class="badge-exam">EXAM TASK 1 · ξ1 = 0 · BERNOULLI</span>
+    <h1>Task 1: Bernoulli Vote</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="11" y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="4"  y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="11" y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="3"  y="5" width="10" height="8" fill="#f0dcc0"/>
+        <rect x="5"  y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="7"  y="9" width="2" height="1" fill="#c4919e"/>
+        <rect x="4"  y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="7"  y="10" width="1" height="1" fill="#5a4858"/>
+        <rect x="8"  y="10" width="1" height="1" fill="#5a4858"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Penny:</span> One vote, two outcomes. The math looks scary but the idea is simple — let's build the intuition first, then add the formalism on top. Press → to start!
+      </div>
+    </div>
+    <div style="background:rgba(106,88,136,.07); border:2px solid var(--mist); padding:10px; margin-bottom:16px; font-size:11px">
+      <strong style="color:var(--mist)">Prerequisites:</strong> This deck assumes you've been through <code>slides/intro-stats-probability/</code> — specifically what a distribution is, what E[X] means, and the PMF/PDF distinction. If any of that feels shaky, do the intro deck first.
+    </div>
+    <p><strong>Your personal setup:</strong> ξ1 = 0 → Bernoulli branch. P(vote = for) = ξ2 = <strong>0.65</strong>.</p>
+    <h2>What you will deliver</h2>
+    <ul>
+      <li>Formal probabilistic model + PMF table</li>
+      <li>Scaled bar chart with annotated percentages</li>
+      <li>Expectation derivation with measurability/integrability hypotheses stated</li>
+      <li>Python notebook cells with spot check</li>
+    </ul>
+  </section>
+
+  <!-- ══ 1: BIG PICTURE — Why Do We Need Math at All? ══ -->
+  <section class="slide" data-slide="1">
+    <span class="badge-visual">START HERE — THE BIG PICTURE</span>
+    <h1>Why Do We Need Formalism?</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="11" y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="4"  y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="11" y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="3"  y="5" width="10" height="8" fill="#f0dcc0"/>
+        <rect x="5"  y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="7"  y="9" width="2" height="1" fill="#c4919e"/>
+        <rect x="4"  y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="7"  y="10" width="1" height="1" fill="#5a4858"/>
+        <rect x="8"  y="10" width="1" height="1" fill="#5a4858"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Penny:</span> "For" and "against" are words. You can't add words. You can't compute an average of words. The whole point of probability theory is to turn real-world situations into numbers — then do math on the numbers.
+      </div>
+    </div>
+    <p>Here's the problem we're solving:</p>
+    <!-- visual: words -> numbers problem -->
+    <div class="visual-center">
+      <svg width="580" height="110" viewBox="0 0 580 110" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <!-- left box: words -->
+        <rect x="10" y="20" width="160" height="70" rx="4" fill="#fff8f2" stroke="#c42848" stroke-width="2"/>
+        <text x="90" y="44" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#c42848" font-weight="bold">REAL WORLD</text>
+        <text x="90" y="64" text-anchor="middle" font-family="Consolas,monospace" font-size="13" fill="#1c1a30">👍 "for"</text>
+        <text x="90" y="82" text-anchor="middle" font-family="Consolas,monospace" font-size="13" fill="#1c1a30">👎 "against"</text>
+        <!-- arrow label: can't do math on these -->
+        <text x="185" y="30" font-family="Consolas,monospace" font-size="10" fill="#6a5888">can't do</text>
+        <text x="185" y="44" font-family="Consolas,monospace" font-size="10" fill="#6a5888">math on</text>
+        <text x="185" y="58" font-family="Consolas,monospace" font-size="10" fill="#6a5888">words ✗</text>
+        <!-- middle: machine box -->
+        <rect x="240" y="15" width="110" height="80" rx="4" fill="rgba(26,92,168,.08)" stroke="#1a5ca8" stroke-width="2" stroke-dasharray="4,3"/>
+        <text x="295" y="40" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">RANDOM</text>
+        <text x="295" y="55" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">VARIABLE</text>
+        <text x="295" y="75" text-anchor="middle" font-family="Consolas,monospace" font-size="14" fill="#b86800">X(·)</text>
+        <!-- arrows -->
+        <line x1="172" y1="55" x2="236" y2="55" stroke="#1a5ca8" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="352" y1="55" x2="400" y2="55" stroke="#1a5ca8" stroke-width="2" marker-end="url(#arr)"/>
+        <!-- right box: numbers -->
+        <rect x="402" y="20" width="160" height="70" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
+        <text x="482" y="44" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e" font-weight="bold">NUMBERS</text>
+        <text x="482" y="64" text-anchor="middle" font-family="Consolas,monospace" font-size="16" fill="#1c1a30" font-weight="bold">1</text>
+        <text x="482" y="82" text-anchor="middle" font-family="Consolas,monospace" font-size="16" fill="#1c1a30" font-weight="bold">0</text>
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#1a5ca8"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+    <p>Now we can compute: average, variance, probability of events — because we're working with <strong>1s and 0s</strong>, not words.</p>
+    <div class="callout">
+      Every piece of formalism in this task (Ω, F, P, measurability...) is just a precise way to describe this translation. The math isn't the point — the translation is. The math just makes the translation rigorous so everyone agrees on what you mean.
+    </div>
+  </section>
+
+  <!-- ══ 2: Probability Space — visual first ══ -->
+  <section class="slide" data-slide="2">
+    <h1>The Probability Space</h1>
+    <p>A probability space (Ω, F, P) is the formal way to say: <strong>"here's my experiment, here's what I'm allowed to ask about it, and here's how likely each thing is."</strong></p>
+
+    <!-- visual: 3-part diagram -->
+    <div class="visual-center">
+      <svg width="580" height="220" viewBox="0 0 580 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <!-- Ω box -->
+        <rect x="10" y="30" width="160" height="160" rx="4" fill="#fff8f2" stroke="#c42848" stroke-width="2"/>
+        <text x="90" y="52" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#c42848" font-weight="bold">Ω  (omega)</text>
+        <text x="90" y="70" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">sample space</text>
+        <text x="90" y="92" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">= all possible</text>
+        <text x="90" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">outcomes</text>
+        <rect x="42" y="122" width="96" height="26" rx="3" fill="rgba(196,40,72,.1)" stroke="#c42848" stroke-width="1"/>
+        <text x="90" y="140" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#c42848">{ "for", "against" }</text>
+        <text x="90" y="168" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">Think: bag of all</text>
+        <text x="90" y="182" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">possible ballot slips</text>
+
+        <!-- F box -->
+        <rect x="210" y="30" width="160" height="160" rx="4" fill="rgba(26,92,168,.05)" stroke="#1a5ca8" stroke-width="2"/>
+        <text x="290" y="52" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#1a5ca8" font-weight="bold">F  (sigma-algebra)</text>
+        <text x="290" y="70" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">allowed questions</text>
+        <text x="290" y="92" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">= all events we're</text>
+        <text x="290" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">allowed to measure</text>
+        <text x="290" y="128" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">∅  (nothing)</text>
+        <text x="290" y="144" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">{"for"}  ← an event</text>
+        <text x="290" y="160" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">{"against"}  ← an event</text>
+        <text x="290" y="176" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">Ω  (everything)</text>
+
+        <!-- P box -->
+        <rect x="410" y="30" width="160" height="160" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
+        <text x="490" y="52" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#0d7a6e" font-weight="bold">P  (probability)</text>
+        <text x="490" y="70" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">assigns numbers</text>
+        <text x="490" y="92" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">= gives each event</text>
+        <text x="490" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">a weight 0 to 1</text>
+        <text x="490" y="130" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e">P({"for"}) = 0.65</text>
+        <text x="490" y="150" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e">P({"against"}) = 0.35</text>
+        <text x="490" y="170" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e">P(Ω) = 1.00</text>
+      </svg>
+    </div>
+
+    <div class="callout">
+      <strong>Plain-English version:</strong> Ω is your menu of possible outcomes. F is the list of questions you're allowed to ask ("what's the probability of X?"). P is the answer machine that assigns a number between 0 and 1 to each question. You need all three together to do probability correctly.
+    </div>
+  </section>
+
+  <!-- ══ 3: Random Variable — the label gun analogy ══ -->
+  <section class="slide" data-slide="3">
+    <h1>Random Variable: The Label Gun</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="11" y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="4"  y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="11" y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="3"  y="5" width="10" height="8" fill="#f0dcc0"/>
+        <rect x="5"  y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="7"  y="9" width="2" height="1" fill="#c4919e"/>
+        <rect x="4"  y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="7"  y="10" width="1" height="1" fill="#5a4858"/>
+        <rect x="8"  y="10" width="1" height="1" fill="#5a4858"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Penny:</span> Think of a label gun at a supermarket. It doesn't change the product — it just sticks a price tag on it. A random variable is the same: it sticks a number tag on each outcome. "for" gets tag 1. "against" gets tag 0. That's literally all X(·) does.
+      </div>
+    </div>
+
+    <!-- visual: label gun mapping diagram -->
+    <div class="visual-center">
+      <svg width="560" height="180" viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <!-- left: outcomes in Ω -->
+        <rect x="10" y="20" width="150" height="140" rx="4" fill="#fff8f2" stroke="#c42848" stroke-width="2"/>
+        <text x="85" y="42" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#c42848" font-weight="bold">Ω — outcomes</text>
+        <!-- ballot for -->
+        <rect x="28" y="55" width="114" height="34" rx="3" fill="rgba(13,122,110,.12)" stroke="#0d7a6e" stroke-width="1.5"/>
+        <text x="85" y="68" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#1c1a30">👍  vote = "for"</text>
+        <text x="85" y="83" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">65% of the time</text>
+        <!-- ballot against -->
+        <rect x="28" y="100" width="114" height="34" rx="3" fill="rgba(196,40,72,.10)" stroke="#c42848" stroke-width="1.5"/>
+        <text x="85" y="113" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#1c1a30">👎  vote = "against"</text>
+        <text x="85" y="128" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">35% of the time</text>
+
+        <!-- middle: label gun -->
+        <rect x="195" y="60" width="140" height="60" rx="8" fill="rgba(26,92,168,.10)" stroke="#1a5ca8" stroke-width="2"/>
+        <text x="265" y="85" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1a5ca8" font-weight="bold">X(·)</text>
+        <text x="265" y="102" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">label gun</text>
+        <!-- label gun body -->
+        <rect x="240" y="50" width="50" height="10" rx="2" fill="#1a5ca8"/>
+        <polygon points="265,42 255,50 275,50" fill="#1a5ca8"/>
+
+        <!-- arrows -->
+        <!-- "for" -> label gun -> 1 -->
+        <path d="M162,72 C178,72 192,76 193,88" stroke="#0d7a6e" stroke-width="1.8" fill="none" marker-end="url(#arr2)"/>
+        <!-- "against" -> label gun -> 0 -->
+        <path d="M162,117 C178,117 192,110 193,102" stroke="#c42848" stroke-width="1.8" fill="none" marker-end="url(#arr2)"/>
+        <!-- label gun -> 1 -->
+        <path d="M337,80 C360,76 370,68 398,68" stroke="#0d7a6e" stroke-width="1.8" fill="none" marker-end="url(#arr2)"/>
+        <!-- label gun -> 0 -->
+        <path d="M337,100 C360,104 370,112 398,112" stroke="#c42848" stroke-width="1.8" fill="none" marker-end="url(#arr2)"/>
+
+        <!-- right: numbers -->
+        <rect x="400" y="20" width="140" height="140" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
+        <text x="470" y="42" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e" font-weight="bold">R — numbers</text>
+        <rect x="418" y="55" width="104" height="34" rx="3" fill="rgba(13,122,110,.15)" stroke="#0d7a6e" stroke-width="1.5"/>
+        <text x="470" y="78" text-anchor="middle" font-family="Consolas,monospace" font-size="22" fill="#0d7a6e" font-weight="bold">1</text>
+        <rect x="418" y="100" width="104" height="34" rx="3" fill="rgba(196,40,72,.12)" stroke="#c42848" stroke-width="1.5"/>
+        <text x="470" y="123" text-anchor="middle" font-family="Consolas,monospace" font-size="22" fill="#c42848" font-weight="bold">0</text>
+
+        <defs>
+          <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#6a5888"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+    <p class="visual-caption">X maps every outcome in Ω to a number in R. That's the whole definition of "random variable."</p>
+
+    <div class="formula">X("for")    = 1     ← label assigned to "for"
+X("against") = 0     ← label assigned to "against"
+
+Shorthand: X ~ Bernoulli(0.65)</div>
+    <p>Why 1 and 0? Convention — but also convenient. 0 = "event didn't happen", 1 = "event happened". This lets us write E[X] = P(event happened), which is elegant.</p>
+
+    <h2>But wait — why is X called "random" if 0 and 1 are fixed?</h2>
+    <p>This trips everyone up. The answer: <strong>the function X(·) is completely deterministic.</strong> It always maps "for" → 1 and "against" → 0. That never changes.</p>
+    <p>The randomness is in the <strong>INPUT</strong> — which ballot enters the function. Before the vote is cast, you have no idea if ω will be "for" or "against". You don't know which label gun trigger will be pulled. That uncertainty is where X gets its randomness from.</p>
+
+    <!-- vending machine analogy -->
+    <div class="visual-center">
+      <svg width="540" height="130" viewBox="0 0 540 130" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <defs>
+          <marker id="arrV" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#6a5888"/></marker>
+        </defs>
+        <!-- Person picks random button -->
+        <rect x="10" y="20" width="140" height="90" rx="4" fill="rgba(196,40,72,.06)" stroke="#c42848" stroke-width="2"/>
+        <text x="80" y="40" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">RANDOM INPUT</text>
+        <text x="80" y="58" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">which vote arrives?</text>
+        <text x="80" y="74" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">👍 "for"</text>
+        <text x="80" y="90" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">👎 "against"</text>
+        <text x="80" y="106" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">unknown in advance</text>
+        <!-- Deterministic machine -->
+        <rect x="190" y="20" width="160" height="90" rx="4" fill="rgba(26,92,168,.07)" stroke="#1a5ca8" stroke-width="2"/>
+        <text x="270" y="40" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8" font-weight="bold">DETERMINISTIC</text>
+        <text x="270" y="56" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">function X(·)</text>
+        <text x="270" y="74" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">"for"  → always 1</text>
+        <text x="270" y="90" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">"against" → always 0</text>
+        <text x="270" y="106" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">never changes</text>
+        <!-- Random output -->
+        <rect x="390" y="20" width="140" height="90" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
+        <text x="460" y="40" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">RANDOM OUTPUT</text>
+        <text x="460" y="58" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">X = ? (before vote)</text>
+        <text x="460" y="76" text-anchor="middle" font-family="Consolas,monospace" font-size="14" fill="#0d7a6e" font-weight="bold">1</text>
+        <text x="460" y="92" text-anchor="middle" font-family="Consolas,monospace" font-size="14" fill="#c42848" font-weight="bold">0</text>
+        <text x="460" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">inherits randomness</text>
+        <!-- arrows -->
+        <line x1="152" y1="65" x2="186" y2="65" stroke="#6a5888" stroke-width="2" marker-end="url(#arrV)"/>
+        <line x1="352" y1="65" x2="386" y2="65" stroke="#6a5888" stroke-width="2" marker-end="url(#arrV)"/>
+      </svg>
+    </div>
+
+    <div class="callout">
+      <strong>Convention to know:</strong> capital X = the random variable (the rule + the uncertainty about what input arrives). Lowercase x = a specific realized value (what you actually observed after the vote: 0 or 1). Examiners use this distinction precisely.
+    </div>
+  </section>
+
+  <!-- ══ 4: Measurability — plain English ══ -->
+  <section class="slide" data-slide="4">
+    <h1>Measurability — Plain English</h1>
+    <p>The exam asks you to prove X is "<span class="tip" data-tip-title="F-measurable" data-tip="X is F-measurable if for every real threshold $x$, the set $\{\omega : X(\omega) \leq x\}$ belongs to F. This ensures F can assign probabilities to all questions about X.">F-measurable</span>." This sounds scary. Here's what it actually means:</p>
+
+    <div class="callout">
+      <strong>In plain English:</strong> X is measurable if — for any threshold you name — you can figure out which outcomes fall below it. "Tell me which outcomes give X ≤ 0.5." Measurability says you can always answer that question, and the answer is a legitimate event in F.
+    </div>
+
+    <h2>The threshold test — visually</h2>
+    <!-- visual: number line with threshold, preimages -->
+    <div class="visual-center">
+      <svg width="560" height="220" viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <!-- number line -->
+        <line x1="40" y1="110" x2="520" y2="110" stroke="#1c1a30" stroke-width="2"/>
+        <!-- tick -1 -->
+        <line x1="100" y1="104" x2="100" y2="116" stroke="#1c1a30" stroke-width="1.5"/>
+        <text x="100" y="130" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">-1</text>
+        <!-- tick 0 -->
+        <line x1="230" y1="100" x2="230" y2="120" stroke="#c42848" stroke-width="2"/>
+        <text x="230" y="134" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#c42848" font-weight="bold">0</text>
+        <text x="230" y="148" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848">X("against")</text>
+        <!-- tick 0.5 -->
+        <line x1="310" y1="104" x2="310" y2="116" stroke="#6a5888" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <text x="310" y="130" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">0.5</text>
+        <!-- tick 1 -->
+        <line x1="390" y1="100" x2="390" y2="120" stroke="#0d7a6e" stroke-width="2"/>
+        <text x="390" y="134" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#0d7a6e" font-weight="bold">1</text>
+        <text x="390" y="148" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e">X("for")</text>
+        <!-- tick 2 -->
+        <line x1="480" y1="104" x2="480" y2="116" stroke="#1c1a30" stroke-width="1.5"/>
+        <text x="480" y="130" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">2</text>
+
+        <!-- threshold x = 0.5 vertical line -->
+        <line x1="310" y1="30" x2="310" y2="105" stroke="#6a5888" stroke-width="1.5" stroke-dasharray="6,3"/>
+        <text x="310" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">threshold x=0.5</text>
+        <text x="310" y="38" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">"which outcomes</text>
+        <text x="310" y="52" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">give X ≤ 0.5?"</text>
+
+        <!-- answer callout -->
+        <rect x="40" y="160" width="240" height="48" rx="4" fill="rgba(196,40,72,.08)" stroke="#c42848" stroke-width="1.5"/>
+        <text x="50" y="178" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">X ≤ 0.5  means X = 0</text>
+        <text x="50" y="194" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">= { "against" } ∈ F  ✓</text>
+
+        <rect x="300" y="160" width="250" height="48" rx="4" fill="rgba(13,122,110,.08)" stroke="#0d7a6e" stroke-width="1.5"/>
+        <text x="310" y="178" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">X ≤ 2  means X = 0 or 1</text>
+        <text x="310" y="194" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">= Ω ∈ F  ✓</text>
+      </svg>
+    </div>
+    <p>For every possible threshold x, the set of outcomes "below" it is one of: ∅, {"against"}, Ω — all of which are in F. Measurability is automatic for <span class="tip" data-tip-title="Indicator function 1_A" data-tip="$\mathbf{1}_A(\omega) = 1$ if $\omega \in A$, else $0$. Turns a yes/no event into a 0/1 number. Always measurable when the event A itself is in F.">indicator functions</span>. <strong>You just need to state this, not re-derive it from scratch.</strong></p>
+  </section>
+
+  <!-- ══ 5: Integrability — the bounded function analogy ══ -->
+  <section class="slide" data-slide="5" data-nav-tier="sub" data-nav-section="╰ DEEPER">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>Integrability — Why It's Trivial Here</h1>
+    <p>A random variable X is <strong>integrable</strong> if its expected absolute value is finite: E[|X|] &lt; ∞.</p>
+    <p>This sounds like it could be hard to check — but for bounded variables it's automatic.</p>
+
+    <!-- visual: bounded vs unbounded -->
+    <div class="visual-row">
+      <div>
+        <svg width="220" height="160" viewBox="0 0 220 160" xmlns="http://www.w3.org/2000/svg">
+          <!-- bounded case -->
+          <rect x="10" y="10" width="200" height="140" rx="4" fill="rgba(13,122,110,.06)" stroke="#0d7a6e" stroke-width="2"/>
+          <text x="110" y="30" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">X ~ Bernoulli(0.65)</text>
+          <!-- value markers -->
+          <line x1="30" y1="120" x2="190" y2="120" stroke="#1c1a30" stroke-width="1.5"/>
+          <!-- 0 bar -->
+          <rect x="50" y="95" width="40" height="25" fill="#c42848" opacity="0.7"/>
+          <text x="70" y="90" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#c42848" font-weight="bold">0</text>
+          <!-- 1 bar -->
+          <rect x="130" y="95" width="40" height="25" fill="#0d7a6e" opacity="0.7"/>
+          <text x="150" y="90" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e" font-weight="bold">1</text>
+          <!-- ceiling line -->
+          <line x1="30" y1="88" x2="190" y2="88" stroke="#b86800" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <text x="110" y="80" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800">|X| ≤ 1 always</text>
+          <text x="110" y="145" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">E[|X|] ≤ 1 &lt; ∞  ✓</text>
+        </svg>
+        <p class="visual-caption">Bernoulli — bounded, trivially integrable</p>
+      </div>
+      <div>
+        <svg width="220" height="160" viewBox="0 0 220 160" xmlns="http://www.w3.org/2000/svg">
+          <!-- unbounded case -->
+          <rect x="10" y="10" width="200" height="140" rx="4" fill="rgba(196,40,72,.05)" stroke="#c42848" stroke-width="2"/>
+          <text x="110" y="30" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">Cauchy distribution</text>
+          <!-- a tall jagged spike going off the chart -->
+          <line x1="30" y1="120" x2="190" y2="120" stroke="#1c1a30" stroke-width="1.5"/>
+          <path d="M110,118 L108,80 L107,40 L106,22 L105,10" stroke="#c42848" stroke-width="2" fill="none"/>
+          <text x="115" y="16" font-family="Consolas,monospace" font-size="10" fill="#c42848">∞</text>
+          <text x="110" y="145" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">E[|X|] = ∞ — no mean! ✗</text>
+        </svg>
+        <p class="visual-caption">Cauchy — unbounded tails, NOT integrable</p>
+      </div>
+    </div>
+
+    <p>The Cauchy distribution is the famous example where the mean doesn't exist — the expected absolute value is infinite. You can't compute an average. That's why integrability matters.</p>
+    <div class="callout">
+      For your Bernoulli variable: X is always 0 or 1, so |X| is always ≤ 1. There's no tail, no infinity problem. E[|X|] ≤ 1 &lt; ∞, so X is integrable. You state this in one sentence and move on.
+    </div>
+  </section>
+
+  <!-- ══ 6: Bernoulli Distribution ══ -->
+  <section class="slide" data-slide="6">
+    <h1>Bernoulli Distribution</h1>
+    <p>X ~ Bernoulli(p) models any single trial with two outcomes: success (1) with probability p, failure (0) with probability 1−p.</p>
+
+    <h2>Real-world examples of Bernoulli trials</h2>
+    <div class="visual-row">
+      <!-- coin -->
+      <div style="text-align:center">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="42" fill="#f5c842" stroke="#b86800" stroke-width="3"/>
+          <circle cx="50" cy="50" r="34" fill="none" stroke="#b86800" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="50" y="55" text-anchor="middle" font-family="Consolas,monospace" font-size="14" fill="#b86800" font-weight="bold">HEADS</text>
+        </svg>
+        <p class="visual-label">Coin flip<br/>p = 0.5</p>
+      </div>
+      <!-- email -->
+      <div style="text-align:center">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <rect x="15" y="28" width="70" height="48" rx="4" fill="#fff8f2" stroke="#c42848" stroke-width="2.5"/>
+          <path d="M15,32 L50,58 L85,32" stroke="#c42848" stroke-width="2" fill="none"/>
+          <text x="50" y="90" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">email opened?</text>
+        </svg>
+        <p class="visual-label">Email open<br/>p = 0.22 (avg)</p>
+      </div>
+      <!-- vote -->
+      <div style="text-align:center">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <rect x="22" y="18" width="56" height="68" rx="4" fill="#fff8f2" stroke="#1a5ca8" stroke-width="2.5"/>
+          <text x="50" y="48" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1a5ca8">☑ FOR</text>
+          <text x="50" y="68" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#6a5888">☐ against</text>
+        </svg>
+        <p class="visual-label">Your task<br/>p = <strong>0.65</strong></p>
+      </div>
+      <!-- test -->
+      <div style="text-align:center">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="15" width="60" height="70" rx="4" fill="#fff8f2" stroke="#0d7a6e" stroke-width="2.5"/>
+          <text x="50" y="42" text-anchor="middle" font-family="Consolas,monospace" font-size="18" fill="#0d7a6e" font-weight="bold">A/B</text>
+          <text x="50" y="60" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">click on</text>
+          <text x="50" y="74" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">variant B?</text>
+        </svg>
+        <p class="visual-label">A/B test click<br/>p = varies</p>
+      </div>
+    </div>
+
+    <h2>The PMF — your specific numbers</h2>
+    <div class="visual-center">
+      <svg width="320" height="180" viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg">
+        <!-- axes -->
+        <line x1="50" y1="20" x2="50" y2="145" stroke="#1c1a30" stroke-width="1.5"/>
+        <line x1="50" y1="145" x2="290" y2="145" stroke="#1c1a30" stroke-width="1.5"/>
+        <!-- y-axis ticks -->
+        <line x1="44" y1="145" x2="50" y2="145" stroke="#1c1a30" stroke-width="1.5"/><text x="40" y="149" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0%</text>
+        <line x1="44" y1="101" x2="50" y2="101" stroke="#1c1a30" stroke-width="1.5"/><text x="40" y="105" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">35%</text>
+        <line x1="44" y1="64" x2="50" y2="64" stroke="#1c1a30" stroke-width="1.5"/><text x="40" y="68" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">65%</text>
+        <line x1="44" y1="20" x2="50" y2="20" stroke="#1c1a30" stroke-width="1.5"/><text x="40" y="24" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">100%</text>
+        <!-- gridlines -->
+        <line x1="50" y1="20" x2="290" y2="20" stroke="#ccc4e0" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="50" y1="64" x2="290" y2="64" stroke="#c42848" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+        <!-- bar: "against" (0.35) -->
+        <rect x="75" y="101" width="80" height="44" fill="#c42848" opacity="0.75"/>
+        <text x="115" y="97" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#c42848" font-weight="bold">35.0%</text>
+        <text x="115" y="162" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">👎 against</text>
+        <text x="115" y="175" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">X = 0  (p=0.35)</text>
+        <!-- bar: "for" (0.65) -->
+        <rect x="175" y="64" width="80" height="81" fill="#0d7a6e" opacity="0.75"/>
+        <text x="215" y="60" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e" font-weight="bold">65.0%</text>
+        <text x="215" y="162" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">👍 for</text>
+        <text x="215" y="175" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">X = 1  (p=0.65)</text>
+        <!-- axis label -->
+        <text x="170" y="12" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Bernoulli(0.65) PMF — this is your bar chart</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ══ 7: PMF vs PDF ══ -->
+  <section class="slide" data-slide="7" data-nav-tier="sub" data-nav-section="╰ DEEPER">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>PMF vs PDF — Don't Mix Them</h1>
+    <p>Bernoulli is <strong>discrete</strong> — it only takes values 0 and 1. You use a <strong>PMF</strong> (Probability Mass Function).</p>
+
+    <!-- visual: discrete vs continuous comparison -->
+    <div class="visual-row">
+      <div>
+        <svg width="230" height="170" viewBox="0 0 230 170" xmlns="http://www.w3.org/2000/svg">
+          <rect x="5" y="5" width="220" height="160" rx="4" fill="rgba(13,122,110,.06)" stroke="#0d7a6e" stroke-width="2"/>
+          <text x="115" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">PMF — discrete</text>
+          <!-- axes -->
+          <line x1="30" y1="130" x2="210" y2="130" stroke="#1c1a30" stroke-width="1.5"/>
+          <line x1="30" y1="40" x2="30" y2="130" stroke="#1c1a30" stroke-width="1.5"/>
+          <!-- isolated bars — values only at 0 and 1 -->
+          <rect x="60" y="100" width="35" height="30" fill="#c42848" opacity="0.7"/>
+          <text x="77" y="96" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">0.35</text>
+          <text x="77" y="144" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">0</text>
+          <rect x="140" y="75" width="35" height="55" fill="#0d7a6e" opacity="0.7"/>
+          <text x="157" y="71" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">0.65</text>
+          <text x="157" y="144" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">1</text>
+          <!-- dots on x-axis showing ONLY those two points -->
+          <circle cx="77" cy="130" r="3" fill="#c42848"/>
+          <circle cx="157" cy="130" r="3" fill="#0d7a6e"/>
+          <text x="115" y="160" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">sum of bars = 1 ✓</text>
+        </svg>
+        <p class="visual-caption">PMF: probability AT specific points<br/>P(X=0) = 0.35, P(X=1) = 0.65</p>
+      </div>
+      <div>
+        <svg width="230" height="170" viewBox="0 0 230 170" xmlns="http://www.w3.org/2000/svg">
+          <rect x="5" y="5" width="220" height="160" rx="4" fill="rgba(26,92,168,.05)" stroke="#1a5ca8" stroke-width="2"/>
+          <text x="115" y="24" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8" font-weight="bold">PDF — continuous</text>
+          <!-- axes -->
+          <line x1="30" y1="130" x2="210" y2="130" stroke="#1c1a30" stroke-width="1.5"/>
+          <line x1="30" y1="40" x2="30" y2="130" stroke="#1c1a30" stroke-width="1.5"/>
+          <!-- bell curve -->
+          <path d="M35,128 C60,126 80,110 90,80 C100,50 120,40 120,40 C120,40 140,50 150,80 C160,110 180,126 205,128" stroke="#1a5ca8" stroke-width="2" fill="rgba(26,92,168,.1)"/>
+          <!-- area shaded -->
+          <path d="M90,80 C100,50 120,40 120,40 C120,40 140,50 150,80 L150,130 L90,130 Z" fill="rgba(26,92,168,.2)"/>
+          <text x="120" y="110" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#1a5ca8">AREA = probability</text>
+          <text x="115" y="160" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1a5ca8">integral of curve = 1 ✓</text>
+        </svg>
+        <p class="visual-caption">PDF: probability is AREA under curve<br/>P(X = any single value) = 0</p>
+      </div>
+    </div>
+    <div class="warn">
+      <strong>Common mistake:</strong> calling P(X = 1) = 0.65 a "density." It's a probability mass. Bernoulli is discrete — you sum, not integrate. If you write "density" the examiner will notice.
+    </div>
+  </section>
+
+  <!-- ══ 8: Expectation — the seesaw ══ -->
+  <section class="slide" data-slide="8">
+    <h1>Expectation — Center of Gravity</h1>
+
+    <div class="info" style="margin-bottom:16px">
+      <strong>E[X] in one line:</strong> weighted average of all possible values — each value multiplied by its probability, summed up. It's the number the long-run average converges to after many trials. Not a prediction of one trial; a property of the distribution.<br/>
+      <span style="font-size:11px; margin-top:4px; display:block; color:var(--mist)">From the intro deck: die E[X] = 1·(1/6) + 2·(1/6) + … + 6·(1/6) = 3.5 — even though 3.5 is never rolled.</span>
+    </div>
+
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="11" y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="4"  y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="11" y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="3"  y="5" width="10" height="8" fill="#f0dcc0"/>
+        <rect x="5"  y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="7"  y="9" width="2" height="1" fill="#c4919e"/>
+        <rect x="4"  y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="7"  y="10" width="1" height="1" fill="#5a4858"/>
+        <rect x="8"  y="10" width="1" height="1" fill="#5a4858"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Penny:</span> For Bernoulli, the only values are 0 and 1 — so the weighted average is just: 0 × P(against) + 1 × P(for). The seesaw below shows it geometrically.
+      </div>
+    </div>
+
+    <!-- seesaw diagram -->
+    <div class="visual-center">
+      <svg width="520" height="200" viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <!-- beam — tilted slightly toward "for" (heavier side) -->
+        <!-- actually let's keep it level since we're showing the balance point -->
+        <line x1="40" y1="120" x2="480" y2="120" stroke="#1c1a30" stroke-width="3"/>
+
+        <!-- weight at 0 (against) — size proportional to 0.35 -->
+        <rect x="93" y="85" width="46" height="35" rx="3" fill="#c42848" opacity="0.8"/>
+        <text x="116" y="103" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="white" font-weight="bold">0.35</text>
+        <text x="116" y="115" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="white">kg</text>
+        <!-- weight label -->
+        <text x="116" y="140" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#c42848" font-weight="bold">0</text>
+        <text x="116" y="155" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">(against)</text>
+
+        <!-- weight at 1 (for) — size proportional to 0.65 -->
+        <rect x="363" y="55" width="62" height="65" rx="3" fill="#0d7a6e" opacity="0.8"/>
+        <text x="394" y="86" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="white" font-weight="bold">0.65</text>
+        <text x="394" y="100" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="white">kg</text>
+        <text x="394" y="140" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e" font-weight="bold">1</text>
+        <text x="394" y="155" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">(for)</text>
+
+        <!-- fulcrum / balance point at E[X] = 0.65 -->
+        <!-- value 0 sits at x=116, value 1 at x=394, so x = 116 + 0.65 * 278 = 297 -->
+        <polygon points="297,120 277,170 317,170" fill="#b86800"/>
+        <line x1="277" y1="170" x2="317" y2="170" stroke="#b86800" stroke-width="3"/>
+        <text x="297" y="188" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#b86800" font-weight="bold">E[X] = 0.65</text>
+        <text x="297" y="200" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800">balance point</text>
+
+        <!-- number line: only the two values the variable can take are marked, under the weights -->
+        <text x="116" y="115" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">|</text>
+        <text x="394" y="115" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">|</text>
+
+        <!-- dotted line from weights to beam -->
+        <line x1="116" y1="85" x2="116" y2="120" stroke="#c42848" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
+        <line x1="394" y1="55" x2="394" y2="120" stroke="#0d7a6e" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
+      </svg>
+    </div>
+
+    <h2>The derivation</h2>
+    <div class="formula">$$E[X] = \sum_k k \cdot P(X = k)$$
+<div style="font-family:Consolas,monospace; font-size:11px; color:var(--text); margin-top:10px; text-align:center; line-height:2.2">
+$= 0 \cdot P(X=0) + 1 \cdot P(X=1)$<br>
+$= 0 \cdot 0.35 \;+\; 1 \cdot 0.65$<br>
+$= \mathbf{0.65}$ &nbsp;← balance point of the distribution
+</div></div>
+    <div class="callout">
+      The "for" side (value=1, weight=0.65) pulls harder than the "against" side (value=0, weight=0.35). The balance point lands at 0.65 — closer to 1 than to 0. If both sides were equal (p=0.5), it would balance exactly in the middle.
+    </div>
+    <p>Spread, for completeness: Var(X) = p(1−p) = 0.65 × 0.35 = <strong>0.2275</strong>, so SD(X) = <strong>0.476970</strong>. For a Bernoulli the variance is largest at p = 0.5 (0.25) and shrinks as p moves toward either end — at p = 0.65 the outcome is already slightly more predictable than a fair coin.</p>
+  </section>
+
+  <!-- ══ 9: The one-vote nuance ══ -->
+  <section class="slide" data-slide="9" data-nav-tier="sub" data-nav-section="╰ DEEPER">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>E[X] is NOT a Prediction</h1>
+
+    <div class="visual-center">
+      <svg width="540" height="160" viewBox="0 0 540 160" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <!-- scenario 1: single vote -->
+        <rect x="10" y="15" width="230" height="130" rx="4" fill="rgba(196,40,72,.06)" stroke="#c42848" stroke-width="2"/>
+        <text x="125" y="36" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">ONE VOTE</text>
+        <text x="125" y="55" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">You observe: 👍 "for"</text>
+        <text x="125" y="75" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">X = 1</text>
+        <text x="125" y="100" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848">E[X] = 0.65 is NOT</text>
+        <text x="125" y="115" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848">this observed value</text>
+        <text x="125" y="135" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">(realized value is 0 or 1)</text>
+
+        <!-- vs label -->
+        <text x="270" y="90" text-anchor="middle" font-family="Consolas,monospace" font-size="14" fill="#6a5888" font-weight="bold">vs</text>
+
+        <!-- scenario 2: many votes -->
+        <rect x="300" y="15" width="230" height="130" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
+        <text x="415" y="36" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">1,000 VOTES</text>
+        <!-- mini bar chart -->
+        <rect x="340" y="87" width="50" height="35" fill="#c42848" opacity="0.6"/>
+        <text x="365" y="83" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">~350</text>
+        <rect x="410" y="57" width="50" height="65" fill="#0d7a6e" opacity="0.6"/>
+        <text x="435" y="53" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">~650</text>
+        <line x1="330" y1="122" x2="470" y2="122" stroke="#1c1a30" stroke-width="1.5"/>
+        <text x="365" y="135" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">against</text>
+        <text x="435" y="135" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">for</text>
+        <text x="415" y="42" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">avg ≈ 0.65 ← E[X]</text>
+      </svg>
+    </div>
+
+    <p>E[X] = 0.65 describes what happens <em>on average over many trials</em>. For one vote: the outcome is 0 or 1. Nothing in between.</p>
+
+    <div class="callout">
+      Analogy: the average household has 2.4 children. You will never meet a family with exactly 2.4 children. But if you surveyed 10,000 families, the average would be close to 2.4. Expectation is a property of the <em>model</em>, not of any single observation.
+    </div>
+    <p>This is the key nuance the exam asks you to address: "Can expectation be calculated?" Answer: yes, mathematically it is well-defined — AND a single vote produces a realization (0 or 1), never the expectation value itself.</p>
+  </section>
+
+  <!-- ══ 10: Formal proof block ══ -->
+  <section class="slide" data-slide="10">
+    <h1>The Formal Proof (Write This)</h1>
+    <p>Now that you understand the intuition, here's the compact version to write in the notebook under "Model and assumptions" + "Derivation":</p>
+
+    <div class="formula">PROBABILITY SPACE
+  Ω = { "for", "against" }
+  F = { ∅, {"for"}, {"against"}, Ω }   ← <span class="tip" data-tip-title="Power set" data-tip="The set of ALL subsets of Ω. If Ω = {a,b}, the power set is {∅,{a},{b},{a,b}} — 4 elements. For any finite Ω, F = power set is always a valid σ-algebra.">power set</span>; trivially <span class="tip" data-tip-title="σ-algebra (sigma-algebra)" data-tip="A collection of subsets of Ω closed under (1) complement and (2) countable union. In probability: the set of all events you're allowed to ask 'what's the probability of this?' The power set of a finite Ω always qualifies.">σ-algebra</span>
+  P({"for"}) = 0.65,  P({"against"}) = 0.35,  P(Ω) = 1
+
+RANDOM VARIABLE
+  X = <span class="tip" data-tip-title="Indicator function 1_A" data-tip="$\mathbf{1}_A(\omega) = 1$ if $\omega \in A$, else $0$. Converts a yes/no event into a number. Here: $\mathbf{1}_{\{&quot;for&quot;\}}(\text{&quot;for&quot;}) = 1$ and $\mathbf{1}_{\{&quot;for&quot;\}}(\text{&quot;against&quot;}) = 0$.">1_{vote="for"}</span> : Ω → {0,1} ⊆ R
+  X("for") = 1,  X("against") = 0
+
+MEASURABILITY  (<span class="tip" data-tip-title="Preimage X⁻¹(A)" data-tip="$X^{-1}(A) = \{\omega \in \Omega : X(\omega) \in A\}$ — the set of all inputs that map into $A$. Example: $X^{-1}((-\infty, 0.5]) = \{$&quot;against&quot;$\}$ because only &quot;against&quot; maps to a value ≤ 0.5.">preimage</span> check)
+  x &lt; 0:        X^{-1}(-∞,x] = ∅ ∈ F            ✓
+  0 ≤ x &lt; 1:   X^{-1}(-∞,x] = {"against"} ∈ F   ✓
+  x ≥ 1:        X^{-1}(-∞,x] = Ω ∈ F             ✓
+  → X is <span class="tip" data-tip-title="F-measurable" data-tip="X is F-measurable if for every real threshold $x$, the set $\{\omega : X(\omega) \leq x\}$ belongs to F. This ensures F 'knows about' all questions involving X — a prerequisite for defining P(X ≤ x).">F-measurable</span>.
+
+INTEGRABILITY
+  |X(ω)| ≤ 1 for all ω  →  E[|X|] ≤ 1 &lt; ∞
+  → X is <span class="tip" data-tip-title="P-integrable" data-tip="$E[|X|] &lt; \infty$ — the expected absolute value is finite. Required for $E[X]$ to be well-defined. For Bernoulli, $|X| \leq 1$ everywhere, so $E[|X|] \leq 1 &lt; \infty$. Easy to verify.">P-integrable</span>.
+
+EXPECTATION
+  E[X] = 0·P(X=0) + 1·P(X=1) = 0·0.35 + 1·0.65 = 0.65
+
+VARIANCE  (optional, one line)
+  Var(X) = E[X²] − (E[X])² = p − p² = p(1−p) = 0.65·0.35 = 0.2275
+  SD(X) = √0.2275 = 0.476970</div>
+
+    <div class="callout">
+      One-sentence nuance to add: "Note that E[X] = 0.65 is a property of the distribution; a single observed vote takes values in {0,1}, not {0.65}."
+    </div>
+  </section>
+
+  <!-- ══ 11: Visualization requirements ══ -->
+  <section class="slide" data-slide="11">
+    <h1>Visualization Requirements</h1>
+    <p>The exam has explicit grading criteria for graphics. Here's exactly what the bar chart needs — annotated.</p>
+
+    <div class="visual-center">
+      <svg width="500" height="260" viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+        <!-- axes -->
+        <line x1="70" y1="20" x2="70" y2="185" stroke="#1c1a30" stroke-width="2"/>
+        <line x1="70" y1="185" x2="430" y2="185" stroke="#1c1a30" stroke-width="2"/>
+        <!-- y ticks -->
+        <line x1="63" y1="185" x2="70" y2="185" stroke="#1c1a30" stroke-width="1.5"/><text x="58" y="189" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0</text>
+        <line x1="63" y1="103" x2="70" y2="103" stroke="#1c1a30" stroke-width="1.5"/><text x="58" y="107" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">50</text>
+        <line x1="63" y1="20" x2="70" y2="20" stroke="#1c1a30" stroke-width="1.5"/><text x="58" y="24" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">100</text>
+        <!-- gridlines -->
+        <line x1="70" y1="103" x2="430" y2="103" stroke="#ccc4e0" stroke-width="1" stroke-dasharray="4,3"/>
+        <!-- bar: against 0.35 -->
+        <rect x="110" y="127" width="100" height="58" fill="#c42848" opacity="0.78"/>
+        <!-- bar: for 0.65 -->
+        <rect x="290" y="78" width="100" height="107" fill="#0d7a6e" opacity="0.78"/>
+        <!-- x labels -->
+        <text x="160" y="205" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">against</text>
+        <text x="340" y="205" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">for</text>
+        <!-- y axis label -->
+        <text x="20" y="110" font-family="Consolas,monospace" font-size="9" fill="#1c1a30" transform="rotate(-90,20,110)">Percentage (%)</text>
+        <!-- title -->
+        <text x="250" y="13" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8" font-weight="bold">Single Bernoulli trial: vote proportions</text>
+
+        <!-- annotation callouts -->
+        <!-- "annotate bars" callout -->
+        <text x="160" y="121" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">35.0% (p=0.35)</text>
+        <text x="340" y="72" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">65.0% (p=0.65)</text>
+
+        <!-- annotation arrows pointing to features -->
+        <!-- y-axis label -->
+        <line x1="40" y1="130" x2="65" y2="130" stroke="#b86800" stroke-width="1.5" marker-end="url(#arrA)" stroke-dasharray="3,2"/>
+        <text x="5" y="117" font-family="Consolas,monospace" font-size="8" fill="#b86800">labeled</text>
+        <text x="5" y="128" font-family="Consolas,monospace" font-size="8" fill="#b86800">axis ✓</text>
+
+        <!-- 0 baseline -->
+        <line x1="340" y1="215" x2="340" y2="190" stroke="#b86800" stroke-width="1.5" marker-end="url(#arrA)" stroke-dasharray="3,2"/>
+        <text x="310" y="230" font-family="Consolas,monospace" font-size="8" fill="#b86800">starts at 0 ✓</text>
+        <text x="310" y="241" font-family="Consolas,monospace" font-size="8" fill="#b86800">(not 40%) ✓</text>
+
+        <!-- bar annotation -->
+        <line x1="430" y1="71" x2="398" y2="71" stroke="#b86800" stroke-width="1.5" marker-end="url(#arrA)" stroke-dasharray="3,2"/>
+        <text x="432" y="68" font-family="Consolas,monospace" font-size="8" fill="#b86800">values on</text>
+        <text x="432" y="79" font-family="Consolas,monospace" font-size="8" fill="#b86800">bars ✓</text>
+
+        <defs>
+          <marker id="arrA" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="#b86800"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+    <p class="visual-caption">Every annotated feature above is a separate grading criterion</p>
+  </section>
+
+  <!-- ══ 12: Python walkthrough ══ -->
+  <section class="slide" data-slide="12">
+    <h1>Python Code Walkthrough</h1>
+    <h2>Cell 1 — Model parameters</h2>
+    <div class="code-block"><span class="n">p_for</span> = <span class="n">0.65</span>             <span class="c"># ξ2 from assignment_values.txt</span>
+<span class="n">p_against</span> = <span class="n">1</span> - <span class="n">p_for</span>     <span class="c"># complement: P(A^c) = 1 - P(A)</span>
+<span class="n">pct_for</span> = <span class="n">100</span> * <span class="n">p_for</span>
+<span class="n">pct_against</span> = <span class="n">100</span> * <span class="n">p_against</span>
+<span class="n">expected_value</span> = <span class="n">p_for</span>    <span class="c"># E[X] = p for Bernoulli(p)</span></div>
+
+    <h2>Cell 2 — Spot check (required by grading criteria)</h2>
+    <div class="code-block"><span class="k">print</span>(<span class="s">f"P(for)     = {p_for:.2f}  ({pct_for:.1f}%)"</span>)
+<span class="k">print</span>(<span class="s">f"P(against) = {p_against:.2f}  ({pct_against:.1f}%)"</span>)
+<span class="k">print</span>(<span class="s">f"Check: probabilities sum to {p_for + p_against:.2f}"</span>)
+<span class="k">print</span>(<span class="s">f"E[X] = {expected_value:.2f}"</span>)</div>
+
+    <h2>Cell 3 — Key chart settings (the graded parts)</h2>
+    <div class="code-block"><span class="n">ax.set_ylim</span>(<span class="n">0</span>, <span class="n">100</span>)              <span class="c"># full 0–100 scale, not 40–60</span>
+<span class="n">ax.set_yticks</span>(<span class="n">range</span>(<span class="n">0</span>, <span class="n">101</span>, <span class="n">10</span>))    <span class="c"># readable ticks every 10%</span>
+<span class="n">ax.set_ylabel</span>(<span class="s">"Percentage (%)"</span>)       <span class="c"># axis must be labeled with units</span>
+<span class="n">ax.set_title</span>(<span class="s">"Single Bernoulli trial model: vote proportions"</span>)
+<span class="c"># annotate bar values — this is the "percentages" requirement</span>
+<span class="k">for</span> <span class="n">bar, pct, p</span> <span class="k">in</span> <span class="n">zip(bars, percentages, proportions)</span>:
+    <span class="n">ax.text</span>(<span class="n">bar.get_x() + bar.get_width()/2</span>,
+            <span class="n">bar.get_height() + 1.5</span>,
+            <span class="s">f"{pct:.1f}% (p={p:.2f})"</span>, <span class="n">ha=</span><span class="s">"center"</span>)</div>
+
+    <div class="callout">
+      The spot check print ("Check: probabilities sum to 1.00") is not just verification — it's a grading criterion called "Tool trust." It shows you understand what you're computing, not just running code.
+    </div>
+  </section>
+
+  <!-- ══ 13: Common pitfalls ══ -->
+  <section class="slide" data-slide="13">
+    <h1>Common Pitfalls</h1>
+    <h2>1. Skipping branch resolution</h2>
+    <div class="warn"><strong>Wrong:</strong> jumping to p = 0.65 without stating ξ1 = 0 applies.<br><strong>Right:</strong> "Since ξ1 = 0, the Bernoulli branch applies. Meteorite sub-tasks are not performed."</div>
+    <h2>2. E[X] = "most likely outcome"</h2>
+    <div class="warn"><strong>Wrong:</strong> "E[X] = 0.65 means the vote will probably be 'for'." (That's the mode, not expectation.)<br><strong>Right:</strong> E[X] = 0.65 is the long-run average. The most likely single outcome is also "for" (since p &gt; 0.5) — but that's a separate statement.</div>
+    <h2>3. Y-axis not starting at 0</h2>
+    <div class="warn"><strong>Wrong:</strong> y-axis from 40% to 65% — makes a 16-point gap look huge.<br><strong>Right:</strong> y-axis 0 to 100%. Honest representation of proportions.</div>
+    <h2>4. Writing "density" for a discrete distribution</h2>
+    <div class="warn"><strong>Wrong:</strong> "The density at X=1 is 0.65."<br><strong>Right:</strong> "The probability mass at X=1 is P(X=1) = 0.65."</div>
+    <h2>5. Skipping the spot check</h2>
+    <div class="warn"><strong>Wrong:</strong> showing the chart without verifying P(for) + P(against) = 1.<br><strong>Right:</strong> one print statement, five seconds, full marks for tool trust.</div>
+  </section>
+
+  <!-- ══ 14: Quiz ══ -->
+  <section class="slide" data-slide="14">
+    <h1>Quick-Fire Quiz</h1>
+    <h2>Q1</h2>
+    <p>In plain English, what does "X is F-measurable" actually mean for this experiment?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>It means: for any number x you pick, you can always identify which outcomes give X ≤ x, and that set of outcomes is something F "knows about" (i.e., it's in F, so we can assign it a probability). For our indicator X ∈ {0,1}, the possible preimage sets are ∅, {"against"}, and Ω — all in F. So yes, X is measurable.</p>
+    </details>
+
+    <h2>Q2</h2>
+    <p>Someone observes 10 votes and gets: for, for, against, for, for, for, for, against, for, for. The fraction "for" is 8/10 = 0.80. Does this contradict E[X] = 0.65?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>No — not at all. E[X] = 0.65 is the long-run average, not a guarantee for any 10 samples. Getting 80% "for" in 10 trials is entirely consistent with p = 0.65. With small samples, variance is high. You'd need thousands of votes for the sample fraction to converge reliably to 0.65 (by the <span class="tip" data-tip-title="Law of Large Numbers" data-tip="As $n \to \infty$, the sample mean $\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i$ converges to $E[X]$. That's why $E[X]$ is called the 'long-run average' — it's the limit you'd observe with infinite trials.">Law of Large Numbers</span>).</p>
+    </details>
+
+    <h2>Q3</h2>
+    <p>Why does the seesaw balance at 0.65 and not at 0.5 (the midpoint between 0 and 1)?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>Because the weights are unequal: 0.65 on the "1" side and 0.35 on the "0" side. The balance point is pulled toward the heavier side. If p = 0.5 (equal weights), it would balance at 0.5. With p = 0.65, the "for" side is heavier, so the balance point is 0.65 — closer to 1 than to 0. Mathematically: E[X] = 0×0.35 + 1×0.65 = 0.65.</p>
+    </details>
+  </section>
+
+  <!-- ══ 15: Quest Complete ══ -->
+  <section class="slide" data-slide="15">
+    <h1>Quest Complete</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="11" y="2" width="2" height="3" fill="#c4919e"/>
+        <rect x="4"  y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="11" y="3" width="1" height="1" fill="#a87888"/>
+        <rect x="3"  y="5" width="10" height="8" fill="#f0dcc0"/>
+        <rect x="5"  y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="7" width="1" height="2" fill="#3a3040"/>
+        <rect x="7"  y="9" width="2" height="1" fill="#c4919e"/>
+        <rect x="4"  y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="9" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="7"  y="10" width="1" height="1" fill="#5a4858"/>
+        <rect x="8"  y="10" width="1" height="1" fill="#5a4858"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Penny:</span> You've got the full picture now — intuition AND formalism. The notebook already has the code. Go check the section headers and run the spot check. You're done!
+      </div>
+    </div>
+    <h2>What you now understand — intuitively</h2>
+    <ul class="checkpoint">
+      <li>Why we need formal math: to turn "for"/"against" into numbers we can compute with</li>
+      <li>(Ω, F, P) = outcomes bag + question rulebook + answer machine</li>
+      <li>Random variable X = a label gun that stamps numbers on outcomes</li>
+      <li>Measurability = you can always answer "which outcomes give X ≤ x?"</li>
+      <li>Integrability = X doesn't blow up; |X| ≤ 1 so the average is finite</li>
+      <li>Expectation = balance point of the distribution, not prediction of one trial</li>
+      <li>PMF (not PDF) = probability mass at discrete points, sums to 1</li>
+    </ul>
+    <h2>Notebook checklist</h2>
+    <ul class="checkpoint">
+      <li>Branch resolution: ξ1 = 0 stated, meteorite branch skipped</li>
+      <li>All 6 section headers present</li>
+      <li>Formal proof: (Ω,F,P) defined, measurability checked, integrability stated</li>
+      <li>Expectation derived from first principles (not just "E[X]=p")</li>
+      <li>Bar chart: 0–100 y-axis, labeled axes, annotated bars, model in title</li>
+      <li>Spot check: P(for) + P(against) = 1.00 printed</li>
+    </ul>
+  </section>
+
+  </div><!-- /deck -->
+
+  <nav class="deck-controls">
+    <button type="button" id="prev">◀ PREV</button>
+    <span id="counter">1 / 16</span>
+    <button type="button" id="next">NEXT ▶</button>
+  </nav>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const sideNavList = document.getElementById("side-nav-list");
+    const navButtons = [];
+    let mainNum = 0, subParentNum = 0, subIndex = 0;
+    const sectionHeadersAdded = new Set();
+
+    slides.forEach((slide, j) => {
+      const tier = slide.dataset.navTier || "core";
+      let displayNum;
+      if (tier === "core") {
+        mainNum++; subParentNum = mainNum; subIndex = 0;
+        displayNum = String(mainNum);
+      } else if (tier.startsWith("sub")) {
+        const sectionLabel = slide.dataset.navSection || "╰ DETAILS";
+        if (!sectionHeadersAdded.has(sectionLabel)) {
+          const head = document.createElement("p");
+          head.className = "side-nav-section";
+          head.textContent = sectionLabel;
+          sideNavList.appendChild(head);
+          sectionHeadersAdded.add(sectionLabel);
+        }
+        subIndex++;
+        displayNum = `${subParentNum}.${subIndex}`;
+      } else {
+        displayNum = String(j + 1);
+      }
+      const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      const isSub = tier.startsWith("sub");
+      btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+      btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
+      btn.addEventListener("click", () => show(j));
+      sideNavList.appendChild(btn);
+      navButtons.push(btn);
+    });
+    const headCore = document.createElement("p");
+    headCore.className = "side-nav-section";
+    headCore.textContent = "360° PATH — start here";
+    sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
+    let i = 0;
+    const counter = document.getElementById("counter");
+    function show(n) {
+      i = Math.max(0, Math.min(n, slides.length - 1));
+      slides.forEach((s, j) => s.classList.toggle("active", j === i));
+      navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+      counter.textContent = `${i + 1} / ${slides.length}`;
+      navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+    document.getElementById("prev").onclick = () => show(i - 1);
+    document.getElementById("next").onclick = () => show(i + 1);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") show(i + 1);
+      if (e.key === "ArrowLeft")  show(i - 1);
+    });
+    show(0);
+  </script>
+
+  <div id="laser-dot"></div>
+  <script>
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var PALETTE = ['#1a5ca8','#c42848','#b86800','#0d7a6e','#6a5888','#f5c842','#e87060','#a8d870'];
+    var PETAL_COLORS = ['#c42848','#b86800','#f5c842','#6a5888','#1a5ca8','#e87060','#0d7a6e'];
+    var PISTIL_COLORS = ['#f5c842','#1c1a30','#c42848'];
+    var LEAF_COLORS = ['#a8d870','#4a9a40','#7bc860','#e8a040','#c84828'];
+    var STAR_COLORS = ['#1a5ca8','#b86800','#c42848','#0d7a6e'];
+    var PARTICLE_CAP = 40, lastSpawn = 0, particleCount = 0;
+    var laser = document.getElementById('laser-dot');
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function rnd(min, max) { return min + Math.random() * (max - min); }
+    function makeFlower() {
+      var color = pick(PETAL_COLORS), pistil = pick(PISTIL_COLORS);
+      var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS,'svg');
+      svg.setAttribute('viewBox','0 0 16 16'); svg.setAttribute('width','14'); svg.setAttribute('height','14');
+      var g = document.createElementNS(NS,'g'); g.setAttribute('transform','translate(8,8)');
+      for (var k=0;k<5;k++){var petal=document.createElementNS(NS,'ellipse');petal.setAttribute('cx','0');petal.setAttribute('cy','-4');petal.setAttribute('rx','2.5');petal.setAttribute('ry','4');petal.setAttribute('fill',color);petal.setAttribute('opacity','0.9');if(k>0)petal.setAttribute('transform','rotate('+(k*72)+')');g.appendChild(petal);}
+      var pistilEl=document.createElementNS(NS,'circle');pistilEl.setAttribute('cx','0');pistilEl.setAttribute('cy','0');pistilEl.setAttribute('r','2.5');pistilEl.setAttribute('fill',pistil);g.appendChild(pistilEl);svg.appendChild(g);return svg;
+    }
+    function makeLeaf() {
+      var color=pick(LEAF_COLORS),angle=Math.floor(rnd(0,360));var NS='http://www.w3.org/2000/svg',svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 16 16');svg.setAttribute('width','14');svg.setAttribute('height','14');var ellipse=document.createElementNS(NS,'ellipse');ellipse.setAttribute('cx','8');ellipse.setAttribute('cy','8');ellipse.setAttribute('rx','3.5');ellipse.setAttribute('ry','6.5');ellipse.setAttribute('fill',color);ellipse.setAttribute('transform','rotate('+angle+',8,8)');var line=document.createElementNS(NS,'line');line.setAttribute('x1','8');line.setAttribute('y1','2');line.setAttribute('x2','8');line.setAttribute('y2','14');line.setAttribute('stroke','#2a5a20');line.setAttribute('stroke-width','0.8');line.setAttribute('transform','rotate('+angle+',8,8)');svg.appendChild(ellipse);svg.appendChild(line);return svg;
+    }
+    function makeStar() {
+      var color=pick(STAR_COLORS);var NS='http://www.w3.org/2000/svg',svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 16 16');svg.setAttribute('width','14');svg.setAttribute('height','14');var polygon=document.createElementNS(NS,'polygon');polygon.setAttribute('points','8,1 9.5,6.5 15,8 9.5,9.5 8,15 6.5,9.5 1,8 6.5,6.5');polygon.setAttribute('fill',color);svg.appendChild(polygon);return svg;
+    }
+    document.addEventListener('mousemove', function(e) {
+      if(laser){laser.style.left=e.clientX+'px';laser.style.top=e.clientY+'px';}
+      var now=Date.now();if(now-lastSpawn<30||particleCount>=PARTICLE_CAP)return;lastSpawn=now;
+      var size=4+Math.floor(rnd(0,3)),el=document.createElement('div');el.className='fd-particle';
+      el.style.cssText=['width:'+size+'px','height:'+size+'px','background:'+pick(PALETTE),'border-radius:0','left:'+(e.clientX+rnd(-6,6)-size/2)+'px','top:'+(e.clientY+rnd(-6,6)-size/2)+'px'].join(';');
+      document.body.appendChild(el);particleCount++;
+      var ty=-rnd(20,40);el.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY('+ty+'px)'}],{duration:rnd(600,800),easing:'ease-out',fill:'forwards'}).addEventListener('finish',function(){el.remove();particleCount--;});
+    });
+    document.addEventListener('click', function(e) {
+      var themes=['flower','leaf','star'],theme=themes[Math.floor(Math.random()*3)];
+      var count=12+Math.floor(rnd(0,5));
+      for(var k=0;k<count;k++){var angle=rnd(0,360)*Math.PI/180,dist=rnd(40,80),dx=Math.cos(angle)*dist,dy=Math.sin(angle)*dist,rotate=rnd(0,360),el;
+        if(theme==='flower')el=makeFlower();else if(theme==='leaf')el=makeLeaf();else el=makeStar();
+        el.setAttribute('class','fd-petal');el.style.cssText=['left:'+(e.clientX-7)+'px','top:'+(e.clientY-7)+'px','transform:rotate('+rotate+'deg)'].join(';');
+        document.body.appendChild(el);
+        (function(el,rotate,dx,dy){el.animate([{opacity:1,transform:'rotate('+rotate+'deg) translate(0,0)'},{opacity:0,transform:'rotate('+(rotate+180)+'deg) translate('+dx+'px,'+dy+'px)'}],{duration:rnd(700,900),easing:'ease-out',fill:'forwards'}).addEventListener('finish',function(){el.remove();});}(el,rotate,dx,dy));
+      }
+    });
+  }());
+  </script>
+  <script>
+  (function () {
+    var box = document.createElement('div');
+    box.id = 'tip-box';
+    document.body.appendChild(box);
+    document.querySelectorAll('.tip').forEach(function (el) {
+      el.addEventListener('mouseenter', function (e) {
+        var lbl = el.dataset.tipTitle ? '<span class="tip-label">' + el.dataset.tipTitle + '</span>' : '';
+        box.innerHTML = lbl + (el.dataset.tip || '');
+        if (window.renderMathInElement) renderMathInElement(box, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+        box.style.display = 'block'; move(e);
+      });
+      el.addEventListener('mousemove', move);
+      el.addEventListener('mouseleave', function () { box.style.display = 'none'; });
+    });
+    function move(e) {
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 310 > window.innerWidth)  x = e.clientX - 316;
+      if (y + 200 > window.innerHeight) y = e.clientY - 206;
+      box.style.left = x + 'px'; box.style.top = y + 'px';
+    }
+  }());
+  </script>
+</body>
+</html>

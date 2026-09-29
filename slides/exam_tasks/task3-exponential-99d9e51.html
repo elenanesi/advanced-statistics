@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TASK 3: EXPONENTIAL ROUTERS &amp; MAXIMUM LIKELIHOOD — Advanced Stats Quest</title>
+  <!-- Technique C pixel-art favicon: Packet the Bunny -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="4" y="0" width="2" height="4" fill="%2388c8c0"/><rect x="10" y="0" width="2" height="4" fill="%2388c8c0"/><rect x="3" y="4" width="10" height="7" fill="%2388c8c0"/><rect x="5" y="6" width="1" height="2" fill="%233a3040"/><rect x="10" y="6" width="1" height="2" fill="%233a3040"/><rect x="7" y="8" width="2" height="1" fill="%23d0a0a8"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <!-- KaTeX — proper math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:     #f0ebe0;   /* warm parchment */
+      --card:   #fffef8;   /* near-white */
+      --accent: #1a5ca8;   /* deep sapphire — h1, checkpoints */
+      --rose:   #c42848;   /* vivid crimson — speech bubbles, callouts */
+      --honey:  #b86800;   /* deep amber — h2, formulas */
+      --text:   #1c1a30;   /* dark navy — body text */
+      --mist:   #6a5888;   /* muted plum — secondary, counters */
+      --teal:   #0d7a6e;   /* deep teal — positive signals */
+      --slate:  #3a4d7a;   /* slate blue — methodology callouts */
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 720px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    .side-nav {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 52px;
+      width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto;
+      z-index: 9;
+    }
+    .side-nav-title {
+      font-family: "DotGothic16", monospace;
+      font-size: 8px;
+      color: var(--mist);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .side-nav-btn:hover {
+      background: rgba(26,92,168,.06);
+      border-color: #ccc4e0;
+    }
+    .side-nav-btn.active {
+      background: rgba(26,92,168,.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .side-nav-num {
+      flex-shrink: 0;
+      color: var(--mist);
+      font-size: 10px;
+      min-width: 1.2em;
+    }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9px;
+      color: var(--mist);
+      margin: 10px 0 4px;
+      padding-top: 10px;
+      border-top: 1px solid #d0c8e0;
+      letter-spacing: 1px;
+      line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+    .badge-sub {
+      border: 2px solid var(--slate);
+      color: var(--slate);
+      font-size: 10px;
+      padding: 4px 8px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    .slide {
+      display: none;
+      background: var(--card);
+      border: 2px solid #ccc4e0;
+      box-shadow: 4px 4px 0 rgba(80,60,140,.18);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .slide.active { display: block; }
+    h1 {
+      font-family: "DotGothic16", monospace;
+      font-size: 13px;
+      color: var(--accent);
+      margin: 0 0 16px;
+      letter-spacing: .5px;
+    }
+    h2 {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      color: var(--honey);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 18px 0 8px;
+    }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+    table { border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+    th, td { border: 2px solid #ccc4e0; padding: 6px 10px; text-align: left; }
+    th { background: rgba(26,92,168,.06); color: var(--accent); }
+
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .buddy-speech {
+      flex: 1;
+      background: #fff8f2;
+      border: 2px solid var(--rose);
+      padding: 12px;
+      position: relative;
+    }
+    .buddy-speech::before {
+      content: "";
+      position: absolute;
+      left: -11px;
+      top: 14px;
+      border: 7px solid transparent;
+      border-right-color: var(--rose);
+    }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    .formula {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(26,92,168,.06);
+      padding: 14px 16px;
+      border: 2px solid rgba(26,92,168,.3);
+      margin: 12px 0;
+      overflow-x: auto;
+      line-height: 1.8;
+    }
+    .formula em { color: var(--honey); font-style: normal; }
+    .formula .katex { font-size: 1.08em; }
+    .formula .katex-display { margin: 6px 0; }
+
+    .callout {
+      border: 2px solid var(--rose);
+      background: rgba(196,40,72,.05);
+      padding: 12px 16px;
+      margin: 12px 0;
+    }
+    .callout .callout-title { color: var(--rose); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; display: block; margin-bottom: 4px; }
+    .callout.good { border-color: var(--teal); background: rgba(13,122,110,.05); }
+    .callout.good .callout-title { color: var(--teal); }
+
+    .viz { margin: 14px 0; }
+    .viz svg { max-width: 100%; height: auto; display: block; }
+    .viz-caption { font-size: 11px; color: var(--mist); margin-top: 4px; }
+
+    /* ── hover tooltips for jargon terms ── */
+    .tip { border-bottom: 2px dashed var(--honey); cursor: help; }
+    #tip-box {
+      position: fixed; display: none;
+      background: #fff8f2;
+      border: 2px solid var(--honey);
+      box-shadow: 4px 4px 0 rgba(80,60,140,.22);
+      padding: 10px 14px; max-width: 300px;
+      font-size: 11px; z-index: 99998;
+      color: var(--text); line-height: 1.6; pointer-events: none;
+    }
+    .tip-label {
+      font-weight: bold; color: var(--honey); display: block;
+      margin-bottom: 4px; font-size: 10px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 8px; }
+
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+
+    nav.deck-controls {
+      position: fixed;
+      bottom: 0;
+      left: 212px;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      background: rgba(240,235,224,.97);
+      border-top: 3px solid var(--honey);
+      z-index: 10;
+    }
+    #counter {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      color: var(--mist);
+    }
+    button {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fffef8;
+      border: 2px solid #0d3d7a;
+      box-shadow: 3px 3px 0 rgba(26,92,168,.25);
+      cursor: pointer;
+    }
+    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+
+    .fd-particle, .fd-petal { position: fixed; z-index: 99999; pointer-events: none; }
+
+    body { cursor: none; }
+    button, a, summary, [role="button"],
+    .side-nav, .side-nav-btn, details { cursor: none !important; }
+    #laser-dot {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, #c42848 45%, transparent 70%);
+      box-shadow: 0 0 6px 2px #c42848, 0 0 14px 4px #c4284855;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.05s ease;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #laser-dot { display: none; }
+      body { cursor: auto; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="side-nav" aria-label="Slide contents">
+    <p class="side-nav-title">CONTENTS</p>
+    <div id="side-nav-list" class="side-nav-list"></div>
+  </aside>
+
+  <div class="deck" id="deck">
+
+  <!-- Slide 0: Title -->
+  <section class="slide active" data-slide="0">
+    <h1>TASK 3: TWO ROUTERS, ONE UNKNOWN KNOB</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="4"  y="0" width="2" height="4" fill="#88c8c0"/>
+        <rect x="10" y="0" width="2" height="4" fill="#88c8c0"/>
+        <rect x="5"  y="1" width="1" height="2" fill="#d0a0a8"/>
+        <rect x="10" y="1" width="1" height="2" fill="#d0a0a8"/>
+        <rect x="3"  y="4" width="10" height="7" fill="#88c8c0"/>
+        <rect x="5"  y="6" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="6" width="1" height="2" fill="#3a3040"/>
+        <rect x="7"  y="8" width="2" height="1" fill="#d0a0a8"/>
+        <rect x="4"  y="8" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="8" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="7"  y="9" width="2" height="1" fill="#508880"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Packet:</span> Hop hop! I'm Packet, your router bunny. I push terabytes until my hardware quits. Your job: work out the pattern behind <em>how much</em> I carry first — from five measurements. Press → to start!
+      </div>
+    </div>
+    <p>Advanced Statistics · DLMDSAS01 · Exam Task 3 · your branch: $\xi_9 = 0$ · parameter signature <code>99d9e51</code></p>
+    <div class="callout good">
+      <span class="callout-title">Prerequisites</span>
+      This deck assumes the <b>intro deck</b> (<code>slides/intro-stats-probability/</code>): what a PDF (probability density function) is and what $E[X]$ (expected value) means. If "density" or "expected value" feel wobbly, do that deck first.
+    </div>
+    <div class="callout">
+      <span class="callout-title">Regenerated parameters</span>
+      Your assignment values were re-drawn. The branch moved to $\xi_9 = 0$, which is the <b>plain exponential</b> model. Any older Task 3 notes you have that talk about a polynomial factor $s^k$ in the density belong to a different branch — ignore them.
+    </div>
+  </section>
+
+  <!-- Slide 1: quest map -->
+  <section class="slide" data-slide="1">
+    <h1>What the exam actually asks</h1>
+    <p>The exam text is dense, so here it is decoded into four sub-quests. Everything else in this deck exists to make these four doable.</p>
+    <table>
+      <tr><th>#</th><th>Exam wording</th><th>In plain terms</th></tr>
+      <tr><td>Q1</td><td>"$S$ is modeled by $f_S(s)=\frac{1}{\theta}e^{-s/\theta}$"</td><td>Understand the model for ONE router's bandwidth-until-failure $S$, measured in terabytes (TB)</td></tr>
+      <tr><td>Q2</td><td>"Express $T$ in terms of $S_1, S_2$ … realistic assumptions … density of $T$"</td><td>The dual-router system: $T = S_1 + S_2$. Justify that, then derive $f_T$</td></tr>
+      <tr><td>Q3</td><td>"Calculate the likelihood function … propose a transformation whose maximum is the same"</td><td>Build $\mathcal{L}(\theta)$ from the sample, then take its logarithm</td></tr>
+      <tr><td>Q4</td><td>"Estimate the model-parameter with maximum likelihood … compute the expectation"</td><td>From your data $\xi_{10} = (33,\,29,\,6,\,37,\,1)$ TB: find $\hat\theta$, then $E[T]$</td></tr>
+    </table>
+    <p><b>Branch check:</b> your $\xi_9 = 0$, so the density is the plain exponential — no polynomial factor. The $\xi_9=1$ and $\xi_9=2$ branches must be skipped and explicitly stated as not applicable in the notebook.</p>
+    <p><b>MLE</b> = <b>maximum likelihood estimation</b>: pick the parameter value under which the data you actually saw would have been most plausible. Spelled out here once; used as "MLE" from now on.</p>
+    <p>Course book route: Unit 3.3 (Exponential / Gamma) → Unit 3.5 (Transformed Random Variables) → Unit 6.1 (Maximum Likelihood).</p>
+  </section>
+
+  <!-- Slide 2: meet S -->
+  <section class="slide" data-slide="2">
+    <h1>Meet S — an odometer, not a clock</h1>
+    <p>First the picture. Imagine each router has an odometer that counts <b>terabytes pushed through it</b>, not hours lived. One day the hardware quits and you read the odometer. That reading is $S$.</p>
+    <p>So $S$ is a <em>continuous</em> quantity in TB, it can never be negative, and it is random — build two identical routers and they will die at two different odometer readings. Continuous and random means it gets a PDF. The exam hands you this one:</p>
+    <div class="formula">
+      $$f_S(s) \;=\; \frac{1}{\theta}\,e^{-s/\theta}, \qquad s &gt; 0$$
+      <em>this is the Exponential distribution with mean θ, written $S \sim \mathrm{Exp}(\theta)$</em>
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 600 190" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(35,10)">
+          <rect x="0" y="0" width="520" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,7.4 8.7,18.4 17.3,28.4 26.0,37.6 34.7,45.9 43.3,53.5 52.0,60.4 60.7,66.6 69.3,72.3 78.0,77.5 86.7,82.3 95.3,86.6 104.0,90.5 112.7,94.0 121.3,97.3 130.0,100.2 138.7,102.9 147.3,105.3 156.0,107.6 164.7,109.6 173.3,111.4 182.0,113.1 190.7,114.6 199.3,116.0 208.0,117.3 216.7,118.4 225.3,119.4 234.0,119.9 242.7,121.3 251.3,122.0 260.0,122.8 268.7,123.4 277.3,124.0 286.0,124.5 294.7,125.0 303.3,125.5 312.0,125.9 320.7,126.3 329.3,126.6 338.0,126.9 346.7,127.2 355.3,127.4 364.0,127.7 372.7,127.9 381.3,128.1 390.0,128.2 398.7,128.4 407.3,128.5 416.0,128.7 424.7,128.8 433.3,128.9 442.0,129.0 450.7,129.1 459.3,129.2 468.0,129.2 476.7,129.3 485.3,129.4 494.0,129.4 502.7,129.5 511.3,129.5 520.0,129.6" fill="none" stroke="#1a5ca8" stroke-width="2.5"/>
+          <line x1="0" y1="0" x2="0" y2="130" stroke="#c42848" stroke-width="2"/>
+          <text x="6" y="16" fill="#c42848">tallest right here, at s = 0</text>
+          <line x1="91.9" y1="0" x2="91.9" y2="130" stroke="#b86800" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="97" y="60" fill="#b86800">mean = θ (here 10.6)</text>
+          <text x="97" y="76" fill="#b86800">— NOT where the peak is</text>
+          <line x1="0" y1="130" x2="520" y2="130" stroke="#6a5888" stroke-width="1.5"/>
+          <text x="0"   y="146" fill="#6a5888">0</text>
+          <text x="80"  y="146" fill="#6a5888">10</text>
+          <text x="167" y="146" fill="#6a5888">20</text>
+          <text x="253" y="146" fill="#6a5888">30</text>
+          <text x="340" y="146" fill="#6a5888">40</text>
+          <text x="427" y="146" fill="#6a5888">50</text>
+          <text x="512" y="146" fill="#6a5888">60</text>
+          <text x="260" y="166" text-anchor="middle" fill="#6a5888">s = bandwidth delivered before failure (TB)</text>
+        </g>
+      </svg>
+      <p class="viz-caption">The exponential density, drawn at $\theta = 10.6$ TB — the value you will fit later in this deck.</p>
+    </div>
+    <div class="callout">
+      <span class="callout-title">Two lookalikes: "most likely" vs "on average"</span>
+      The curve is <b>highest at $s = 0$</b>, so the <b>mode</b> (most likely neighbourhood) is right at the start. But the <b>mean</b> is $\theta$, well to the right, because the long thin tail drags the average out. These two words describe different things and for the exponential they are as far apart as they can get. Saying "the router usually fails around $\theta$" is wrong; saying "it fails at $\theta$ <em>on average</em>" is right.
+    </div>
+  </section>
+
+  <!-- Slide 3: memorylessness -->
+  <section class="slide" data-slide="3">
+    <h1>Why exponential? The router that never ages</h1>
+    <p>Before the formula: the exponential is the model you choose when failure is caused by <b>random shocks</b> — a voltage spike, a bad packet storm, a cosmic-ray bit flip — and <em>not</em> by parts slowly wearing down.</p>
+    <p>Concretely, that means a router with 20 TB already on the odometer is <b>statistically indistinguishable from a brand-new one</b>. It has not "used up" any of its luck. The property has a name:</p>
+    <div class="formula">
+      $$P(S &gt; a + b \mid S &gt; a) \;=\; P(S &gt; b) \qquad \text{for all } a, b &gt; 0$$
+      <em>the <span class="tip" data-tip-title="Memoryless property" data-tip="Knowing an item has already survived to $a$ tells you nothing new about how much longer it will last. The exponential is the ONLY continuous distribution with this property — which is exactly why it is the default model for shock-driven failure.">memoryless property</span> — the exponential is the only continuous distribution that has it</em>
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 600 175" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(35,12)">
+          <rect x="0" y="0" width="520" height="110" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,5.2 8.7,14.7 17.3,23.3 26.0,31.1 34.7,38.2 43.3,44.6 52.0,50.5 60.7,55.9 69.3,60.7 78.0,65.2 86.7,69.2 95.3,72.9 104.0,76.2 112.7,79.3 121.3,82.0 130.0,84.6 138.7,86.8 147.3,88.9 156.0,90.8 164.7,92.6 173.3,94.1 182.0,95.6 190.7,96.9 199.3,98.0 208.0,99.1 216.7,100.1 225.3,101.0 234.0,101.8 242.7,102.5 251.3,103.2 260.0,103.8 268.7,104.4 277.3,104.9 286.0,105.3 294.7,105.8 303.3,106.1 312.0,106.5 320.7,106.8 329.3,107.1 338.0,107.4 346.7,107.6 355.3,107.8 364.0,108.0 372.7,108.2 381.3,108.4 390.0,108.5 398.7,108.6 407.3,108.8 416.0,108.9 424.7,109.0 433.3,109.1 442.0,109.1 450.7,109.2 459.3,109.3 468.0,109.4 476.7,109.4 485.3,109.5 494.0,109.5 502.7,109.6 511.3,109.6 520.0,109.6" fill="none" stroke="#1a5ca8" stroke-width="2.5"/>
+          <polyline points="173.3,5.2 182.0,14.7 190.7,23.3 199.3,31.1 208.0,38.2 216.7,44.6 225.3,50.5 234.0,55.9 242.7,60.7 251.3,65.2 260.0,69.2 268.7,72.9 277.3,76.2 286.0,79.3 294.7,82.0 303.3,84.6 312.0,86.8 320.7,88.9 329.3,90.8 338.0,92.6 346.7,94.1 355.3,95.6 364.0,96.9 372.7,98.0 381.3,99.1 390.0,100.1 398.7,101.0 407.3,101.8 416.0,102.5 424.7,103.2 433.3,103.8 442.0,104.4 450.7,104.9 459.3,105.3 468.0,105.8 476.7,106.1 485.3,106.5 494.0,106.8 502.7,107.1 511.3,107.4 520.0,107.6" fill="none" stroke="#c42848" stroke-width="2.5" stroke-dasharray="6,4"/>
+          <line x1="173.3" y1="0" x2="173.3" y2="110" stroke="#b86800" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <text x="178" y="14" fill="#b86800">already survived 20 TB</text>
+          <text x="250" y="34" fill="#c42848">dashed = what's left, rescaled to start at 1</text>
+          <text x="250" y="50" fill="#c42848">it is the SAME curve, just slid across</text>
+          <text x="10"  y="20" fill="#1a5ca8">P(S &gt; s), brand new</text>
+          <text x="0"   y="126" fill="#6a5888">0</text>
+          <text x="167" y="126" fill="#6a5888">20</text>
+          <text x="340" y="126" fill="#6a5888">40</text>
+          <text x="512" y="126" fill="#6a5888">60</text>
+          <text x="260" y="148" text-anchor="middle" fill="#6a5888">s = TB on the odometer — the survival curve has no memory of where it started</text>
+        </g>
+      </svg>
+    </div>
+    <div class="callout">
+      <span class="callout-title">Say this honestly in the notebook</span>
+      Memorylessness is a <b>modelling assumption, not a fact about routers</b>. Real hardware often has a wear-out phase where the failure rate climbs with age; the exponential explicitly rules that out (it is the constant-hazard model). It is a defensible first model for electronics dominated by random shocks, and the exam prescribes it — but a grader rewards you for naming the limitation rather than pretending it is not there.
+    </div>
+  </section>
+
+  <!-- Slide 4: theta knob -->
+  <section class="slide" data-slide="4">
+    <h1>θ — the one knob we don't know</h1>
+    <p>The exponential has exactly one parameter. $\theta$ is a <span class="tip" data-tip-title="Scale parameter" data-tip="A parameter that stretches or squeezes the horizontal axis without changing the silhouette. Double $\theta$ and every landmark — mean, median, standard deviation — doubles. Contrast a RATE parameter $\lambda = 1/\theta$, which divides instead of multiplying.">scale</span>: it says how many terabytes one "unit of luck" is worth. Turn it up and the whole curve stretches to the right — same shape, tougher routers.</p>
+    <div class="viz">
+      <svg viewBox="0 0 600 190" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(35,10)">
+          <rect x="0" y="0" width="520" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,6.2 8.7,28.6 17.3,47.0 26.0,62.1 34.7,74.4 43.3,84.5 52.0,92.7 60.7,99.5 69.3,105.0 78.0,109.5 86.7,113.2 95.3,116.3 104.0,118.8 112.7,121.0 121.3,122.5 130.0,123.8 138.7,125.0 147.3,125.9 156.0,126.6 164.7,127.2 173.3,127.7 182.0,128.1 190.7,128.5 199.3,128.8 208.0,129.0 216.7,129.2 225.3,129.3 234.0,129.4 242.7,129.5 251.3,129.6 260.0,129.7 268.7,129.7 277.3,129.8 286.0,129.8 294.7,129.9 303.3,129.9 312.0,129.9 320.7,129.9 329.3,129.9 338.0,129.9 346.7,130.0 355.3,130.0 364.0,130.0 372.7,130.0 381.3,130.0 390.0,130.0 398.7,130.0 407.3,130.0 416.0,130.0 424.7,130.0 433.3,130.0 442.0,130.0 450.7,130.0 459.3,130.0 468.0,130.0 476.7,130.0 485.3,130.0 494.0,130.0 502.7,130.0 511.3,130.0 520.0,130.0" fill="none" stroke="#0d7a6e" stroke-width="2"/>
+          <polyline points="0.0,71.6 8.7,76.9 17.3,81.6 26.0,86.0 34.7,90.0 43.3,93.6 52.0,96.8 60.7,99.8 69.3,102.5 78.0,105.0 86.7,107.3 95.3,109.3 104.0,111.2 112.7,112.9 121.3,114.4 130.0,115.8 138.7,117.1 147.3,118.3 156.0,119.3 164.7,119.9 173.3,121.1 182.0,121.9 190.7,122.7 199.3,123.3 208.0,123.9 216.7,124.5 225.3,125.0 234.0,125.4 242.7,125.8 251.3,126.2 260.0,126.6 268.7,126.9 277.3,127.1 286.0,127.4 294.7,127.6 303.3,127.9 312.0,128.0 320.7,128.2 329.3,128.4 338.0,128.5 346.7,128.7 355.3,128.8 364.0,128.9 372.7,129.0 381.3,129.1 390.0,129.2 398.7,129.2 407.3,129.3 416.0,129.4 424.7,129.4 433.3,129.5 442.0,129.5 450.7,129.6 459.3,129.6 468.0,129.6 476.7,129.7 485.3,129.7 494.0,129.7 502.7,129.8 511.3,129.8 520.0,129.8" fill="none" stroke="#1a5ca8" stroke-width="2.5"/>
+          <polyline points="0.0,99.0 8.7,100.6 17.3,102.0 26.0,103.4 34.7,104.7 43.3,105.9 52.0,107.1 60.7,108.2 69.3,109.3 78.0,110.3 86.7,111.2 95.3,112.1 104.0,113.0 112.7,113.8 121.3,114.6 130.0,115.4 138.7,116.1 147.3,116.8 156.0,117.4 164.7,118.0 173.3,118.6 182.0,119.2 190.7,119.7 199.3,119.9 208.0,121.0 216.7,121.1 225.3,121.6 234.0,122.0 242.7,122.4 251.3,122.7 260.0,123.1 268.7,123.4 277.3,123.8 286.0,124.1 294.7,124.3 303.3,124.6 312.0,124.9 320.7,125.1 329.3,125.4 338.0,125.6 346.7,125.8 355.3,126.0 364.0,126.2 372.7,126.4 381.3,126.6 390.0,126.7 398.7,126.9 407.3,127.0 416.0,127.2 424.7,127.3 433.3,127.5 442.0,127.6 450.7,127.7 459.3,127.8 468.0,127.9 476.7,128.0 485.3,128.1 494.0,128.2 502.7,128.3 511.3,128.4 520.0,128.5" fill="none" stroke="#b86800" stroke-width="2"/>
+          <text x="40"  y="24" fill="#0d7a6e">θ = 5 — fragile</text>
+          <text x="130" y="78" fill="#1a5ca8">θ = 10.6 — your fitted value</text>
+          <text x="250" y="112" fill="#b86800">θ = 20 — tough</text>
+          <line x1="0" y1="130" x2="520" y2="130" stroke="#6a5888" stroke-width="1.5"/>
+          <text x="0"   y="146" fill="#6a5888">0</text>
+          <text x="167" y="146" fill="#6a5888">20</text>
+          <text x="340" y="146" fill="#6a5888">40</text>
+          <text x="512" y="146" fill="#6a5888">60</text>
+          <text x="260" y="166" text-anchor="middle" fill="#6a5888">s in TB — all three are exponentials; only the stretch differs</text>
+        </g>
+      </svg>
+    </div>
+    <div class="formula">
+      mean $E[S]$ &nbsp;&nbsp;&nbsp;= $\theta$<br/>
+      standard deviation = $\theta$ &nbsp;<em>(yes, the same number — see below)</em><br/>
+      median &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= $\theta\ln 2 \approx 0.693\,\theta$<br/>
+      mode &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= $0$
+    </div>
+    <p>That mean-equals-standard-deviation fact is a free diagnostic. Its scale-free version, the <span class="tip" data-tip-title="Coefficient of variation (CV)" data-tip="CV = standard deviation ÷ mean. It strips out the units, so you can compare spread across quantities measured on different scales. Exponential: CV = 1. Gamma with shape $k$: CV = $1/\sqrt{k}$.">coefficient of variation</span>, equals exactly 1 for any exponential. We will use it as a model check at the end.</p>
+    <p><b>Everything from here on is about locating this one knob from data.</b></p>
+  </section>
+
+  <!-- Slide 5: two routers -->
+  <section class="slide" data-slide="5">
+    <h1>Two routers, one number: T = S₁ + S₂</h1>
+    <p>The dual system: router 1 carries traffic until it dies; a standby router 2 comes up automatically and carries traffic until <em>it</em> dies. The system's total bandwidth-to-failure is what the exam calls $T$:</p>
+    <div class="formula">$$T = S_1 + S_2$$</div>
+    <div class="viz">
+      <svg viewBox="0 0 600 110" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(20,14)">
+          <rect x="0"   y="10" width="215" height="28" fill="#88c8c0" stroke="#508880" stroke-width="2"/>
+          <rect x="221" y="10" width="299" height="28" fill="#a8b8e0" stroke="#3a4d7a" stroke-width="2"/>
+          <text x="107" y="29" text-anchor="middle" fill="#1c1a30">router 1 carries S₁ TB</text>
+          <text x="370" y="29" text-anchor="middle" fill="#1c1a30">router 2 carries S₂ TB</text>
+          <text x="218" y="7"  text-anchor="middle" fill="#c42848">✖ failover, instant</text>
+          <text x="524" y="29" fill="#c42848">✖✖</text>
+          <line x1="0" y1="52" x2="520" y2="52" stroke="#b86800" stroke-width="2"/>
+          <line x1="0" y1="46" x2="0" y2="58" stroke="#b86800" stroke-width="2"/>
+          <line x1="520" y1="46" x2="520" y2="58" stroke="#b86800" stroke-width="2"/>
+          <text x="260" y="74" text-anchor="middle" fill="#b86800">T = S₁ + S₂ = total TB the system delivers before it goes dark</text>
+        </g>
+      </svg>
+    </div>
+    <h2>The "realistic assumptions" the exam wants — spelled out</h2>
+    <ul>
+      <li><b>Independence.</b> $S_1$ and $S_2$ are separate physical machines; one wearing out does not influence the other. (Honest caveat: they would not be independent if they shared a power supply or an overheating rack. Write that sentence.)</li>
+      <li><b>Identically distributed.</b> "Two routers of the same type" means the same model with the same $\theta$: both $\mathrm{Exp}(\theta)$. Together with independence this is the classic <span class="tip" data-tip-title="i.i.d." data-tip="Independent and identically distributed: every observation comes from the same distribution and carries no information about the others. This is the assumption that lets a joint density factor into a product of individual densities.">i.i.d.</span> setup.</li>
+      <li><b>Instantaneous, perfect failover.</b> Router 2 takes over with no gap and no traffic lost, so the total is <em>exactly</em> the sum and nothing is added or dropped at the handover.</li>
+      <li><b>No ageing on standby.</b> Router 2 does not degrade while waiting. This is precisely the memoryless property from the previous slide, reused — which is why the exponential makes this system easy to reason about.</li>
+    </ul>
+    <p>In course-book language, $T$ is a <b>transformed random variable</b> (Unit 3.5): the transformation is $g(s_1, s_2) = s_1 + s_2$ applied to the random pair $(S_1, S_2)$.</p>
+  </section>
+
+  <!-- Slide 6: convolution intuition -->
+  <section class="slide" data-slide="6">
+    <h1>Counting the ways to split a total</h1>
+    <p>Here is the whole derivation as a picture, before any integral. Suppose the system delivered exactly $t = 20$ TB. <b>How could that have happened?</b> Router 1 could have done 2 and router 2 did 18. Or 9 and 11. Or 17 and 3. Every split adds up to the same 20.</p>
+    <div class="viz">
+      <svg viewBox="0 0 600 210" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(30,10)">
+          <text x="0" y="10" fill="#6a5888">four of the infinitely many ways to reach a total of t = 20 TB:</text>
+          <rect x="0"   y="20" width="52"  height="20" fill="#88c8c0" stroke="#508880" stroke-width="1.5"/>
+          <rect x="52"  y="20" width="468" height="20" fill="#a8b8e0" stroke="#3a4d7a" stroke-width="1.5"/>
+          <text x="530" y="35" fill="#6a5888">2 + 18</text>
+          <rect x="0"   y="46" width="182" height="20" fill="#88c8c0" stroke="#508880" stroke-width="1.5"/>
+          <rect x="182" y="46" width="338" height="20" fill="#a8b8e0" stroke="#3a4d7a" stroke-width="1.5"/>
+          <text x="530" y="61" fill="#6a5888">7 + 13</text>
+          <rect x="0"   y="72" width="312" height="20" fill="#88c8c0" stroke="#508880" stroke-width="1.5"/>
+          <rect x="312" y="72" width="208" height="20" fill="#a8b8e0" stroke="#3a4d7a" stroke-width="1.5"/>
+          <text x="530" y="87" fill="#6a5888">12 + 8</text>
+          <rect x="0"   y="98" width="442" height="20" fill="#88c8c0" stroke="#508880" stroke-width="1.5"/>
+          <rect x="442" y="98" width="78"  height="20" fill="#a8b8e0" stroke="#3a4d7a" stroke-width="1.5"/>
+          <text x="530" y="113" fill="#6a5888">17 + 3</text>
+          <text x="0" y="138" fill="#c42848">weight of each row: f_S(u) · f_S(20−u) = (1/θ²) e^(−20/θ) — the SAME for every row</text>
+          <text x="0" y="156" fill="#0d7a6e">because e^(−u/θ) · e^(−(20−u)/θ) = e^(−20/θ): the u cancels, exactly</text>
+          <line x1="0" y1="168" x2="520" y2="168" stroke="#b86800" stroke-width="1.5"/>
+          <text x="0" y="186" fill="#b86800">so f_T(20) = (how much room there is to split) × (that common weight) = 20 × (1/θ²) e^(−20/θ)</text>
+        </g>
+      </svg>
+    </div>
+    <p>The cancellation on the middle line is special to the exponential and it is the entire trick. Every way of splitting the total is <b>equally plausible</b>. So the only thing that varies with $t$ is <em>how much room there is to split it</em> — and a total of $t$ has exactly $t$ worth of room. That gives a factor of $t$ out front:</p>
+    <div class="formula">
+      $$f_T(t) \;=\; \underbrace{t}_{\text{room to split}} \;\times\; \underbrace{\frac{1}{\theta^{2}}e^{-t/\theta}}_{\text{weight of each split}} \;=\; \frac{t}{\theta^{2}}\,e^{-t/\theta}, \qquad t &gt; 0$$
+    </div>
+    <p>The formal name for "sum over all the ways to split" is <span class="tip" data-tip-title="Convolution" data-tip="The operation that produces the density of a sum of two independent random variables: slide one density across the other and integrate the overlap, $(f*g)(t) = \int f(u)\,g(t-u)\,du$. The integration limits run 0 to $t$ here because neither router can deliver a negative amount.">convolution</span>. The sub-chapter does it as an integral, but the integral is only this picture written in symbols.</p>
+  </section>
+
+  <!-- Slide 6.1: sub — convolution algebra -->
+  <section class="slide" data-slide="7" data-nav-tier="sub" data-nav-section="╰ THE CONVOLUTION, IN FULL">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>The convolution integral, line by line</h1>
+    <p>The exam says "calculate the density function of $T$", so the notebook needs the symbols, not just the picture. The course-book tool is the <b>transformation theorem</b> (Unit 3.5; Hogg, McKean &amp; Craig 2020, §2.7). A sum loses information — you cannot recover $s_1$ and $s_2$ from $t$ alone — so the standard move is: add a helper coordinate, transform the pair, then integrate the helper away.</p>
+    <ol>
+      <li><b>Choose the transformation.</b> $g(s_1,s_2) = (t,u) = (s_1{+}s_2,\; s_2)$, with inverse $s_1 = t-u$, $s_2 = u$.</li>
+      <li><b>Compute the <span class="tip" data-tip-title="Jacobian" data-tip="The determinant of the matrix of partial derivatives of the inverse transformation. It records how much the change of variables stretches area, so that probability mass in equals probability mass out. For a plain sum it equals 1 — no stretching.">Jacobian</span>.</b>
+        $J = \det\begin{pmatrix} 1 &amp; -1 \\ 0 &amp; 1 \end{pmatrix} = 1$ — adding does not stretch area, so no correction factor appears.</li>
+      <li><b>Factor the joint density, then marginalise.</b> Independence gives $f_{(S_1,S_2)}(s_1,s_2) = f_S(s_1)f_S(s_2)$, so
+        $$f_T(t) \;=\; \int_0^{t} f_S(u)\,f_S(t-u)\,du$$
+        The limits run from $0$ to $t$ because both pieces must be non-negative and must still sum to $t$.</li>
+      <li><b>Substitute the exponential and watch $u$ vanish.</b>
+        $$f_T(t) = \int_0^{t} \frac{1}{\theta}e^{-u/\theta}\cdot\frac{1}{\theta}e^{-(t-u)/\theta}\,du
+        = \frac{1}{\theta^{2}}\,e^{-t/\theta}\int_0^{t} du$$
+        because $e^{-u/\theta}e^{-(t-u)/\theta} = e^{-t/\theta}$, which no longer depends on $u$.</li>
+      <li><b>The leftover integral is just the length of the interval.</b> $\int_0^t du = t$.</li>
+    </ol>
+    <div class="formula">
+      $$\boxed{\,f_T(t) = \frac{t}{\theta^{2}}\,e^{-t/\theta}\,}, \qquad t &gt; 0$$
+      <em>✔ and it integrates to 1: $\int_0^\infty t\,e^{-t/\theta}dt = \theta^{2}$, which the $1/\theta^{2}$ cancels exactly</em>
+    </div>
+    <p>Step 4 is the step that <em>requires</em> both routers to share the same $\theta$. With two different scales the exponents do not collapse, the $u$ survives the integral, and the answer is not a Gamma density at all. That is why the equal-$\theta$ assumption on the previous slide had to be stated out loud.</p>
+  </section>
+
+  <!-- Slide 7: the result -->
+  <section class="slide" data-slide="8">
+    <h1>The result: T is Gamma with shape 2</h1>
+    <p>That density has a name. A sum of $k$ independent exponentials with a shared scale $\theta$ is a <b>Gamma distribution with shape $k$ and scale $\theta$</b>; when the shape is a whole number it is also called an <span class="tip" data-tip-title="Erlang distribution" data-tip="A Gamma distribution whose shape parameter is a whole number — equivalently, the distribution of a sum of that many independent Exponential($\theta$) pieces. Named after A. K. Erlang, who used it for telephone traffic, so routers are its natural habitat.">Erlang distribution</span>. Two routers give shape 2:</p>
+    <div class="formula">
+      $$S_1, S_2 \overset{\text{i.i.d.}}{\sim} \mathrm{Exp}(\theta) \quad\Longrightarrow\quad T = S_1 + S_2 \sim \Gamma(2,\theta)$$
+      $$f_T(t) = \frac{t}{\theta^{2}}e^{-t/\theta}, \qquad E[T] = 2\theta, \qquad \operatorname{Var}[T] = 2\theta^{2}$$
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 600 195" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(35,10)">
+          <rect x="0" y="0" width="520" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,7.4 6.5,18.4 13.0,28.4 19.5,37.6 26.0,45.9 32.5,53.5 39.0,60.4 45.5,66.6 52.0,72.3 58.5,77.5 65.0,82.3 71.5,86.6 78.0,90.5 84.5,94.0 91.0,97.3 97.5,100.2 104.0,102.9 110.5,105.3 117.0,107.6 123.5,109.6 130.0,111.4 136.5,113.1 143.0,114.6 149.5,116.0 156.0,117.3 162.5,118.4 169.0,119.4 175.5,119.9 182.0,121.3 188.5,122.0 195.0,122.8 201.5,123.4 208.0,124.0 214.5,124.5 221.0,125.0 227.5,125.5 234.0,125.9 240.5,126.3 247.0,126.6 253.5,126.9 260.0,127.2 266.5,127.4 273.0,127.7 279.5,127.9 286.0,128.1 292.5,128.2 299.0,128.4 305.5,128.5 312.0,128.7 318.5,128.8 325.0,128.9 331.5,129.0 338.0,129.1 344.5,129.2 351.0,129.2 357.5,129.3 364.0,129.4 370.5,129.4 377.0,129.5 383.5,129.5 390.0,129.6 396.5,129.6 403.0,129.6 409.5,129.7 416.0,129.7 422.5,129.7 429.0,129.8 435.5,129.8 442.0,129.8 448.5,129.8 455.0,129.8 461.5,129.8 468.0,129.9 474.5,129.9 481.0,129.9 487.5,129.9 494.0,129.9 500.5,129.9 507.0,129.9 513.5,129.9 520.0,129.9" fill="none" stroke="#0d7a6e" stroke-width="2"/>
+          <polyline points="0.0,130.0 6.5,119.5 13.0,110.8 19.5,103.8 26.0,98.3 32.5,93.9 39.0,90.6 45.5,88.2 52.0,86.5 58.5,85.5 65.0,85.0 71.5,84.9 78.0,85.2 84.5,85.9 91.0,86.8 97.5,87.8 104.0,89.1 110.5,90.4 117.0,91.9 123.5,93.4 130.0,94.9 136.5,96.5 143.0,98.1 149.5,99.6 156.0,101.1 162.5,102.6 169.0,104.1 175.5,105.5 182.0,106.9 188.5,108.2 195.0,109.5 201.5,110.7 208.0,111.9 214.5,113.0 221.0,114.1 227.5,115.1 234.0,116.0 240.5,117.0 247.0,117.8 253.5,118.6 260.0,119.4 266.5,119.9 273.0,121.0 279.5,121.4 286.0,122.0 292.5,122.5 299.0,123.1 305.5,123.5 312.0,124.0 318.5,124.4 325.0,124.8 331.5,125.2 338.0,125.5 344.5,125.9 351.0,126.2 357.5,126.4 364.0,126.7 370.5,127.0 377.0,127.2 383.5,127.4 390.0,127.6 396.5,127.8 403.0,127.9 409.5,128.1 416.0,128.2 422.5,128.4 429.0,128.5 435.5,128.6 442.0,128.7 448.5,128.8 455.0,128.9 461.5,129.0 468.0,129.1 474.5,129.1 481.0,129.2 487.5,129.3 494.0,129.3 500.5,129.4 507.0,129.4 513.5,129.5 520.0,129.5" fill="none" stroke="#c42848" stroke-width="2.5"/>
+          <line x1="68.9" y1="84.9" x2="68.9" y2="130" stroke="#c42848" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="74" y="80" fill="#c42848">f_T peaks at t = θ — no longer at zero</text>
+          <text x="150" y="30" fill="#0d7a6e">f_S — one router, Exp(θ)</text>
+          <text x="150" y="46" fill="#c42848">f_T — dual system, Γ(2, θ)</text>
+          <line x1="0" y1="130" x2="520" y2="130" stroke="#6a5888" stroke-width="1.5"/>
+          <text x="0"   y="146" fill="#6a5888">0</text>
+          <text x="130" y="146" fill="#6a5888">20</text>
+          <text x="255" y="146" fill="#6a5888">40</text>
+          <text x="385" y="146" fill="#6a5888">60</text>
+          <text x="510" y="146" fill="#6a5888">80</text>
+          <text x="260" y="166" text-anchor="middle" fill="#6a5888">TB — both drawn at θ = 10.6, your fitted value</text>
+        </g>
+      </svg>
+    </div>
+    <p><b>Read the shape change.</b> One router is most likely to die immediately (peak at zero). Two routers in sequence are <em>not</em>: for the system to fail at 0 TB, both routers would have to die at once, and that is vanishingly unlikely. So $f_T(0) = 0$, the density rises to a hump at $t = \theta$, and then decays. The redundancy shows up as that hump.</p>
+    <div class="callout good">
+      <span class="callout-title">The general rule, worth remembering</span>
+      $\Gamma(k_1,\theta) + \Gamma(k_2,\theta) = \Gamma(k_1{+}k_2,\theta)$ — <b>shapes add</b>, provided (1) the pieces are independent and (2) they share the same scale $\theta$. An exponential is $\Gamma(1,\theta)$, so $1 + 1 = 2$. State both conditions in the notebook; the result is false without them.
+    </div>
+  </section>
+
+  <!-- Slide 8: likelihood -->
+  <section class="slide" data-slide="9">
+    <h1>Likelihood: guess-and-compare</h1>
+    <p>The infrastructure team ran the experiment: five dual-router systems, each run to failure. Your data (values of $T$, in terabytes):</p>
+    <div class="formula">$t_1 \ldots t_5 \;=\; 33,\;\; 29,\;\; 6,\;\; 37,\;\; 1$ &nbsp;&nbsp;&nbsp;&nbsp;(sample size $n = 5$)</div>
+    <p><b>The idea before the formula.</b> Pick a candidate value for $\theta$ and ask: "if the world really were like this, how plausible would my exact five numbers be?" Try lots of candidates and crown the one that makes the observed data most plausible. That plausibility, read as a function of $\theta$ with the data held fixed, is the <b>likelihood</b>:</p>
+    <div class="formula">
+      $$\mathcal{L}(\theta) \;=\; \prod_{i=1}^{5} f_T(t_i \mid \theta) \;=\; \prod_{i=1}^{5} \frac{t_i}{\theta^{2}}e^{-t_i/\theta}
+      \;=\; \Big(\textstyle\prod_i t_i\Big)\,\theta^{-2n}\,\exp\!\Big(-\tfrac{1}{\theta}\textstyle\sum_i t_i\Big)$$
+      <em>a product because the five systems are independent — joint density = product of densities</em>
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(40,10)">
+          <rect x="0" y="0" width="230" height="124" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,124.0 3.0,124.0 6.1,124.0 9.1,124.0 12.1,123.9 15.1,123.2 18.2,121.0 21.2,116.2 24.2,107.6 27.2,95.4 30.3,80.2 33.3,63.8 36.3,47.6 39.3,33.1 42.4,21.4 45.4,13.0 48.4,7.9 51.4,5.9 54.5,6.6 57.5,9.6 60.5,14.3 63.6,20.1 66.6,26.8 69.6,33.8 72.6,41.0 75.7,48.2 78.7,55.1 81.7,61.6 84.7,67.8 87.8,73.5 90.8,78.7 93.8,83.5 96.8,87.8 99.9,91.8 102.9,95.3 105.9,98.5 108.9,101.3 112.0,103.8 115.0,106.0 118.0,108.0 121.1,109.8 124.1,111.4 127.1,112.8 130.1,114.0 133.2,115.1 136.2,116.1 139.2,117.0 142.2,117.7 145.3,118.4 148.3,119.0 151.3,119.5 154.3,119.9 157.4,119.9 160.4,121.0 163.4,121.1 166.4,121.4 169.5,121.7 172.5,121.9 175.5,122.1 178.6,122.3 181.6,122.5 184.6,122.6 187.6,122.8 190.7,122.9 193.7,123.0 196.7,123.1 199.7,123.2 202.8,123.3 205.8,123.3 208.8,123.4 211.8,123.4 214.9,123.5 217.9,123.5 220.9,123.6 223.9,123.6 227.0,123.7 230.0,123.7" fill="none" stroke="#1a5ca8" stroke-width="2"/>
+          <line x1="52.1" y1="0" x2="52.1" y2="124" stroke="#c42848" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <circle cx="24.2" cy="107.6" r="4" fill="#b86800"/>
+          <circle cx="52.1" cy="5.9"   r="4" fill="#c42848"/>
+          <circle cx="96.8" cy="87.8"  r="4" fill="#0d7a6e"/>
+          <text x="0"   y="138" fill="#6a5888">2</text>
+          <text x="45"  y="138" fill="#c42848">10.6</text>
+          <text x="105" y="138" fill="#6a5888">20</text>
+          <text x="165" y="138" fill="#6a5888">30</text>
+          <text x="222" y="138" fill="#6a5888">40</text>
+          <text x="115" y="156" text-anchor="middle" fill="#6a5888">candidate θ (TB)</text>
+          <text x="292" y="24"  fill="#b86800">θ = 6 → only 14% as plausible as the best</text>
+          <text x="292" y="44"  fill="#c42848">θ = 10.6 → the winner: this is the MLE</text>
+          <text x="292" y="64"  fill="#0d7a6e">θ = 18 → 31% as plausible</text>
+          <text x="292" y="94"  fill="#6a5888">exactly the guess-and-compare game the</text>
+          <text x="292" y="110" fill="#6a5888">course book plays with the Poisson λ</text>
+        </g>
+      </svg>
+      <p class="viz-caption">$\mathcal{L}(\theta)$ evaluated on YOUR five numbers — computed, not sketched. Notice the peak is broad: with $n=5$ a lot of candidate values are almost as good as the winner. That vagueness comes back on the uncertainty slide.</p>
+    </div>
+    <div class="callout">
+      <span class="callout-title">Two lookalikes — keep them apart</span>
+      <b>Likelihood is not the probability of θ.</b> $\mathcal{L}(\theta) = P(\text{data} \mid \theta)$, read as a function of $\theta$ with the data frozen. It is <em>not</em> $P(\theta \mid \text{data})$; that reversed reading is the Bayesian one and is exactly what Task 6 does. &nbsp;Second: <b>use $f_T$, not $f_S$</b>. Your five numbers are dual-system totals, so each follows $\Gamma(2,\theta)$, never $\mathrm{Exp}(\theta)$.
+    </div>
+  </section>
+
+  <!-- Slide 9: log -->
+  <section class="slide" data-slide="10">
+    <h1>The exam's "transformation": take the log</h1>
+    <p>Q3's second half — "propose a transformation of this likelihood function whose maximum is the same and can be computed easily" — has a one-word answer: <b>logarithm</b>. The log-likelihood is $\ell(\theta) = \ln \mathcal{L}(\theta)$. Three reasons, all exam-quotable:</p>
+    <ol>
+      <li><b>The maximum cannot move.</b> $\ln$ is strictly <span class="tip" data-tip-title="Monotonic (strictly increasing)" data-tip="A function that only ever goes up: if $a &lt; b$ then $\ln a &lt; \ln b$. It preserves every comparison, so whichever $\theta$ made $\mathcal{L}$ largest still makes $\ln\mathcal{L}$ largest. The HEIGHT of the peak changes; its LOCATION cannot.">monotonic</span>, so it preserves the ranking of every pair of candidates. Whoever won before still wins. Only the height of the peak changes.</li>
+      <li><b>Products become sums.</b> $\ln \prod = \sum \ln$. Differentiating a five-factor product needs the product rule five ways; differentiating a sum is term by term.</li>
+      <li><b>Computers need it.</b> For your data the peak value is $\mathcal{L}(\hat\theta) \approx 5.4 \times 10^{-10}$. With a larger sample that races toward <span class="tip" data-tip-title="Numerical underflow" data-tip="When a number is closer to zero than the smallest value a floating-point type can represent (about $10^{-308}$ for float64) it silently becomes exactly 0, and every later calculation is garbage. Multiply a hundred small densities and you are there. Sums of logs stay in a comfortable range — here about −21.3.">numerical underflow</span>. Its logarithm is a tame $-21.3$.</li>
+    </ol>
+    <div class="viz">
+      <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(20,10)">
+          <rect x="0" y="0" width="230" height="124" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,124.0 3.0,124.0 6.1,124.0 9.1,124.0 12.1,123.9 15.1,123.2 18.2,121.0 21.2,116.2 24.2,107.6 27.2,95.4 30.3,80.2 33.3,63.8 36.3,47.6 39.3,33.1 42.4,21.4 45.4,13.0 48.4,7.9 51.4,5.9 54.5,6.6 57.5,9.6 60.5,14.3 63.6,20.1 66.6,26.8 69.6,33.8 72.6,41.0 75.7,48.2 78.7,55.1 81.7,61.6 84.7,67.8 87.8,73.5 90.8,78.7 93.8,83.5 96.8,87.8 99.9,91.8 102.9,95.3 105.9,98.5 108.9,101.3 112.0,103.8 115.0,106.0 118.0,108.0 121.1,109.8 124.1,111.4 127.1,112.8 130.1,114.0 133.2,115.1 136.2,116.1 139.2,117.0 142.2,117.7 145.3,118.4 148.3,119.0 151.3,119.5 154.3,119.9 157.4,119.9 160.4,121.0 163.4,121.1 166.4,121.4 169.5,121.7 172.5,121.9 175.5,122.1 178.6,122.3 181.6,122.5 184.6,122.6 187.6,122.8 190.7,122.9 193.7,123.0 196.7,123.1 199.7,123.2 202.8,123.3 205.8,123.3 208.8,123.4 211.8,123.4 214.9,123.5 217.9,123.5 220.9,123.6 223.9,123.6 227.0,123.7 230.0,123.7" fill="none" stroke="#1a5ca8" stroke-width="2"/>
+          <line x1="52.1" y1="0" x2="52.1" y2="124" stroke="#c42848" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <text x="115" y="144" text-anchor="middle" fill="#1a5ca8">L(θ) — tiny numbers</text>
+        </g>
+        <g transform="translate(320,10)">
+          <rect x="0" y="0" width="230" height="124" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,124.0 3.0,86.5 6.1,62.9 9.1,47.2 12.1,36.2 15.1,28.3 18.2,22.4 21.2,18.1 24.2,14.8 27.2,12.3 30.3,10.4 33.3,8.9 36.3,7.9 39.3,7.1 42.4,6.5 45.4,6.2 48.4,6.0 51.4,5.9 54.5,5.9 57.5,6.0 60.5,6.2 63.6,6.5 66.6,6.8 69.6,7.1 72.6,7.5 75.7,7.9 78.7,8.3 81.7,8.8 84.7,9.2 87.8,9.7 90.8,10.2 93.8,10.7 96.8,11.2 99.9,11.7 102.9,12.3 105.9,12.8 108.9,13.3 112.0,13.8 115.0,14.4 118.0,14.9 121.1,15.4 124.1,15.9 127.1,16.5 130.1,17.0 133.2,17.5 136.2,18.0 139.2,18.6 142.2,19.1 145.3,19.6 148.3,20.1 151.3,20.6 154.3,21.1 157.4,21.6 160.4,22.1 163.4,22.6 166.4,23.1 169.5,23.6 172.5,24.0 175.5,24.5 178.6,25.0 181.6,25.5 184.6,25.9 187.6,26.4 190.7,26.9 193.7,27.3 196.7,27.8 199.7,28.2 202.8,28.7 205.8,29.1 208.8,29.5 211.8,30.0 214.9,30.4 217.9,30.8 220.9,31.3 223.9,31.7 227.0,32.1 230.0,32.5" fill="none" stroke="#0d7a6e" stroke-width="2"/>
+          <line x1="52.1" y1="0" x2="52.1" y2="124" stroke="#c42848" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <text x="115" y="144" text-anchor="middle" fill="#0d7a6e">ℓ(θ) = ln L(θ) — same peak</text>
+        </g>
+        <text x="290" y="170" text-anchor="middle" fill="#c42848">the dashed line sits at the SAME θ = 10.6 in both panels — that is reason 1, made visible</text>
+      </svg>
+    </div>
+    <p>One convention worth a sentence in the notebook: numerical optimisers minimise rather than maximise, so software works with the <b>negative log-likelihood</b> $-\ell(\theta)$. Same location, flipped upside down.</p>
+  </section>
+
+  <!-- Slide 10: maximise -->
+  <section class="slide" data-slide="11">
+    <h1>Maximise: four lines of calculus</h1>
+    <p>Take the logarithm of the likelihood from two slides ago. Products become sums, powers come down as multipliers, and the exponential disappears entirely:</p>
+    <div class="formula">
+      $$\ell(\theta) \;=\; \sum_{i=1}^{n}\ln t_i \;-\; 2n\ln\theta \;-\; \frac{1}{\theta}\sum_{i=1}^{n} t_i$$
+      <em>the first term has no θ in it — the derivative will delete it, so it is dead weight</em>
+    </div>
+    <p>Differentiate with respect to $\theta$, using $\frac{d}{d\theta}\ln\theta = \frac{1}{\theta}$ and $\frac{d}{d\theta}\frac{1}{\theta} = -\frac{1}{\theta^{2}}$, then set the result to zero:</p>
+    <div class="formula">
+      $$\ell'(\theta) \;=\; -\frac{2n}{\theta} + \frac{\sum_i t_i}{\theta^{2}} \;=\; 0
+      \;\;\Longrightarrow\;\; \frac{\sum_i t_i}{\theta} = 2n
+      \;\;\Longrightarrow\;\; \boxed{\;\hat\theta = \frac{\sum_i t_i}{2n} = \frac{\bar t}{2}\;}$$
+    </div>
+    <p>In words: <b>the estimate is the sample mean divided by the shape</b>. Two routers per observation, so divide by two. The whole of Q4 is that sentence plus arithmetic.</p>
+    <div class="callout">
+      <span class="callout-title">Hat discipline</span>
+      $\theta$ is the unknown true knob setting; $\hat\theta$ is your data-driven <em>estimate</em> of it. They are different objects and the hat is not decoration. Keep it throughout the write-up — graders read it as evidence you know the difference.
+    </div>
+  </section>
+
+  <!-- Slide 10.1: sub — second derivative -->
+  <section class="slide" data-slide="12" data-nav-tier="sub" data-nav-section="╰ IS IT REALLY A MAXIMUM?">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>Confirming it's a peak, not a valley</h1>
+    <p>Setting a derivative to zero finds a <em>flat spot</em>. Flat spots come in three kinds: maxima, minima, and saddle points. One extra line settles which one you found, and it is the kind of line graders look for.</p>
+    <div class="formula">
+      $$\ell''(\theta) \;=\; \frac{2n}{\theta^{2}} \;-\; \frac{2\sum_i t_i}{\theta^{3}}$$
+      Now substitute the stationary point, where $\sum_i t_i = 2n\hat\theta$:
+      $$\ell''(\hat\theta) \;=\; \frac{2n}{\hat\theta^{2}} - \frac{2\cdot 2n\hat\theta}{\hat\theta^{3}} \;=\; \frac{2n}{\hat\theta^{2}} - \frac{4n}{\hat\theta^{2}} \;=\; -\frac{2n}{\hat\theta^{2}} \;&lt;\; 0$$
+      <em>✔ negative curvature = the curve bends downward = maximum</em>
+    </div>
+    <p>With your numbers, $\ell''(\hat\theta) = -10/10.6^{2} = -0.0890$. It is strictly negative for every possible sample (as long as $n \ge 1$ and $\hat\theta &gt; 0$), so the maximum is unique — there is no second candidate to worry about.</p>
+    <div class="callout good">
+      <span class="callout-title">Do not throw this number away</span>
+      That same quantity $2n/\hat\theta^{2}$ reappears two slides later as the <b>Fisher information</b>, which is what turns $\hat\theta$ into a confidence interval. The curvature of the log-likelihood at its peak <em>is</em> the precision of the estimate: a sharp peak means the data pin $\theta$ down, a flat peak means they barely do.
+    </div>
+  </section>
+
+  <!-- Slide 11: numbers -->
+  <section class="slide" data-slide="13">
+    <h1>Plug in your numbers</h1>
+    <table>
+      <tr><th>$t_i$ (TB)</th><td>33</td><td>29</td><td>6</td><td>37</td><td>1</td><th>$\sum t_i$</th><td><b>106</b></td></tr>
+    </table>
+    <div class="formula">
+      $$\bar t = \frac{106}{5} = 21.2 \;\text{TB}
+      \qquad
+      \hat\theta = \frac{106}{2 \times 5} = \frac{106}{10} = 10.6 \;\text{TB}$$
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 600 125" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(35,18)">
+          <line x1="0" y1="50" x2="520" y2="50" stroke="#6a5888" stroke-width="1.5"/>
+          <circle cx="13.0"  cy="50" r="6" fill="#1a5ca8"/>
+          <circle cx="78.0"  cy="50" r="6" fill="#1a5ca8"/>
+          <circle cx="377.0" cy="50" r="6" fill="#1a5ca8"/>
+          <circle cx="429.0" cy="50" r="6" fill="#1a5ca8"/>
+          <circle cx="481.0" cy="50" r="6" fill="#1a5ca8"/>
+          <line x1="275.6" y1="14" x2="275.6" y2="86" stroke="#c42848" stroke-width="2" stroke-dasharray="4,3"/>
+          <text x="275.6" y="9" text-anchor="middle" fill="#c42848">t̄ = 21.2</text>
+          <text x="0"   y="70" fill="#6a5888">0</text>
+          <text x="123" y="70" fill="#6a5888">10</text>
+          <text x="253" y="70" fill="#6a5888">20</text>
+          <text x="383" y="70" fill="#6a5888">30</text>
+          <text x="508" y="70" fill="#6a5888">40</text>
+          <text x="260" y="92" text-anchor="middle" fill="#6a5888">the five observed dual-system totals (TB) — two clustered low, three high, nothing in the middle</text>
+        </g>
+      </svg>
+    </div>
+    <p>Everything the exam asks for now follows from that single number:</p>
+    <table>
+      <tr><th>Quantity</th><th>Formula</th><th>Value</th></tr>
+      <tr><td>Scale estimate</td><td>$\hat\theta = \bar t / 2$</td><td><b>10.6 TB</b></td></tr>
+      <tr><td>Expected system bandwidth</td><td>$E[T] = 2\hat\theta$</td><td><b>21.2 TB</b></td></tr>
+      <tr><td>Expected single-router bandwidth</td><td>$E[S] = \hat\theta$</td><td>10.6 TB</td></tr>
+      <tr><td>Standard deviation of $T$</td><td>$\mathrm{sd}(T) = \sqrt{2}\,\hat\theta$</td><td>14.99 TB</td></tr>
+      <tr><td>Most likely system total</td><td>mode $= \hat\theta$</td><td>10.6 TB</td></tr>
+    </table>
+    <p>Note the last two rows against each other: the fitted model says the typical outcome is around 10.6 TB, the average is 21.2 TB, and the spread is nearly as large as the mean. This system is genuinely erratic — and the data agree, ranging from 1 TB to 37 TB.</p>
+  </section>
+
+  <!-- Slide 12: E[T] = tbar -->
+  <section class="slide" data-slide="14">
+    <h1>Why E[T] lands exactly on the sample mean</h1>
+    <p>Look again: $E[T] = 2\hat\theta = 2 \times \frac{\bar t}{2} = \bar t = 21.2$. The fitted model's mean is <em>exactly</em> the average of your five numbers. That looks suspicious — like the answer was assumed rather than derived. It was not.</p>
+    <div class="viz">
+      <svg viewBox="0 0 600 130" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(20,12)">
+          <rect x="0" y="6" width="150" height="34" fill="rgba(26,92,168,.06)" stroke="#1a5ca8" stroke-width="2"/>
+          <text x="75" y="21" text-anchor="middle" fill="#1a5ca8">the data say</text>
+          <text x="75" y="35" text-anchor="middle" fill="#1a5ca8">average = 21.2</text>
+          <text x="164" y="28" fill="#b86800">→</text>
+          <rect x="185" y="6" width="180" height="34" fill="rgba(184,104,0,.06)" stroke="#b86800" stroke-width="2"/>
+          <text x="275" y="21" text-anchor="middle" fill="#b86800">maximum likelihood picks θ</text>
+          <text x="275" y="35" text-anchor="middle" fill="#b86800">so the model average matches</text>
+          <text x="374" y="28" fill="#0d7a6e">→</text>
+          <rect x="395" y="6" width="150" height="34" fill="rgba(13,122,110,.06)" stroke="#0d7a6e" stroke-width="2"/>
+          <text x="470" y="21" text-anchor="middle" fill="#0d7a6e">the model says</text>
+          <text x="470" y="35" text-anchor="middle" fill="#0d7a6e">E[T] = 21.2</text>
+          <text x="272" y="70" text-anchor="middle" fill="#6a5888">not circular: the middle box is a derived consequence of maximising ℓ(θ),</text>
+          <text x="272" y="86" text-anchor="middle" fill="#6a5888">not something we imposed. For this family, the peak happens to sit exactly there.</text>
+        </g>
+      </svg>
+    </div>
+    <p>The reason is visible in the derivative you solved. Setting $\ell'(\theta) = 0$ gave $\sum_i t_i = 2n\theta$, which is the same as $\bar t = 2\theta = E[T]$. In other words, <b>the likelihood equation for this family literally is the statement "set the model mean equal to the sample mean"</b>. Two different estimation philosophies collide here and agree:</p>
+    <ul>
+      <li><b>Maximum likelihood</b> — choose $\theta$ to make the observed data most plausible.</li>
+      <li><b>Method of moments</b> — choose $\theta$ so the model's first moment (its mean) equals the data's first moment.</li>
+    </ul>
+    <p>For the Gamma family with known shape these two coincide. They do <em>not</em> coincide in general — for many models the MLE and the moment estimator are different numbers — so it is worth one sentence in the notebook noting the agreement rather than assuming it always happens.</p>
+    <div class="callout good">
+      <span class="callout-title">Free sanity check</span>
+      If you ever compute $\hat\theta$ and find $2\hat\theta \ne \bar t$, you have made an arithmetic error. This identity is a zero-cost check you can run in your head.
+    </div>
+  </section>
+
+  <!-- Slide 13: uncertainty -->
+  <section class="slide" data-slide="15">
+    <h1>How sure are we? Not very — n is 5</h1>
+    <p>"$\hat\theta = 10.6$ TB" is a single number, and a single number pretends to a precision you do not have. Five observations is a very small sample. The honest question is: <b>how wide is the range of $\theta$ values that would also have explained this data well?</b></p>
+    <p>The curvature line from the sub-chapter answers it. The <span class="tip" data-tip-title="Fisher information" data-tip="The expected curvature of the log-likelihood at the true parameter: $I(\theta) = -E[\ell''(\theta)]$. Large information = a sharply peaked likelihood = the data strongly constrain the parameter. The standard error of the MLE is $1/\sqrt{I}$.">Fisher information</span> is exactly minus the second derivative you already computed:</p>
+    <div class="formula">
+      $$I(\hat\theta) = \frac{2n}{\hat\theta^{2}} = \frac{10}{10.6^{2}} = 0.0890
+      \qquad
+      \mathrm{se}(\hat\theta) = \frac{1}{\sqrt{I(\hat\theta)}} = 3.352 \;\text{TB}$$
+      $$\text{approximate 95\% interval: } \hat\theta \pm 1.96\,\mathrm{se} = [\,4.03,\; 17.17\,]\ \text{TB}$$
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 600 150" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(35,20)">
+          <line x1="0" y1="46" x2="520" y2="46" stroke="#6a5888" stroke-width="1.5"/>
+          <rect x="104.8" y="34" width="341.6" height="24" fill="rgba(196,40,72,.12)" stroke="#c42848" stroke-width="2"/>
+          <line x1="275.6" y1="26" x2="275.6" y2="66" stroke="#1a5ca8" stroke-width="3"/>
+          <circle cx="275.6" cy="46" r="5" fill="#1a5ca8"/>
+          <text x="275.6" y="20" text-anchor="middle" fill="#1a5ca8">θ̂ = 10.6</text>
+          <text x="104.8" y="80" text-anchor="middle" fill="#c42848">4.03</text>
+          <text x="446.4" y="80" text-anchor="middle" fill="#c42848">17.17</text>
+          <text x="0"   y="98" fill="#6a5888">0</text>
+          <text x="123" y="98" fill="#6a5888">5</text>
+          <text x="253" y="98" fill="#6a5888">10</text>
+          <text x="383" y="98" fill="#6a5888">15</text>
+          <text x="508" y="98" fill="#6a5888">20</text>
+          <text x="260" y="121" text-anchor="middle" fill="#6a5888">plausible values of θ (TB) — the upper end of the band is four times the lower end</text>
+        </g>
+      </svg>
+    </div>
+    <p><b>Read that band.</b> The upper end is more than four times the lower end. Translated into the quantity the business cares about, $E[T] = 2\theta$, the data are consistent with an expected system lifetime anywhere from about 8 TB to about 34 TB. That is the difference between "replace these quarterly" and "replace these annually".</p>
+    <div class="callout">
+      <span class="callout-title">Two caveats to state, not hide</span>
+      <b>(1)</b> This interval uses the <em>asymptotic</em> normal approximation for the MLE, which is justified for large $n$. With $n = 5$ it is indicative, not exact — the true sampling distribution of $\hat\theta$ is right-skewed, so an exact or bootstrap interval would be shifted upward. <b>(2)</b> The lower bound stays comfortably above zero, so the approximation is not producing anything impossible here; that is worth checking, because for small samples it sometimes does.
+    </div>
+  </section>
+
+  <!-- Slide 14: goodness of fit -->
+  <section class="slide" data-slide="16">
+    <h1>Sanity check: does the shape-2 model fit?</h1>
+    <p>Fitting $\theta$ only tunes the horizontal stretch. It cannot tell you whether the <em>shape</em> was right in the first place — the arithmetic would happily hand you a $\hat\theta$ even if the data came from something else entirely. So check the shape separately, using a quantity that does not depend on $\theta$ at all.</p>
+    <p>That quantity is the <b>coefficient of variation</b> (standard deviation ÷ mean). Because $\theta$ scales the mean and the standard deviation by the same factor, it cancels out of the ratio — leaving a fingerprint of the shape alone:</p>
+    <div class="formula">
+      model: $\;\mathrm{CV} = \dfrac{\sqrt{2}\,\theta}{2\theta} = \dfrac{1}{\sqrt{2}} = 0.707$ &nbsp;&nbsp;(for any $\theta$ whatsoever)<br/>
+      your data: $\;\mathrm{CV} = \dfrac{16.50}{21.2} = 0.778$
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 600 110" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(35,16)">
+          <line x1="0" y1="46" x2="520" y2="46" stroke="#6a5888" stroke-width="1.5"/>
+          <line x1="0" y1="40" x2="0" y2="52" stroke="#6a5888" stroke-width="1.5"/>
+          <line x1="520" y1="40" x2="520" y2="52" stroke="#6a5888" stroke-width="1.5"/>
+          <line x1="266.1" y1="26" x2="266.1" y2="66" stroke="#0d7a6e" stroke-width="3"/>
+          <text x="266.1" y="20" text-anchor="middle" fill="#0d7a6e">0.707 — Γ(2, θ) model</text>
+          <line x1="327.6" y1="26" x2="327.6" y2="66" stroke="#c42848" stroke-width="3"/>
+          <text x="352" y="82" text-anchor="middle" fill="#c42848">0.778 — your sample</text>
+          <line x1="520" y1="26" x2="520" y2="66" stroke="#b86800" stroke-width="2" stroke-dasharray="3,3"/>
+          <text x="500" y="20" text-anchor="end" fill="#b86800">1.0 — a single exponential would sit here</text>
+          <text x="0" y="82" fill="#6a5888">0.4</text>
+          <text x="260" y="102" text-anchor="middle" fill="#6a5888">coefficient of variation — shape fingerprint, independent of θ</text>
+        </g>
+      </svg>
+    </div>
+    <p>0.778 against a target of 0.707 is a gap of about 10%, on a statistic computed from five observations. With $n = 5$ the sample coefficient of variation is itself very noisy, so this is well inside what chance produces. <b>Verdict: the shape-2 model is plausible.</b> Note also that the sample value sits clearly below 1.0, where a single exponential would be — so the data do support the "two routers in sequence" structure rather than one.</p>
+    <div class="callout good">
+      <span class="callout-title">In the notebook</span>
+      Report it as a qualitative check, not a test: "the observed coefficient of variation, 0.778, is close to the 0.707 implied by $\Gamma(2,\theta)$, so the shape assumption is not contradicted by the data." Resist upgrading this to a formal goodness-of-fit test — with $n = 5$, any such test has almost no power and quoting a p-value would overstate what you know.
+    </div>
+  </section>
+
+  <!-- Slide 15: traps -->
+  <section class="slide" data-slide="17">
+    <h1>Watch out! Five traps</h1>
+    <ol>
+      <li><b>Fitting $f_S$ to $T$-data.</b> Your five numbers are dual-system totals, so the model is $\Gamma(2,\theta)$. Reaching for the single-router exponential by reflex gives $\hat\theta = \bar t = 21.2$ — exactly double the right answer, and silently wrong because nothing crashes.</li>
+      <li><b>Scale versus rate.</b> Our $\theta$ <em>multiplies</em> (a scale): mean $= 2\theta$. Many textbooks and libraries write the exponential and Gamma with a rate $\lambda = 1/\theta$ that <em>divides</em>. In SciPy the call is <code>gamma(a=2, scale=theta)</code> — pass a rate where a scale belongs and your answer is inverted. Task 6 hits this same trap much harder; it is worth internalising here.</li>
+      <li><b>Confusing the mode with the mean.</b> For $T$ the peak is at $\theta = 10.6$ but the average is $2\theta = 21.2$. Right-skewed distributions always separate these two. Say which one you are quoting.</li>
+      <li><b>Reporting $\hat\theta$ with no uncertainty.</b> With $n = 5$ the plausible range is roughly $[4.0, 17.2]$. A point estimate alone is technically correct and practically misleading.</li>
+      <li><b>Units and branch.</b> $\xi_{10}$ is in terabytes, so $\hat\theta$, $E[T]$ and every axis label are in TB. And state explicitly that $\xi_9 = 0$ selects the exponential branch, and that the other two branches are not applicable to your paper.</li>
+    </ol>
+  </section>
+
+  <!-- Slide 16: quiz -->
+  <section class="slide" data-slide="18">
+    <h1>Quiz</h1>
+    <p><b>Q1.</b> A classmate fits the single-router density to the five numbers and reports $\hat\theta = 21.2$ TB. What went wrong, and why is the error exactly a factor of two?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>They used $f_S$ (shape 1) instead of $f_T$ (shape 2). The scale estimate is always $\bar t$ divided by the shape, so halving the shape from 2 to 1 doubles the estimate: $21.2/1$ instead of the correct $21.2/2 = 10.6$.</p>
+    </details>
+    <p><b>Q2.</b> The exam asks for "a transformation whose maximum is the same". Why does taking the logarithm guarantee the location of the maximum does not move?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>Because $\ln$ is strictly increasing: if $\mathcal{L}(\theta_1) &gt; \mathcal{L}(\theta_2)$ then $\ln\mathcal{L}(\theta_1) &gt; \ln\mathcal{L}(\theta_2)$. Every pairwise comparison between candidates is preserved, so the winner is preserved. Only the heights change, never the ranking.</p>
+    </details>
+    <p><b>Q3.</b> In the convolution, why did the factor $e^{-u/\theta}\,e^{-(t-u)/\theta}$ collapse to something with no $u$ in it — and what would have gone wrong if the two routers had different scales $\theta_1 \ne \theta_2$?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>Adding the exponents gives $-u/\theta - (t-u)/\theta = -t/\theta$, so the $u$ cancels and the integrand becomes constant. With different scales the exponent is $-u/\theta_1 - (t-u)/\theta_2$, which still depends on $u$; the integral then produces a difference of two exponentials, and the answer is <em>not</em> a Gamma density. Equal scales is a load-bearing assumption, not a convenience.</p>
+    </details>
+    <p><b>Q4.</b> Your model says $E[T] = 21.2$ TB and the average of your data is also 21.2 TB. Is that a sign you have accidentally reasoned in a circle?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>No. Nothing forced the model mean to match the sample mean; it fell out of solving $\ell'(\theta) = 0$, which for this family happens to reduce to exactly that condition. It is a property of the Gamma family with known shape (where maximum likelihood and the method of moments coincide), not an assumption smuggled in.</p>
+    </details>
+    <p><b>Q5.</b> Without any calculation: would a sample of 50 systems have produced a narrower interval for $\theta$, and by roughly how much?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>Yes. The standard error is $\hat\theta/\sqrt{2n}$, so it shrinks with the square root of the sample size. Going from $n=5$ to $n=50$ multiplies $n$ by 10 and therefore divides the width by $\sqrt{10} \approx 3.2$ — the interval would be roughly a third as wide, assuming $\hat\theta$ itself came out similar.</p>
+    </details>
+  </section>
+
+  <!-- Slide 17: notebook map -->
+  <section class="slide" data-slide="19">
+    <h1>From slides to notebook</h1>
+    <p>Section-by-section map for the Task 3 chapter of your workbook:</p>
+    <table>
+      <tr><th>Section</th><th>What goes in (deck slide)</th></tr>
+      <tr><td>Branch resolution</td><td>$\xi_9 = 0$ selects the exponential density; branches 1 and 2 stated as not applicable; quote the signature <code>99d9e51…</code> (slide 2)</td></tr>
+      <tr><td>Model and assumptions</td><td>$S \sim \mathrm{Exp}(\theta)$, memorylessness and its honest limitation; i.i.d. plus instant failover for $T$ (slides 3–6)</td></tr>
+      <tr><td>Derivation of $f_T$</td><td>Transformation theorem → convolution → $\Gamma(2,\theta)$, with the equal-$\theta$ condition named (slides 7, 7.1, 8)</td></tr>
+      <tr><td>Likelihood and its transform</td><td>$\mathcal{L}(\theta)$, why the log has the same maximiser, $\ell(\theta)$ written out (slides 9–10)</td></tr>
+      <tr><td>Estimation</td><td>$\ell'(\theta)=0 \Rightarrow \hat\theta = \bar t/2$; second-derivative check $\ell''(\hat\theta) = -2n/\hat\theta^{2} &lt; 0$ (slides 11, 11.1)</td></tr>
+      <tr><td>Numerical results</td><td>$\hat\theta = 10.6$ TB, $E[T] = 21.2$ TB, $\mathrm{sd}(T) = 14.99$ TB, interval $[4.03, 17.17]$ (slides 12, 14)</td></tr>
+      <tr><td>Model criticism</td><td>Coefficient of variation 0.778 vs 0.707; the $n=5$ caveat (slide 15)</td></tr>
+      <tr><td>Visualisation</td><td>$f_S$ and $f_T$ at $\hat\theta$; $\ell(\theta)$ with the peak marked; the data as a rug — every axis labelled in TB</td></tr>
+    </table>
+    <h2>Tool trust — the checks that make a grader relax</h2>
+    <ul>
+      <li><b>Name the convention.</b> <code>scipy.stats.gamma(a=2, scale=theta_hat)</code>, stating explicitly that <code>a</code> is the shape and <code>scale</code> is $\theta$, not a rate.</li>
+      <li><b>Cross-check the calculus numerically.</b> Minimise the negative log-likelihood with <code>scipy.optimize.minimize_scalar</code> and show it lands on 10.6. Analytic and numerical answers agreeing is the single most convincing trust signal you can produce.</li>
+      <li><b>Check the density is a density.</b> <code>scipy.integrate.quad</code> of $f_T$ over $[0,\infty)$ returns 1.0.</li>
+      <li><b>Simulate the convolution.</b> Draw two large $\mathrm{Exp}(\hat\theta)$ samples, add them elementwise, and histogram the result against the $\Gamma(2,\hat\theta)$ curve — "shapes add" made visible rather than asserted.</li>
+      <li><b>Show the code, do not narrate it.</b> Per the workbook guidelines, code supports the argument in an appendix; the mathematical reasoning has to stand on its own in the body.</li>
+    </ul>
+  </section>
+
+  <!-- Slide 18: quest complete -->
+  <section class="slide" data-slide="20">
+    <h1>Quest complete</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="4"  y="0" width="2" height="4" fill="#88c8c0"/>
+        <rect x="10" y="0" width="2" height="4" fill="#88c8c0"/>
+        <rect x="5"  y="1" width="1" height="2" fill="#d0a0a8"/>
+        <rect x="10" y="1" width="1" height="2" fill="#d0a0a8"/>
+        <rect x="3"  y="4" width="10" height="7" fill="#88c8c0"/>
+        <rect x="5"  y="6" width="1" height="2" fill="#3a3040"/>
+        <rect x="10" y="6" width="1" height="2" fill="#3a3040"/>
+        <rect x="7"  y="8" width="2" height="1" fill="#d0a0a8"/>
+        <rect x="4"  y="8" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="11" y="8" width="1" height="1" fill="#e8a8b0"/>
+        <rect x="7"  y="9" width="2" height="1" fill="#508880"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Packet:</span> Full hop completed! One memoryless router became a two-stage system, and five numbers became one knob setting — with an honest error bar attached. Task 6 meets the Gamma again, this time with a prior. See you in the notebook!
+      </div>
+    </div>
+    <ul class="checkpoint">
+      <li>$S \sim \mathrm{Exp}(\theta)$: constant hazard, memoryless, mean $\theta$, mode 0 — the "random shocks, no wear-out" model</li>
+      <li>$T = S_1 + S_2 \sim \Gamma(2,\theta)$ with $f_T(t) = \frac{t}{\theta^{2}}e^{-t/\theta}$ — every split of the total is equally likely, so the density picks up a factor $t$</li>
+      <li>Likelihood = guess-and-compare; log it because $\ln$ is strictly increasing, so the peak cannot move</li>
+      <li>$\ell'(\theta) = 0 \Rightarrow \hat\theta = \bar t/2 = 10.6$ TB; $\ell''(\hat\theta) = -2n/\hat\theta^{2} &lt; 0$ confirms a maximum</li>
+      <li>$E[T] = 2\hat\theta = 21.2$ TB $= \bar t$ — maximum likelihood matches the model's first moment to the data's</li>
+      <li>With $n = 5$: $\mathrm{se}(\hat\theta) = 3.35$, interval $[4.03, 17.17]$ TB — wide, and say so</li>
+    </ul>
+  </section>
+
+  </div>
+
+  <nav class="deck-controls">
+    <button type="button" id="prev">◀ PREV</button>
+    <span id="counter">1 / 21</span>
+    <button type="button" id="next">NEXT ▶</button>
+  </nav>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const sideNavList = document.getElementById("side-nav-list");
+    const navButtons = [];
+
+    let mainNum = 0;
+    let subParentNum = 0;
+    let subIndex = 0;
+    const sectionHeadersAdded = new Set();
+
+    slides.forEach((slide, j) => {
+      const tier = slide.dataset.navTier || "core";
+      let displayNum;
+
+      if (tier === "core") {
+        mainNum++;
+        subParentNum = mainNum;
+        subIndex = 0;
+        displayNum = String(mainNum);
+      } else if (tier.startsWith("sub")) {
+        const sectionLabel = slide.dataset.navSection || "╰ DETAILS";
+        if (!sectionHeadersAdded.has(sectionLabel)) {
+          const head = document.createElement("p");
+          head.className = "side-nav-section";
+          head.textContent = sectionLabel;
+          sideNavList.appendChild(head);
+          sectionHeadersAdded.add(sectionLabel);
+        }
+        subIndex++;
+        displayNum = `${subParentNum}.${subIndex}`;
+      } else {
+        displayNum = String(j + 1);
+      }
+
+      const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      const isSub = tier.startsWith("sub");
+      btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+      btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
+      btn.addEventListener("click", () => show(j));
+      sideNavList.appendChild(btn);
+      navButtons.push(btn);
+    });
+    const headCore = document.createElement("p");
+    headCore.className = "side-nav-section";
+    headCore.textContent = "ROUTER PATH — start here";
+    sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
+    let i = 0;
+    const counter = document.getElementById("counter");
+    function show(n) {
+      i = Math.max(0, Math.min(n, slides.length - 1));
+      slides.forEach((s, j) => s.classList.toggle("active", j === i));
+      navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+      counter.textContent = `${i + 1} / ${slides.length}`;
+      navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+    document.getElementById("prev").onclick = () => show(i - 1);
+    document.getElementById("next").onclick = () => show(i + 1);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") show(i + 1);
+      if (e.key === "ArrowLeft") show(i - 1);
+    });
+    show(0);
+  </script>
+
+  <div id="laser-dot"></div>
+  <script>
+  /* ── Cursor effects: fairydust trail + click explosion ── */
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var PALETTE = ['#1a5ca8','#c42848','#b86800','#0d7a6e','#6a5888','#f5c842','#e87060','#a8d870'];
+    var PETAL_COLORS = ['#c42848','#b86800','#f5c842','#6a5888','#1a5ca8','#e87060','#0d7a6e'];
+    var PISTIL_COLORS = ['#f5c842','#1c1a30','#c42848'];
+    var LEAF_COLORS = ['#a8d870','#4a9a40','#7bc860','#e8a040','#c84828'];
+    var STAR_COLORS = ['#1a5ca8','#b86800','#c42848','#0d7a6e'];
+    var PARTICLE_CAP = 40;
+    var lastSpawn = 0;
+    var particleCount = 0;
+    var laser = document.getElementById('laser-dot');
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function rnd(min, max) { return min + Math.random() * (max - min); }
+
+    function makeFlower() {
+      var color = pick(PETAL_COLORS);
+      var pistil = pick(PISTIL_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var g = document.createElementNS(NS, 'g');
+      g.setAttribute('transform', 'translate(8,8)');
+      for (var i = 0; i < 5; i++) {
+        var petal = document.createElementNS(NS, 'ellipse');
+        petal.setAttribute('cx', '0');
+        petal.setAttribute('cy', '-4');
+        petal.setAttribute('rx', '2.5');
+        petal.setAttribute('ry', '4');
+        petal.setAttribute('fill', color);
+        petal.setAttribute('opacity', '0.9');
+        if (i > 0) petal.setAttribute('transform', 'rotate(' + (i * 72) + ')');
+        g.appendChild(petal);
+      }
+      var pistilEl = document.createElementNS(NS, 'circle');
+      pistilEl.setAttribute('cx', '0');
+      pistilEl.setAttribute('cy', '0');
+      pistilEl.setAttribute('r', '2.5');
+      pistilEl.setAttribute('fill', pistil);
+      g.appendChild(pistilEl);
+      svg.appendChild(g);
+      return svg;
+    }
+
+    function makeLeaf() {
+      var color = pick(LEAF_COLORS);
+      var angle = Math.floor(rnd(0, 360));
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var ellipse = document.createElementNS(NS, 'ellipse');
+      ellipse.setAttribute('cx', '8');
+      ellipse.setAttribute('cy', '8');
+      ellipse.setAttribute('rx', '3.5');
+      ellipse.setAttribute('ry', '6.5');
+      ellipse.setAttribute('fill', color);
+      ellipse.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      var line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', '8');
+      line.setAttribute('y1', '2');
+      line.setAttribute('x2', '8');
+      line.setAttribute('y2', '14');
+      line.setAttribute('stroke', '#2a5a20');
+      line.setAttribute('stroke-width', '0.8');
+      line.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      svg.appendChild(ellipse);
+      svg.appendChild(line);
+      return svg;
+    }
+
+    function makeStar() {
+      var color = pick(STAR_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var polygon = document.createElementNS(NS, 'polygon');
+      polygon.setAttribute('points', '8,1 9.5,6.5 15,8 9.5,9.5 8,15 6.5,9.5 1,8 6.5,6.5');
+      polygon.setAttribute('fill', color);
+      svg.appendChild(polygon);
+      return svg;
+    }
+
+    /* Effect 1 — Fairydust trail */
+    document.addEventListener('mousemove', function (e) {
+      if (laser) {
+        laser.style.left = e.clientX + 'px';
+        laser.style.top = e.clientY + 'px';
+      }
+      var now = Date.now();
+      if (now - lastSpawn < 30 || particleCount >= PARTICLE_CAP) return;
+      lastSpawn = now;
+
+      var size = 4 + Math.floor(rnd(0, 3));
+      var el = document.createElement('div');
+      el.className = 'fd-particle';
+      el.style.cssText = [
+        'width:' + size + 'px',
+        'height:' + size + 'px',
+        'background:' + pick(PALETTE),
+        'border-radius:0',
+        'left:' + (e.clientX + rnd(-6, 6) - size / 2) + 'px',
+        'top:' + (e.clientY + rnd(-6, 6) - size / 2) + 'px'
+      ].join(';');
+      document.body.appendChild(el);
+      particleCount++;
+
+      var ty = -rnd(20, 40);
+      el.animate(
+        [{ opacity: 1, transform: 'translateY(0)' },
+         { opacity: 0, transform: 'translateY(' + ty + 'px)' }],
+        { duration: rnd(600, 800), easing: 'ease-out', fill: 'forwards' }
+      ).addEventListener('finish', function () { el.remove(); particleCount--; });
+    });
+
+    /* Effect 2 — Click explosion with random theme (flower / leaf / star) */
+    document.addEventListener('click', function (e) {
+      var themes = ['flower', 'leaf', 'star'];
+      var theme = themes[Math.floor(Math.random() * 3)];
+      var count = 12 + Math.floor(rnd(0, 5));
+      for (var k = 0; k < count; k++) {
+        var angle = rnd(0, 360) * Math.PI / 180;
+        var dist = rnd(40, 80);
+        var dx = Math.cos(angle) * dist;
+        var dy = Math.sin(angle) * dist;
+        var rotate = rnd(0, 360);
+        var el;
+        if (theme === 'flower') { el = makeFlower(); }
+        else if (theme === 'leaf') { el = makeLeaf(); }
+        else { el = makeStar(); }
+        el.setAttribute('class', 'fd-petal');
+        el.style.cssText = [
+          'left:' + (e.clientX - 7) + 'px',
+          'top:' + (e.clientY - 7) + 'px',
+          'transform:rotate(' + rotate + 'deg)'
+        ].join(';');
+        document.body.appendChild(el);
+
+        (function (el, rotate, dx, dy) {
+          el.animate(
+            [{ opacity: 1, transform: 'rotate(' + rotate + 'deg) translate(0,0)' },
+             { opacity: 0, transform: 'rotate(' + (rotate + 180) + 'deg) translate(' + dx + 'px,' + dy + 'px)' }],
+            { duration: rnd(700, 900), easing: 'ease-out', fill: 'forwards' }
+          ).addEventListener('finish', function () { el.remove(); });
+        }(el, rotate, dx, dy));
+      }
+    });
+  }());
+  </script>
+  <script>
+  /* ── hover tooltip engine ── */
+  (function () {
+    var box = document.createElement('div');
+    box.id = 'tip-box';
+    document.body.appendChild(box);
+    document.querySelectorAll('.tip').forEach(function (el) {
+      el.addEventListener('mouseenter', function (e) {
+        var lbl = el.dataset.tipTitle ? '<span class="tip-label">' + el.dataset.tipTitle + '</span>' : '';
+        box.innerHTML = lbl + (el.dataset.tip || '');
+        if (window.renderMathInElement) renderMathInElement(box, {
+          delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+          throwOnError: false
+        });
+        box.style.display = 'block'; move(e);
+      });
+      el.addEventListener('mousemove', move);
+      el.addEventListener('mouseleave', function () { box.style.display = 'none'; });
+    });
+    function move(e) {
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 310 > window.innerWidth)  x = e.clientX - 316;
+      if (y + 200 > window.innerHeight) y = e.clientY - 206;
+      box.style.left = x + 'px'; box.style.top = y + 'px';
+    }
+  }());
+  </script>
+</body>
+</html>

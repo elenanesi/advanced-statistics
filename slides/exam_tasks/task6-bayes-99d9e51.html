@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TASK 6: BAYESIAN GAMMA — Advanced Stats Quest</title>
+  <!-- Technique C pixel-art favicon: Bayes the Fox -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="3" y="1" width="2" height="3" fill="%23c8804c"/><rect x="11" y="1" width="2" height="3" fill="%23c8804c"/><rect x="3" y="4" width="10" height="7" fill="%23c8804c"/><rect x="5" y="7" width="6" height="3" fill="%23f0dcc0"/><rect x="5" y="6" width="1" height="1" fill="%233a3040"/><rect x="10" y="6" width="1" height="1" fill="%233a3040"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <!-- KaTeX — proper math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:     #f0ebe0;   /* warm parchment */
+      --card:   #fffef8;   /* near-white */
+      --accent: #1a5ca8;   /* deep sapphire — h1, checkpoints */
+      --rose:   #c42848;   /* vivid crimson — speech bubbles, callouts */
+      --honey:  #b86800;   /* deep amber — h2, formulas */
+      --text:   #1c1a30;   /* dark navy — body text */
+      --mist:   #6a5888;   /* muted plum — secondary, counters */
+      --teal:   #0d7a6e;   /* deep teal — positive signals */
+      --slate:  #3a4d7a;   /* slate blue — methodology callouts */
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 720px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    .side-nav {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 52px;
+      width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto;
+      z-index: 9;
+    }
+    .side-nav-title {
+      font-family: "DotGothic16", monospace;
+      font-size: 8px;
+      color: var(--mist);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .side-nav-btn:hover {
+      background: rgba(26,92,168,.06);
+      border-color: #ccc4e0;
+    }
+    .side-nav-btn.active {
+      background: rgba(26,92,168,.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .side-nav-num {
+      flex-shrink: 0;
+      color: var(--mist);
+      font-size: 10px;
+      min-width: 1.2em;
+    }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9px;
+      color: var(--mist);
+      margin: 10px 0 4px;
+      padding-top: 10px;
+      border-top: 1px solid #d0c8e0;
+      letter-spacing: 1px;
+      line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+    .badge-sub {
+      border: 2px solid var(--slate);
+      color: var(--slate);
+      font-size: 10px;
+      padding: 4px 8px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    .slide {
+      display: none;
+      background: var(--card);
+      border: 2px solid #ccc4e0;
+      box-shadow: 4px 4px 0 rgba(80,60,140,.18);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .slide.active { display: block; }
+    h1 {
+      font-family: "DotGothic16", monospace;
+      font-size: 13px;
+      color: var(--accent);
+      margin: 0 0 16px;
+      letter-spacing: .5px;
+    }
+    h2 {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      color: var(--honey);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 18px 0 8px;
+    }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+    table { border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+    th, td { border: 2px solid #ccc4e0; padding: 6px 10px; text-align: left; }
+    th { background: rgba(26,92,168,.06); color: var(--accent); }
+
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .buddy-speech {
+      flex: 1;
+      background: #fff8f2;
+      border: 2px solid var(--rose);
+      padding: 12px;
+      position: relative;
+    }
+    .buddy-speech::before {
+      content: "";
+      position: absolute;
+      left: -11px;
+      top: 14px;
+      border: 7px solid transparent;
+      border-right-color: var(--rose);
+    }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    .formula {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(26,92,168,.06);
+      padding: 14px 16px;
+      border: 2px solid rgba(26,92,168,.3);
+      margin: 12px 0;
+      overflow-x: auto;
+      line-height: 1.8;
+    }
+    .formula em { color: var(--honey); font-style: normal; }
+    .formula .katex { font-size: 1.08em; }
+    .formula .katex-display { margin: 6px 0; }
+
+    .callout {
+      border: 2px solid var(--rose);
+      background: rgba(196,40,72,.05);
+      padding: 12px 16px;
+      margin: 12px 0;
+    }
+    .callout .callout-title { color: var(--rose); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; display: block; margin-bottom: 4px; }
+    .callout.good { border-color: var(--teal); background: rgba(13,122,110,.05); }
+    .callout.good .callout-title { color: var(--teal); }
+
+    .viz { margin: 14px 0; }
+    .viz svg { max-width: 100%; height: auto; display: block; }
+    .viz-caption { font-size: 11px; color: var(--mist); margin-top: 4px; }
+
+    /* ── hover tooltips for jargon terms ── */
+    .tip { border-bottom: 2px dashed var(--honey); cursor: help; }
+    #tip-box {
+      position: fixed; display: none;
+      background: #fff8f2;
+      border: 2px solid var(--honey);
+      box-shadow: 4px 4px 0 rgba(80,60,140,.22);
+      padding: 10px 14px; max-width: 300px;
+      font-size: 11px; z-index: 99998;
+      color: var(--text); line-height: 1.6; pointer-events: none;
+    }
+    .tip-label {
+      font-weight: bold; color: var(--honey); display: block;
+      margin-bottom: 4px; font-size: 10px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 8px; }
+
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+
+    nav.deck-controls {
+      position: fixed;
+      bottom: 0;
+      left: 212px;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      background: rgba(240,235,224,.97);
+      border-top: 3px solid var(--honey);
+      z-index: 10;
+    }
+    #counter {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      color: var(--mist);
+    }
+    button {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fffef8;
+      border: 2px solid #0d3d7a;
+      box-shadow: 3px 3px 0 rgba(26,92,168,.25);
+      cursor: pointer;
+    }
+    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+
+    .fd-particle, .fd-petal { position: fixed; z-index: 99999; pointer-events: none; }
+
+    body { cursor: none; }
+    button, a, summary, [role="button"],
+    .side-nav, .side-nav-btn, details { cursor: none !important; }
+    #laser-dot {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, #c42848 45%, transparent 70%);
+      box-shadow: 0 0 6px 2px #c42848, 0 0 14px 4px #c4284855;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.05s ease;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #laser-dot { display: none; }
+      body { cursor: auto; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="side-nav" aria-label="Slide contents">
+    <p class="side-nav-title">CONTENTS</p>
+    <div id="side-nav-list" class="side-nav-list"></div>
+  </aside>
+
+  <div class="deck" id="deck">
+
+  <!-- Slide 0: title -->
+  <section class="slide active" data-slide="0">
+    <h1>TASK 6: BAYESIAN GAMMA</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="1" width="2" height="3" fill="#c8804c"/>
+        <rect x="11" y="1" width="2" height="3" fill="#c8804c"/>
+        <rect x="4"  y="2" width="1" height="1" fill="#f0dcc0"/>
+        <rect x="11" y="2" width="1" height="1" fill="#f0dcc0"/>
+        <rect x="3"  y="4" width="10" height="7" fill="#c8804c"/>
+        <rect x="5"  y="7" width="6" height="3" fill="#f0dcc0"/>
+        <rect x="5"  y="6" width="1" height="1" fill="#3a3040"/>
+        <rect x="10" y="6" width="1" height="1" fill="#3a3040"/>
+        <rect x="7"  y="7" width="2" height="1" fill="#5a4040"/>
+        <rect x="7"  y="8" width="2" height="1" fill="#8a6050"/>
+        <rect x="4"  y="7" width="1" height="1" fill="#e0a088"/>
+        <rect x="11" y="7" width="1" height="1" fill="#e0a088"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Bayes:</span> Task 3 asked "which θ fits the data best?" I ask a different question: "what did we believe <em>before</em> the data, and how should the data change that belief?" Prior → likelihood → posterior. Press → to start.
+      </div>
+    </div>
+    <p>Advanced Statistics · DLMDSAS01 · Exam Task 6 · Hogg §11.2.2, course book Unit 4.3 · parameter signature <code>99d9e51</code></p>
+    <div class="callout">
+      <span class="callout-title">Read this deck slowly at slides 4–6</span>
+      Your assignment values were re-drawn: prior parameters $\xi_{17} = 23$, $\xi_{18} = 63$, observed mean $\xi_{19} = 95.48$. More importantly, this deck now confronts the <b>rate-versus-scale trap</b> head-on, because it is the one thing that can make an otherwise perfect solution numerically wrong.
+    </div>
+  </section>
+
+  <!-- Slide 1: what the exam asks -->
+  <section class="slide" data-slide="1">
+    <h1>What the exam actually asks</h1>
+    <p>The setup in one breath: you have ten measurements from a Gamma distribution whose <em>shape</em> is known to be 3, but whose second parameter involves an unknown $\theta$. You also hold a prior belief about $\theta$. Three deliverables:</p>
+    <table>
+      <tr><th>#</th><th>Exam wording</th><th>In plain terms</th></tr>
+      <tr><td>(a)</td><td>"Find the posterior distribution"</td><td>Combine prior belief with the ten observations and name the resulting distribution — family and both parameters</td></tr>
+      <tr><td>(b)</td><td>"Find the Bayes estimate under squared-error loss"</td><td>Report the <b>posterior mean</b>, and say why squared-error loss picks the mean</td></tr>
+      <tr><td>(c)</td><td>"Find the posterior mode"</td><td>The peak of the posterior — a different point estimate from the same distribution</td></tr>
+    </table>
+    <h2>Your numbers</h2>
+    <table>
+      <tr><th>Symbol</th><th>Meaning</th><th>Value</th></tr>
+      <tr><td>$n$</td><td>sample size</td><td>10</td></tr>
+      <tr><td>$\alpha$</td><td>known shape of the data distribution</td><td>3</td></tr>
+      <tr><td>$\bar x = \xi_{19}$</td><td>observed sample mean</td><td>95.48</td></tr>
+      <tr><td>$\xi_{17}$</td><td>prior shape</td><td>23</td></tr>
+      <tr><td>$\xi_{18}$</td><td>prior second parameter</td><td>63</td></tr>
+    </table>
+    <p>Notice what the exam does <em>not</em> give you: the ten individual observations. It gives only their mean. That is a hint — the mean is the only feature of the data the posterior will need, and slide 6 shows why.</p>
+  </section>
+
+  <!-- Slide 2: Bayes in one picture -->
+  <section class="slide" data-slide="2">
+    <h1>Bayes in one picture</h1>
+    <p>Before symbols: a Bayesian analysis has three characters, and the whole method is "multiply the first two, look at the third".</p>
+    <div class="viz">
+      <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(20,10)">
+          <rect x="0" y="8" width="160" height="52" fill="rgba(184,104,0,.07)" stroke="#b86800" stroke-width="2"/>
+          <text x="80" y="26" text-anchor="middle" fill="#b86800">PRIOR</text>
+          <text x="80" y="42" text-anchor="middle" fill="#1c1a30">what you believed</text>
+          <text x="80" y="55" text-anchor="middle" fill="#1c1a30">about θ beforehand</text>
+          <text x="172" y="40" fill="#6a5888">×</text>
+          <rect x="190" y="8" width="160" height="52" fill="rgba(26,92,168,.07)" stroke="#1a5ca8" stroke-width="2"/>
+          <text x="270" y="26" text-anchor="middle" fill="#1a5ca8">LIKELIHOOD</text>
+          <text x="270" y="42" text-anchor="middle" fill="#1c1a30">how well each θ</text>
+          <text x="270" y="55" text-anchor="middle" fill="#1c1a30">explains the data</text>
+          <text x="362" y="40" fill="#6a5888">→</text>
+          <rect x="380" y="8" width="160" height="52" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
+          <text x="460" y="26" text-anchor="middle" fill="#0d7a6e">POSTERIOR</text>
+          <text x="460" y="42" text-anchor="middle" fill="#1c1a30">what you believe</text>
+          <text x="460" y="55" text-anchor="middle" fill="#1c1a30">now, having looked</text>
+          <text x="0" y="88" fill="#6a5888">Every one of these three is a whole DISTRIBUTION over θ, not a single number.</text>
+          <text x="0" y="106" fill="#6a5888">That is the deepest difference from Task 3, where θ̂ was one point and nothing else.</text>
+          <line x1="0" y1="118" x2="540" y2="118" stroke="#ccc4e0" stroke-width="1.5"/>
+          <text x="0" y="140" fill="#c42848">A point estimate only appears at the very END, when you squash the posterior</text>
+          <text x="0" y="156" fill="#c42848">down to one number — and WHICH number depends on the loss function you choose.</text>
+          <text x="0" y="178" fill="#0d7a6e">parts (b) and (c) of this task are two different squashings of the SAME posterior.</text>
+        </g>
+      </svg>
+    </div>
+    <div class="formula">
+      $$\underbrace{f(\theta \mid x)}_{\text{posterior}} \;\propto\; \underbrace{f(x \mid \theta)}_{\text{likelihood}} \;\cdot\; \underbrace{f(\theta)}_{\text{prior}}$$
+      <em>the ∝ ("proportional to") hides a normalising constant that does not depend on θ — you recover it at the end by recognising the family</em>
+    </div>
+    <p>That "recognise the family" step is the entire mechanical trick of this task, and it has a name: <span class="tip" data-tip-title="Conjugacy" data-tip="A prior is conjugate to a likelihood when multiplying them returns a posterior in the same family as the prior. You then read off the new parameters instead of computing any integral. Gamma prior + Gamma-with-known-shape likelihood is a conjugate pair.">conjugacy</span>. Because the prior and the likelihood have compatible algebraic shapes, the product is a Gamma again and you never integrate anything.</p>
+  </section>
+
+  <!-- Slide 3: the trap -->
+  <section class="slide" data-slide="3">
+    <h1>⚠ The trap: is that number a rate or a scale?</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="1" width="2" height="3" fill="#c8804c"/>
+        <rect x="11" y="1" width="2" height="3" fill="#c8804c"/>
+        <rect x="4"  y="2" width="1" height="1" fill="#f0dcc0"/>
+        <rect x="11" y="2" width="1" height="1" fill="#f0dcc0"/>
+        <rect x="3"  y="4" width="10" height="7" fill="#c8804c"/>
+        <rect x="5"  y="7" width="6" height="3" fill="#f0dcc0"/>
+        <rect x="5"  y="6" width="1" height="1" fill="#3a3040"/>
+        <rect x="10" y="6" width="1" height="1" fill="#3a3040"/>
+        <rect x="7"  y="7" width="2" height="1" fill="#5a4040"/>
+        <rect x="7"  y="8" width="2" height="1" fill="#8a6050"/>
+        <rect x="4"  y="7" width="1" height="1" fill="#e0a088"/>
+        <rect x="11" y="7" width="1" height="1" fill="#e0a088"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Bayes:</span> Someone tells you "the pace is 6". Six minutes per kilometre, or six kilometres per minute? Same information, reciprocal numbers, wildly different runner. The Gamma's second parameter has exactly this problem.
+      </div>
+    </div>
+    <p>The Gamma distribution is written two different ways in the literature, and both use a Greek letter that looks the same. Here they are side by side:</p>
+    <div class="viz">
+      <svg viewBox="0 0 600 215" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="11">
+        <g transform="translate(20,10)">
+          <rect x="0" y="0" width="262" height="150" fill="rgba(184,104,0,.05)" stroke="#b86800" stroke-width="2"/>
+          <text x="131" y="22" text-anchor="middle" fill="#b86800" font-size="12">SCALE form</text>
+          <text x="131" y="46" text-anchor="middle" fill="#1c1a30">exponent: e^(−x / β)</text>
+          <text x="16" y="70" fill="#1c1a30">β sits UNDER x — it divides x,</text>
+          <text x="16" y="86" fill="#1c1a30">which STRETCHES the axis</text>
+          <text x="16" y="110" fill="#0d7a6e">same units as x</text>
+          <text x="16" y="128" fill="#0d7a6e">mean = shape × β</text>
+          <text x="291" y="80" text-anchor="middle" fill="#6a5888" font-size="14">vs</text>
+          <rect x="320" y="0" width="242" height="150" fill="rgba(26,92,168,.05)" stroke="#1a5ca8" stroke-width="2"/>
+          <text x="441" y="22" text-anchor="middle" fill="#1a5ca8" font-size="12">RATE form</text>
+          <text x="441" y="46" text-anchor="middle" fill="#1c1a30">exponent: e^(−λ x)</text>
+          <text x="336" y="70" fill="#1c1a30">λ sits BESIDE x — it multiplies</text>
+          <text x="336" y="86" fill="#1c1a30">x, which SQUEEZES the axis</text>
+          <text x="336" y="110" fill="#c42848">units of 1 / x</text>
+          <text x="336" y="128" fill="#c42848">mean = shape / λ</text>
+          <text x="0" y="178" fill="#6a5888">They carry the same information: λ = 1/β. The danger is that both are commonly</text>
+          <text x="0" y="194" fill="#6a5888">printed as "Gamma(α, β)", so the SYMBOL cannot tell you which one you are holding.</text>
+        </g>
+      </svg>
+    </div>
+    <div class="callout">
+      <span class="callout-title">The one rule that resolves it</span>
+      <b>Look at where the parameter appears in the exponent, not at its name.</b> If it is dividing $x$, it is a scale. If it is multiplying $x$, it is a rate. Then apply your reading <b>consistently</b> to every Gamma in the problem — the mistake that costs marks is flipping the convention halfway through.
+    </div>
+  </section>
+
+  <!-- Slide 3.1: sub — Hogg's density -->
+  <section class="slide" data-slide="4" data-nav-tier="sub" data-nav-section="╰ WHICH BOOK SAYS WHAT">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>Reading Hogg's Gamma, symbol by symbol</h1>
+    <p>This exam sits on Hogg, McKean &amp; Craig, so their convention is the one that governs. They write the Gamma density as:</p>
+    <div class="formula">
+      $$f(x) \;=\; \frac{x^{\alpha-1}\,e^{-x/\beta}}{\Gamma(\alpha)\,\beta^{\alpha}}, \qquad x &gt; 0$$
+      <em>look at the exponent: $-x/\beta$. β is <b>dividing</b> x.</em>
+    </div>
+    <p>Two independent confirmations that $\beta$ is a scale in this book, either of which you can quote in the notebook:</p>
+    <ol>
+      <li><b>The exponent.</b> $e^{-x/\beta}$ divides, so $\beta$ carries the same units as $x$ and stretches the axis. That is the definition of a scale parameter.</li>
+      <li><b>The normaliser.</b> The denominator contains $\beta^{\alpha}$, which is what you need to cancel the $\beta^{\alpha}$ produced by integrating $x^{\alpha-1}e^{-x/\beta}$. Under the rate convention the constant would sit in the numerator as $\lambda^{\alpha}$ instead. So the position of $\beta$ in the fraction is itself a tell.</li>
+    </ol>
+    <table>
+      <tr><th>Source</th><th>Second parameter</th><th>Mean</th></tr>
+      <tr><td>Hogg, McKean &amp; Craig (this course)</td><td>$\beta$ = <b>scale</b></td><td>$\alpha\beta$</td></tr>
+      <tr><td>SciPy <code>gamma(a, scale=...)</code></td><td><code>scale</code> = <b>scale</b></td><td>$a \cdot$ scale</td></tr>
+      <tr><td>Most Bayesian texts, PyMC, R's <code>rgamma(rate=)</code></td><td>$\beta$ = <b>rate</b></td><td>$\alpha/\beta$</td></tr>
+    </table>
+    <p>So SciPy happens to agree with Hogg, and much of the Bayesian literature does not. If your notebook mixes a Hogg derivation with a formula copied from a Bayesian blog post, this is exactly where the silent error enters.</p>
+    <div class="callout good">
+      <span class="callout-title">Practical habit</span>
+      Never write "$\mathrm{Gamma}(23, 63)$" on its own in the workbook. Write "$\mathrm{Gamma}(\text{shape } 23,\ \text{scale } 63)$" or "$\mathrm{Gamma}(\text{shape } 53,\ \text{rate } 954.815873)$". It costs six words and removes the ambiguity permanently — and the exam guidelines explicitly ask you to explain any notation you use.
+    </div>
+  </section>
+
+  <!-- Slide 4: applying the convention -->
+  <section class="slide" data-slide="5">
+    <h1>Applying the convention to THIS task</h1>
+    <p>Two Gammas appear in this problem, and the trap is that they need <em>different-looking</em> treatment while following the <em>same</em> rule. Take them one at a time.</p>
+    <h2>The data: Gamma with α = 3 and β = 1/θ</h2>
+    <p>Under Hogg, $\beta$ is the scale — so the scale is $1/\theta$. Substituting into the density, the exponent becomes $-x/(1/\theta) = -\theta x$, with $\theta$ now <b>multiplying</b> $x$:</p>
+    <div class="formula">
+      $$f(x \mid \theta) \;=\; \frac{x^{2}\,e^{-x/(1/\theta)}}{\Gamma(3)\,(1/\theta)^{3}} \;=\; \frac{\theta^{3}\,x^{2}\,e^{-\theta x}}{\Gamma(3)}, \qquad x &gt; 0$$
+      <em>so <b>θ is a RATE for x</b> — that flip is deliberate on the exam's part, and it is the reason $E[x] = 3/\theta$</em>
+    </div>
+    <h2>The prior: θ ~ Gamma with α = 23 and β = 63</h2>
+    <p>Same rule, applied again: $\beta = 63$ is a <b>scale</b>, so the exponent is $-\theta/63$ and the prior's <em>rate</em> is the reciprocal:</p>
+    <div class="formula">
+      $$f(\theta) \;\propto\; \theta^{\,23-1}\,e^{-\theta/63}
+      \qquad\Longrightarrow\qquad
+      \text{prior rate} \;=\; \frac{1}{63} \;=\; 0.015873$$
+    </div>
+    <div class="callout">
+      <span class="callout-title">Where people go wrong — the exact misstep</span>
+      They notice that $\theta$ turned out to be a rate for the data, and then assume "so everything in this problem is in rate form", and treat the prior's 63 as a rate too. That is not consistency, it is contagion. The consistent move is to read <b>every printed β as a scale</b>. For the data that happens to make $\theta$ a rate (because the printed scale <em>is</em> $1/\theta$); for the prior it makes 63 a scale, full stop. Slide 12 prices this error at 6.19%.
+    </div>
+    <p>Both densities are now in the same currency — everything is written in terms of $\theta$ with an exponent of the form $e^{-\theta \times (\text{something})}$ — and that is what makes the next two slides pure bookkeeping.</p>
+  </section>
+
+  <!-- Slide 5: likelihood -->
+  <section class="slide" data-slide="6">
+    <h1>The likelihood: what the ten observations say</h1>
+    <p>Ten independent observations, so the joint density is the product of the ten individual ones. Throw away every factor that does not contain $\theta$ (the $\propto$ sign licenses that):</p>
+    <div class="formula">
+      $$f(x_1,\ldots,x_{10} \mid \theta) \;=\; \prod_{i=1}^{10} \frac{\theta^{3}x_i^{2}e^{-\theta x_i}}{\Gamma(3)}
+      \;\propto\; \theta^{3n}\,\exp\!\Big(-\theta\sum_{i=1}^{n} x_i\Big)$$
+      with $n = 10$: &nbsp; $\theta^{30}\,e^{-\theta \sum x_i}$
+    </div>
+    <p><b>This is why the exam only gave you the mean.</b> The only thing the data contribute is the pair (count of observations, total of observations) — and the total is recoverable from the mean:</p>
+    <div class="formula">
+      $$\sum_{i=1}^{10} x_i \;=\; n\bar x \;=\; 10 \times 95.48 \;=\; 954.8$$
+      <em>the individual values are irrelevant; $(n, \sum x_i)$ is a <span class="tip" data-tip-title="Sufficient statistic" data-tip="A summary of the data that captures everything the data can say about the parameter. Once you know it, the individual observations add no further information about θ. For a Gamma with known shape, the sum of the observations is sufficient for the rate.">sufficient statistic</span></em>
+    </div>
+    <p>Read the two exponents as two separate ledgers, because this reading makes the posterior obvious:</p>
+    <ul>
+      <li>The power of $\theta$ — here $30$ — is a <b>count ledger</b>: how many observations' worth of evidence you hold.</li>
+      <li>The number multiplying $\theta$ in the exponential — here $954.8$ — is an <b>exposure ledger</b>: how much total magnitude those observations came to.</li>
+    </ul>
+    <p>A Gamma prior is written in exactly the same two-ledger form. Adding beliefs to data will therefore be addition, twice.</p>
+  </section>
+
+  <!-- Slide 6: posterior -->
+  <section class="slide" data-slide="7">
+    <h1>The posterior: two additions, no integrals</h1>
+    <p>Multiply the two kernels and collect powers. Nothing here is harder than adding exponents:</p>
+    <div class="formula">
+      $$f(\theta \mid x) \;\propto\; \underbrace{\theta^{30}e^{-\theta(954.8)}}_{\text{likelihood}} \cdot \underbrace{\theta^{22}e^{-\theta(1/63)}}_{\text{prior}}
+      \;=\; \theta^{\,30+22}\;e^{-\theta\left(954.8 + \frac{1}{63}\right)}$$
+      $$=\; \theta^{\,53-1}\;e^{-\theta\,(954.815873)}$$
+    </div>
+    <p>That is a Gamma kernel, so the posterior is a Gamma — no integration was ever needed. In shape–rate language:</p>
+    <div class="formula">
+      $$\boxed{\;\theta \mid x \;\sim\; \mathrm{Gamma}\big(\text{shape } 53,\ \text{rate } 954.815873\big)\;}$$
+      equivalently, in Hogg's shape–scale form: &nbsp; $\mathrm{Gamma}\big(\text{shape } 53,\ \text{scale } 0.00104732\big)$
+    </div>
+    <table>
+      <tr><th>Ledger</th><th>From the prior</th><th>From the data</th><th>Posterior</th></tr>
+      <tr><td>shape (count)</td><td>23</td><td>$3n = 30$</td><td><b>53</b></td></tr>
+      <tr><td>rate (exposure)</td><td>$1/63 = 0.015873$</td><td>$\sum x_i = 954.8$</td><td><b>954.815873</b></td></tr>
+    </table>
+    <div class="viz">
+      <svg viewBox="0 0 600 195" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(50,10)">
+          <rect x="0" y="0" width="480" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,56.6 7.4,41.9 14.8,28.7 22.2,18.0 29.5,10.8 36.9,7.4 44.3,7.8 52.0,11.9 59.1,19.1 66.5,28.5 73.8,39.5 81.2,50.9 88.6,62.8 96.0,74.0 103.4,84.2 110.8,93.3 118.2,101.1 125.5,107.6 132.9,112.9 140.3,117.2 147.7,120.6 155.1,123.1 162.5,125.1 169.8,126.5 177.2,127.5 184.6,128.3 192.0,128.8 199.4,129.2 206.8,129.5 214.2,129.7 221.5,129.8 228.9,129.9 236.3,129.9 243.7,129.9 250.9,130.0 258.5,130.0 265.8,130.0 273.2,130.0 280.6,130.0 288.0,130.0 295.4,130.0 302.8,130.0 310.2,130.0 317.5,130.0 324.9,130.0 332.3,130.0 339.7,130.0 347.1,130.0 354.5,130.0 361.8,130.0 369.2,130.0 376.6,130.0 384.0,130.0 391.4,130.0 398.8,130.0 406.2,130.0 413.5,130.0 420.9,130.0 428.3,130.0 436.0,130.0 443.1,130.0 450.5,130.0 457.8,130.0 465.2,130.0 472.6,130.0 480.0,130.0" fill="none" stroke="#1a5ca8" stroke-width="2" stroke-dasharray="5,3"/>
+          <polyline points="0.0,130.0 7.4,130.0 14.8,130.0 22.2,130.0 29.5,130.0 36.9,130.0 44.3,129.9 52.0,129.8 59.1,129.6 66.5,129.4 73.8,128.9 81.2,128.1 88.6,127.0 96.0,125.4 103.4,123.2 110.8,120.2 118.2,116.4 125.5,111.7 132.9,106.0 140.3,99.5 147.7,92.2 155.1,84.4 162.5,76.3 169.8,68.3 177.2,60.6 184.6,53.6 192.0,47.6 199.4,43.0 206.8,39.8 214.2,38.3 221.5,38.3 228.9,39.9 236.3,43.0 243.7,47.3 250.9,52.6 258.5,58.6 265.8,65.1 273.2,71.8 280.6,78.5 288.0,85.1 295.4,91.3 302.8,97.0 310.2,102.3 317.5,106.9 324.9,111.0 332.3,114.6 339.7,117.6 347.1,120.1 354.5,122.2 361.8,123.9 369.2,125.3 376.6,126.4 384.0,127.3 391.4,127.9 398.8,128.5 406.2,128.9 413.5,129.2 420.9,129.4 428.3,129.6 436.0,129.7 443.1,129.8 450.5,129.8 457.8,129.9 465.2,129.9 472.6,129.9 480.0,130.0" fill="none" stroke="#0d7a6e" stroke-width="2.5"/>
+          <line x1="47.4" y1="9.1" x2="47.4" y2="130" stroke="#1a5ca8" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="225.3" y1="39.0" x2="225.3" y2="130" stroke="#0d7a6e" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="292" y="24" fill="#1a5ca8">blue: data alone → 0.0314</text>
+          <text x="292" y="38" fill="#1a5ca8">(the Task 3 style estimate)</text>
+          <text x="292" y="62" fill="#0d7a6e">teal: posterior mean 0.055508</text>
+          <text x="292" y="76" fill="#0d7a6e">the prior pulled it right</text>
+          <line x1="0" y1="130" x2="480" y2="130" stroke="#6a5888" stroke-width="1.5"/>
+          <text x="30"  y="146" fill="#6a5888">0.03</text>
+          <text x="104" y="146" fill="#6a5888">0.04</text>
+          <text x="178" y="146" fill="#6a5888">0.05</text>
+          <text x="252" y="146" fill="#6a5888">0.06</text>
+          <text x="326" y="146" fill="#6a5888">0.07</text>
+          <text x="400" y="146" fill="#6a5888">0.08</text>
+          <text x="466" y="146" fill="#6a5888">0.09</text>
+          <text x="240" y="168" text-anchor="middle" fill="#6a5888">θ — dashed blue = normalised likelihood, solid teal = posterior</text>
+        </g>
+      </svg>
+      <p class="viz-caption">Both curves are computed from your actual numbers. The prior is not drawn here because it lives four orders of magnitude away — slide 11 shows why that is worth a remark.</p>
+    </div>
+  </section>
+
+  <!-- Slide 7: part b -->
+  <section class="slide" data-slide="8">
+    <h1>(b) Squared-error loss → the posterior mean</h1>
+    <p>The posterior is a whole distribution, but a decision-maker wants one number. Which number is "best" is not a mathematical fact — it depends on <b>how you get punished for being wrong</b>. That punishment is the <span class="tip" data-tip-title="Loss function" data-tip="A rule $L(\theta, a)$ saying how bad it is to report the value $a$ when the truth is $\theta$. The Bayes estimate is the $a$ that minimises the average loss under the posterior. Different loss functions give different estimates from the same posterior.">loss function</span>.</p>
+    <div class="formula">
+      squared-error loss: &nbsp; $L(\theta, a) = (\theta - a)^{2}$ &nbsp;&nbsp;<em>being off by 2 hurts four times as much as being off by 1</em>
+    </div>
+    <p>Under this loss the best single number is the <b>posterior mean</b> — always, for any posterior. The proof is two lines, so it belongs in the notebook:</p>
+    <details>
+      <summary>Why squared-error loss picks the mean (two lines)</summary>
+      <p>Write $m = E[\theta \mid x]$ and expand the expected loss around it:</p>
+      <div class="formula">
+        $$E\big[(\theta - a)^{2} \mid x\big] \;=\; E\big[(\theta - m)^{2} \mid x\big] \;+\; (m - a)^{2}$$
+      </div>
+      <p>The cross term vanishes because $E[\theta - m \mid x] = 0$ by definition of $m$. The first term is the posterior variance, which you cannot control. The second is a square, so it is minimised — at zero — by choosing $a = m$. Hence the Bayes estimate under squared-error loss is the posterior mean, and the residual risk equals the posterior variance.</p>
+    </details>
+    <p>For a Gamma in shape–rate form the mean is shape ÷ rate:</p>
+    <div class="formula">
+      $$\hat\theta_{\text{Bayes}} \;=\; E[\theta \mid x] \;=\; \frac{53}{954.815873} \;=\; \boxed{0.0555081}$$
+    </div>
+    <div class="callout">
+      <span class="callout-title">Do not skip the justification</span>
+      Part (b) says "under squared-error loss" for a reason: the grader wants to see that you know the loss function is what <em>selects</em> the mean, not that the mean is universally "the answer". Under absolute-error loss the Bayes estimate would be the posterior median; under 0–1 loss it would be the mode — which is exactly what part (c) asks for next.
+    </div>
+  </section>
+
+  <!-- Slide 8: part c -->
+  <section class="slide" data-slide="9">
+    <h1>(c) The posterior mode</h1>
+    <p>The mode is the peak: the single most plausible value of $\theta$ after seeing the data. Find it by maximising the log of the posterior kernel, which is the same calculus move as Task 3:</p>
+    <div class="formula">
+      $$\ln f(\theta \mid x) = \text{const} + (a-1)\ln\theta - b\theta
+      \quad\Longrightarrow\quad \frac{a-1}{\theta} - b = 0
+      \quad\Longrightarrow\quad \theta_{\text{mode}} = \frac{a-1}{b}$$
+      <em>valid whenever the shape $a &gt; 1$; here $a = 53$, so we are safe</em>
+    </div>
+    <div class="formula">
+      $$\hat\theta_{\text{mode}} \;=\; \frac{53 - 1}{954.815873} \;=\; \frac{52}{954.815873} \;=\; \boxed{0.0544608}$$
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 600 185" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(50,10)">
+          <rect x="0" y="0" width="480" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,130.0 7.4,130.0 14.8,130.0 22.2,130.0 29.5,130.0 36.9,130.0 44.3,129.9 52.0,129.8 59.1,129.6 66.5,129.4 73.8,128.9 81.2,128.1 88.6,127.0 96.0,125.4 103.4,123.2 110.8,120.2 118.2,116.4 125.5,111.7 132.9,106.0 140.3,99.5 147.7,92.2 155.1,84.4 162.5,76.3 169.8,68.3 177.2,60.6 184.6,53.6 192.0,47.6 199.4,43.0 206.8,39.8 214.2,38.3 221.5,38.3 228.9,39.9 236.3,43.0 243.7,47.3 250.9,52.6 258.5,58.6 265.8,65.1 273.2,71.8 280.6,78.5 288.0,85.1 295.4,91.3 302.8,97.0 310.2,102.3 317.5,106.9 324.9,111.0 332.3,114.6 339.7,117.6 347.1,120.1 354.5,122.2 361.8,123.9 369.2,125.3 376.6,126.4 384.0,127.3 391.4,127.9 398.8,128.5 406.2,128.9 413.5,129.2 420.9,129.4 428.3,129.6 436.0,129.7 443.1,129.8 450.5,129.8 457.8,129.9 465.2,129.9 472.6,129.9 480.0,130.0" fill="none" stroke="#0d7a6e" stroke-width="2.5"/>
+          <line x1="217.6" y1="38.1" x2="217.6" y2="130" stroke="#b86800" stroke-width="2"/>
+          <line x1="225.3" y1="39.0" x2="225.3" y2="130" stroke="#c42848" stroke-width="2" stroke-dasharray="4,3"/>
+          <text x="130" y="30" fill="#b86800">mode 0.05446 — the tallest point</text>
+          <text x="130" y="46" fill="#c42848">mean 0.055508 — the balance point</text>
+          <text x="248" y="70" fill="#6a5888">the long right tail</text>
+          <text x="248" y="84" fill="#6a5888">drags the mean up</text>
+          <line x1="0" y1="130" x2="480" y2="130" stroke="#6a5888" stroke-width="1.5"/>
+          <text x="30"  y="146" fill="#6a5888">0.03</text>
+          <text x="178" y="146" fill="#6a5888">0.05</text>
+          <text x="326" y="146" fill="#6a5888">0.07</text>
+          <text x="466" y="146" fill="#6a5888">0.09</text>
+          <text x="240" y="168" text-anchor="middle" fill="#6a5888">θ — the two estimates differ by about 1.9%</text>
+        </g>
+      </svg>
+    </div>
+    <p><b>Mean is above mode, and it always will be here.</b> The Gamma is right-skewed: it has a hard floor at zero and an unbounded tail to the right, so the balance point of the mass sits to the right of the peak. Algebraically, mean − mode $= \frac{a}{b} - \frac{a-1}{b} = \frac{1}{b}$, which for you is $1/954.815873 = 0.00105$ — exactly the gap you see.</p>
+    <div class="callout good">
+      <span class="callout-title">Free check</span>
+      Mean minus mode should equal one over the posterior rate. If your two answers do not differ by exactly $1/b$, one of them is wrong.
+    </div>
+  </section>
+
+  <!-- Slide 9: prior influence -->
+  <section class="slide" data-slide="10">
+    <h1>How much did the prior actually move things?</h1>
+    <p>Compare against the estimate you would have got with <em>no</em> prior at all. From Task 3's machinery: for a Gamma with known shape $\alpha$ and rate $\theta$, the maximum likelihood estimate is $\hat\theta_{\text{MLE}} = \alpha/\bar x$:</p>
+    <div class="formula">
+      $$\hat\theta_{\text{MLE}} = \frac{3}{95.48} = 0.0314202
+      \qquad\text{versus}\qquad
+      \hat\theta_{\text{Bayes}} = 0.0555081$$
+      <em>the posterior mean is 77% higher than the data-only estimate</em>
+    </div>
+    <p>That is a big move, and the two-ledger reading from slide 6 explains exactly where it came from:</p>
+    <table>
+      <tr><th>Ledger</th><th>Prior contributes</th><th>Data contribute</th><th>Prior's share</th></tr>
+      <tr><td>shape (numerator of the mean)</td><td>23</td><td>30</td><td><b>43%</b></td></tr>
+      <tr><td>rate (denominator of the mean)</td><td>0.015873</td><td>954.8</td><td><b>0.0017%</b></td></tr>
+    </table>
+    <p>The mean is shape ÷ rate. The prior inflates the numerator by 77% and leaves the denominator essentially untouched, so the estimate is pushed up by 77%. <b>The prior is acting almost entirely through the shape ledger.</b></p>
+    <div class="viz">
+      <svg viewBox="0 0 600 150" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(50,12)">
+          <line x1="0" y1="60" x2="480" y2="60" stroke="#6a5888" stroke-width="1.5"/>
+          <rect x="122.4" y="48" width="220.4" height="24" fill="rgba(13,122,110,.13)" stroke="#0d7a6e" stroke-width="2"/>
+          <line x1="225.3" y1="40" x2="225.3" y2="80" stroke="#0d7a6e" stroke-width="3"/>
+          <text x="225.3" y="34" text-anchor="middle" fill="#0d7a6e">posterior mean 0.055508</text>
+          <circle cx="47.4" cy="60" r="6" fill="#c42848"/>
+          <text x="47.4" y="34" text-anchor="middle" fill="#c42848">MLE 0.03142</text>
+          <text x="122.4" y="94" text-anchor="middle" fill="#0d7a6e">0.0416</text>
+          <text x="342.8" y="94" text-anchor="middle" fill="#0d7a6e">0.0714</text>
+          <text x="30"  y="112" fill="#6a5888">0.03</text>
+          <text x="178" y="112" fill="#6a5888">0.05</text>
+          <text x="326" y="112" fill="#6a5888">0.07</text>
+          <text x="466" y="112" fill="#6a5888">0.09</text>
+          <text x="240" y="134" text-anchor="middle" fill="#c42848">the 95% credible interval does NOT contain the data-only estimate</text>
+        </g>
+      </svg>
+    </div>
+    <p>The 95% <span class="tip" data-tip-title="Credible interval" data-tip="An interval containing a stated share of the POSTERIOR probability — here, 95% of the belief about θ after seeing the data. Unlike a frequentist confidence interval you may say directly 'there is a 95% probability θ lies in here', because θ is being treated as a random quantity.">credible interval</span> is $[0.0416,\ 0.0714]$, and the data-only estimate 0.0314 sits outside it. That is a striking, concrete illustration of prior influence: <b>after updating, the analysis assigns less than 2.5% belief to the value that the data alone would have chosen.</b> Whether that is acceptable depends entirely on whether you actually believe the prior.</p>
+  </section>
+
+  <!-- Slide 10: prior calibration -->
+  <section class="slide" data-slide="11">
+    <h1>A prior in the wrong postcode — that still matters</h1>
+    <p>Now look at where the prior actually lives. Its mean is shape × scale:</p>
+    <div class="formula">
+      prior mean $= 23 \times 63 = 1449$ &nbsp;&nbsp;&nbsp;&nbsp; posterior mean $= 0.0555081$
+    </div>
+    <p>Those are <b>four orders of magnitude apart</b>. On a logarithmic axis the distance is almost comic:</p>
+    <div class="viz">
+      <svg viewBox="0 0 600 140" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(50,20)">
+          <line x1="0" y1="50" x2="480" y2="50" stroke="#6a5888" stroke-width="1.5"/>
+          <line x1="0"   y1="44" x2="0"   y2="56" stroke="#6a5888" stroke-width="1"/>
+          <line x1="80"  y1="44" x2="80"  y2="56" stroke="#6a5888" stroke-width="1"/>
+          <line x1="160" y1="44" x2="160" y2="56" stroke="#6a5888" stroke-width="1"/>
+          <line x1="240" y1="44" x2="240" y2="56" stroke="#6a5888" stroke-width="1"/>
+          <line x1="320" y1="44" x2="320" y2="56" stroke="#6a5888" stroke-width="1"/>
+          <line x1="400" y1="44" x2="400" y2="56" stroke="#6a5888" stroke-width="1"/>
+          <line x1="480" y1="44" x2="480" y2="56" stroke="#6a5888" stroke-width="1"/>
+          <text x="0"   y="70" text-anchor="middle" fill="#6a5888">0.01</text>
+          <text x="80"  y="70" text-anchor="middle" fill="#6a5888">0.1</text>
+          <text x="160" y="70" text-anchor="middle" fill="#6a5888">1</text>
+          <text x="240" y="70" text-anchor="middle" fill="#6a5888">10</text>
+          <text x="320" y="70" text-anchor="middle" fill="#6a5888">100</text>
+          <text x="400" y="70" text-anchor="middle" fill="#6a5888">1000</text>
+          <text x="480" y="70" text-anchor="middle" fill="#6a5888">10000</text>
+          <circle cx="39.8" cy="50" r="5" fill="#c42848"/>
+          <text x="39.8" y="30" text-anchor="middle" fill="#c42848">MLE</text>
+          <circle cx="59.5" cy="50" r="5" fill="#0d7a6e"/>
+          <text x="86" y="18" text-anchor="middle" fill="#0d7a6e">posterior mean</text>
+          <circle cx="412.9" cy="50" r="5" fill="#b86800"/>
+          <text x="412.9" y="30" text-anchor="middle" fill="#b86800">prior mean 1449</text>
+          <text x="240" y="98" text-anchor="middle" fill="#6a5888">θ on a logarithmic scale — the prior's centre of mass is nowhere near the answer</text>
+        </g>
+      </svg>
+    </div>
+    <p>So the prior is badly calibrated to this data — and <em>yet</em> it changed the answer by 77%. That is not a contradiction, and understanding why is worth a paragraph in the workbook.</p>
+    <div class="callout">
+      <span class="callout-title">Why a far-away prior can still bite</span>
+      A Gamma prior behaves like a <b>pseudo-sample</b>: its shape contributes counts and its rate contributes exposure. This prior supplies 23 counts but essentially <em>zero</em> exposure (0.0159 against the data's 954.8). It is as if someone handed you seven or eight extra observations and then refused to tell you how large they were. The count survives into the numerator, the missing exposure never reaches the denominator, and the ratio is dragged upward. A prior that was merely wide but internally consistent would have been far more harmless than this one.
+    </div>
+    <p><b>Write this in the notebook as a limitation, not a defect to hide.</b> The exam prescribes the prior; your job is to use it correctly and to say honestly what it is doing. A sentence noting that the result is prior-sensitive, plus the MLE as a reference point, is exactly the kind of judgement the workbook guidelines ask for.</p>
+  </section>
+
+  <!-- Slide 11: cost of the other convention -->
+  <section class="slide" data-slide="12">
+    <h1>The price of not declaring your convention</h1>
+    <p>Suppose you had read $\xi_{18} = 63$ as a <b>rate</b> instead of a scale. Nothing would have looked wrong. The arithmetic is just as clean, the posterior is still a Gamma, and no error message appears anywhere. You simply add 63 to the exposure ledger instead of $1/63$:</p>
+    <table>
+      <tr><th></th><th>63 read as a SCALE (correct, Hogg)</th><th>63 read as a RATE</th></tr>
+      <tr><td>Posterior shape</td><td>53</td><td>53</td></tr>
+      <tr><td>Posterior rate</td><td>$954.8 + 1/63 = 954.815873$</td><td>$954.8 + 63 = 1017.8$</td></tr>
+      <tr><td>(b) posterior mean</td><td><b>0.0555081</b></td><td>0.0520731</td></tr>
+      <tr><td>(c) posterior mode</td><td><b>0.0544608</b></td><td>0.0510906</td></tr>
+    </table>
+    <div class="viz">
+      <svg viewBox="0 0 600 185" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, monospace" font-size="10">
+        <g transform="translate(50,10)">
+          <rect x="0" y="0" width="480" height="130" fill="rgba(26,92,168,.03)" stroke="#ccc4e0" stroke-width="1"/>
+          <polyline points="0.0,130.0 7.4,130.0 14.8,130.0 22.2,130.0 29.5,130.0 36.9,130.0 44.3,129.9 52.0,129.8 59.1,129.6 66.5,129.4 73.8,128.9 81.2,128.1 88.6,127.0 96.0,125.4 103.4,123.2 110.8,120.2 118.2,116.4 125.5,111.7 132.9,106.0 140.3,99.5 147.7,92.2 155.1,84.4 162.5,76.3 169.8,68.3 177.2,60.6 184.6,53.6 192.0,47.6 199.4,43.0 206.8,39.8 214.2,38.3 221.5,38.3 228.9,39.9 236.3,43.0 243.7,47.3 250.9,52.6 258.5,58.6 265.8,65.1 273.2,71.8 280.6,78.5 288.0,85.1 295.4,91.3 302.8,97.0 310.2,102.3 317.5,106.9 324.9,111.0 332.3,114.6 339.7,117.6 347.1,120.1 354.5,122.2 361.8,123.9 369.2,125.3 376.6,126.4 384.0,127.3 391.4,127.9 398.8,128.5 406.2,128.9 413.5,129.2 420.9,129.4 428.3,129.6 436.0,129.7 443.1,129.8 450.5,129.8 457.8,129.9 465.2,129.9 472.6,129.9 480.0,130.0" fill="none" stroke="#0d7a6e" stroke-width="2.5"/>
+          <polyline points="0.0,130.0 7.4,130.0 14.8,130.0 22.2,130.0 29.5,129.9 36.9,129.8 44.3,129.6 52.0,129.3 59.1,128.7 66.5,127.8 73.8,126.4 81.2,124.3 88.6,121.4 96.0,117.6 103.4,112.7 110.8,106.7 118.2,99.6 125.5,91.6 132.9,82.8 140.3,73.6 147.7,64.4 155.1,55.7 162.5,47.9 169.8,41.3 177.2,36.3 184.6,33.2 192.0,32.0 199.4,32.8 206.8,34.9 214.2,39.7 221.5,45.2 228.9,52.0 236.3,59.1 243.7,66.7 250.9,74.3 258.5,81.8 265.8,88.9 273.2,95.4 280.6,101.2 288.0,106.4 295.4,110.9 302.8,114.7 310.2,118.0 317.5,120.6 324.9,122.7 332.3,124.5 339.7,125.8 347.1,126.9 354.5,127.7 361.8,128.3 369.2,128.8 376.6,129.1 384.0,129.4 391.4,129.6 398.8,129.7 406.2,129.8 413.5,129.8 420.9,129.9 428.3,129.9 436.0,130.0 443.1,130.0 450.5,130.0 457.8,130.0 465.2,130.0 472.6,130.0 480.0,130.0" fill="none" stroke="#c42848" stroke-width="2" stroke-dasharray="5,3"/>
+          <text x="290" y="24" fill="#0d7a6e">solid = scale reading (correct)</text>
+          <text x="290" y="38" fill="#c42848">dashed = rate reading</text>
+          <text x="290" y="60" fill="#6a5888">close enough to look right,</text>
+          <text x="290" y="74" fill="#6a5888">far enough to be marked wrong</text>
+          <line x1="0" y1="130" x2="480" y2="130" stroke="#6a5888" stroke-width="1.5"/>
+          <text x="30"  y="146" fill="#6a5888">0.03</text>
+          <text x="178" y="146" fill="#6a5888">0.05</text>
+          <text x="326" y="146" fill="#6a5888">0.07</text>
+          <text x="466" y="146" fill="#6a5888">0.09</text>
+          <text x="240" y="168" text-anchor="middle" fill="#6a5888">θ — the two posteriors overlap almost completely</text>
+        </g>
+      </svg>
+    </div>
+    <p>The gap is <b>6.19%</b> — the rate reading gives an answer 6.19% below the scale reading. That is the dangerous size of error: far too small to notice by eye, far too large to be a rounding artefact.</p>
+    <div class="callout good">
+      <span class="callout-title">What to actually do in the workbook</span>
+      Solve it with the scale reading, because that is Hogg's convention and Hogg is the prescribed source. Then add one short remark: state that $\xi_{18}$ was interpreted as a scale following Hogg's density, give the alternative numbers in a footnote or a single sentence, and note the 6.19% difference. This turns a hidden ambiguity into a demonstration that you spotted it — which is worth more than either answer on its own.
+    </div>
+  </section>
+
+  <!-- Slide 12: traps -->
+  <section class="slide" data-slide="13">
+    <h1>Watch out! Five traps</h1>
+    <ol>
+      <li><b>Flipping the convention halfway.</b> Read every printed $\beta$ as a scale. For the data that makes $\theta$ a rate; for the prior it makes 63 a scale. Both statements come from the <em>same</em> rule applied twice — resist the urge to "keep everything in rate form".</li>
+      <li><b>Adding 63 to 954.8.</b> The single most likely arithmetic slip in this task. The number that joins the exposure ledger is $1/63 = 0.015873$, not 63.</li>
+      <li><b>Reporting the mode for part (b).</b> Squared-error loss selects the mean. The mode is part (c). They differ by $1/b$ and marks are lost for swapping them.</li>
+      <li><b>Shape $-1$ in the wrong place.</b> Mean $= a/b$ uses the shape; mode $= (a-1)/b$ subtracts one. Also state the condition $a &gt; 1$, without which the mode is at zero and the formula is meaningless.</li>
+      <li><b>Presenting the posterior mean without context.</b> It sits 77% above the data-only estimate and outside a credible interval built from the same posterior. Report the MLE alongside it and say one honest sentence about prior sensitivity.</li>
+    </ol>
+  </section>
+
+  <!-- Slide 13: quiz -->
+  <section class="slide" data-slide="14">
+    <h1>Quiz</h1>
+    <p><b>Q1.</b> The data density is Gamma with $\beta = 1/\theta$. Is $\theta$ a rate or a scale for $x$ — and how do you know without looking anything up?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>A rate. Substitute $\beta = 1/\theta$ into Hogg's exponent $-x/\beta$ and you get $-\theta x$: $\theta$ is now multiplying $x$, which is the definition of a rate. Confirmation from the mean: $E[x] = \alpha\beta = 3/\theta$, shape divided by $\theta$ — the rate formula.</p>
+    </details>
+    <p><b>Q2.</b> Under squared-error loss, do you report the posterior mean or the posterior mode — and why is the answer not simply "whichever is bigger"?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>The <b>mean</b>. Expanding $E[(\theta-a)^2 \mid x]$ gives posterior variance plus $(m-a)^2$, so the expected loss is minimised at $a = m = E[\theta \mid x]$. The choice is driven by the loss function, not by the size of the numbers: a different loss would select a different summary of the very same posterior (absolute-error → median, 0–1 → mode).</p>
+    </details>
+    <p><b>Q3.</b> Why did the exam hand you only $\bar x$ and not the ten individual observations?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>Because for a Gamma with known shape, the sum $\sum x_i$ is a sufficient statistic for $\theta$ — the likelihood depends on the data only through $n$ and $\sum x_i$. The mean gives you the sum immediately ($10 \times 95.48 = 954.8$), and the individual values would add nothing.</p>
+    </details>
+    <p><b>Q4.</b> The posterior mean is 0.0555 but the prior mean is 1449. If the prior is centred so far from the answer, how can it be influencing the result at all?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>Because the prior's two contributions travel through different channels. Its shape adds 23 to a numerator of 53 — nearly half. Its rate adds only 0.0159 to a denominator of 954.82 — essentially nothing. The prior's <em>location</em> (its mean) never enters the update directly; only the two ledgers do, and one of them is heavily loaded. A prior can therefore be badly centred and still move the answer a lot.</p>
+    </details>
+    <p><b>Q5.</b> A classmate reports the posterior as Gamma(53, 1017.8). What did they do, and how would you spot it in thirty seconds?</p>
+    <details>
+      <summary>Reveal answer</summary>
+      <p>They read $\xi_{18} = 63$ as a rate and added 63 to the exposure ledger. Spot it by checking the magnitude: $63$ against $1/63$ is a factor of about 4000, so the rate ledger should barely move from 954.8. Anything that shifts it by tens of units means the reciprocal was skipped. Their point estimates come out 6.19% low.</p>
+    </details>
+  </section>
+
+  <!-- Slide 14: notebook map -->
+  <section class="slide" data-slide="15">
+    <h1>From slides to notebook</h1>
+    <table>
+      <tr><th>Section</th><th>What goes in (deck slide)</th></tr>
+      <tr><td>Setup and notation</td><td>$n = 10$, $\alpha = 3$, $\bar x = 95.48$, prior parameters 23 and 63; quote the signature <code>99d9e51…</code> (slide 2)</td></tr>
+      <tr><td>Parameterisation statement</td><td><b>Do this before any algebra.</b> Hogg's density, $\beta$ = scale, therefore $\theta$ is a rate for $x$ and the prior rate is $1/63$ (slides 4, 4.1, 5)</td></tr>
+      <tr><td>Likelihood</td><td>$\propto \theta^{30}e^{-\theta\sum x_i}$ with $\sum x_i = 954.8$; name the sufficient statistic (slide 6)</td></tr>
+      <tr><td>(a) Posterior</td><td>Gamma(shape 53, rate 954.815873); show the two-line multiplication and state that this is conjugacy (slide 7)</td></tr>
+      <tr><td>(b) Bayes estimate</td><td>0.0555081, with the two-line proof that squared-error loss selects the mean (slide 8)</td></tr>
+      <tr><td>(c) Posterior mode</td><td>0.0544608, with the $a &gt; 1$ condition stated (slide 9)</td></tr>
+      <tr><td>Interpretation</td><td>MLE 0.0314202 for contrast; credible interval $[0.0416, 0.0714]$; the prior-influence paragraph (slides 10–11)</td></tr>
+      <tr><td>Robustness remark</td><td>The alternative rate reading and its 6.19% difference (slide 12)</td></tr>
+      <tr><td>Visualisation</td><td>Posterior with mean and mode marked, normalised likelihood overlaid, axis labelled $\theta$</td></tr>
+    </table>
+    <h2>Tool trust — the checks that make a grader relax</h2>
+    <ul>
+      <li><code>scipy.stats.gamma(a=53, scale=1/954.815873)</code> — SciPy takes a <b>scale</b>, so pass the reciprocal of the rate. Say so in a comment; this is the same trap in code form.</li>
+      <li>Confirm <code>.mean()</code> returns 0.0555081 and that <code>.pdf</code> is maximised at 0.0544608 — analytic and library values agreeing is the cheapest credibility you can buy.</li>
+      <li>Verify mean − mode $= 1/954.815873 = 0.00104732$ exactly.</li>
+      <li>Get the credible interval from <code>.ppf([0.025, 0.975])</code> and check that 0.0314202 falls outside it, as the interpretation slide claims.</li>
+      <li>Optional but persuasive: recompute the posterior by brute-force numerical multiplication of prior × likelihood on a grid, normalise, and show it lands on the same curve. That demonstrates the conjugacy result rather than asserting it.</li>
+    </ul>
+  </section>
+
+  <!-- Slide 15: quest complete -->
+  <section class="slide" data-slide="16">
+    <h1>Quest complete</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="3"  y="1" width="2" height="3" fill="#c8804c"/>
+        <rect x="11" y="1" width="2" height="3" fill="#c8804c"/>
+        <rect x="4"  y="2" width="1" height="1" fill="#f0dcc0"/>
+        <rect x="11" y="2" width="1" height="1" fill="#f0dcc0"/>
+        <rect x="3"  y="4" width="10" height="7" fill="#c8804c"/>
+        <rect x="5"  y="7" width="6" height="3" fill="#f0dcc0"/>
+        <rect x="5"  y="6" width="1" height="1" fill="#3a3040"/>
+        <rect x="10" y="6" width="1" height="1" fill="#3a3040"/>
+        <rect x="7"  y="7" width="2" height="1" fill="#5a4040"/>
+        <rect x="7"  y="8" width="2" height="1" fill="#8a6050"/>
+        <rect x="4"  y="7" width="1" height="1" fill="#e0a088"/>
+        <rect x="11" y="7" width="1" height="1" fill="#e0a088"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Bayes:</span> Declare the convention, add the two ledgers, then squash the posterior twice — once with squared-error loss, once at the peak. And say out loud what the prior did. See you in the notebook!
+      </div>
+    </div>
+    <ul class="checkpoint">
+      <li>Hogg writes $e^{-x/\beta}$, so <b>β is a SCALE</b>. Read every β that way: $\theta$ is a rate for $x$; the prior rate is $1/63 = 0.015873$</li>
+      <li>Likelihood $\propto \theta^{30}e^{-954.8\,\theta}$; prior $\propto \theta^{22}e^{-\theta/63}$; conjugacy means the product is a Gamma again</li>
+      <li><b>(a)</b> posterior = Gamma(shape 53, rate 954.815873), i.e. scale 0.00104732</li>
+      <li><b>(b)</b> squared-error loss → posterior mean $= 53/954.815873 = 0.0555081$</li>
+      <li><b>(c)</b> posterior mode $= 52/954.815873 = 0.0544608$; mean − mode $= 1/b$, always</li>
+      <li>Prior influence: MLE 0.0314202 lies outside the 95% credible interval $[0.0416, 0.0714]$ — say so honestly</li>
+      <li>Misreading 63 as a rate shifts every answer by 6.19% and produces no visible symptom</li>
+    </ul>
+  </section>
+
+  </div>
+
+  <nav class="deck-controls">
+    <button type="button" id="prev">◀ PREV</button>
+    <span id="counter">1 / 17</span>
+    <button type="button" id="next">NEXT ▶</button>
+  </nav>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const sideNavList = document.getElementById("side-nav-list");
+    const navButtons = [];
+
+    let mainNum = 0;
+    let subParentNum = 0;
+    let subIndex = 0;
+    const sectionHeadersAdded = new Set();
+
+    slides.forEach((slide, j) => {
+      const tier = slide.dataset.navTier || "core";
+      let displayNum;
+
+      if (tier === "core") {
+        mainNum++;
+        subParentNum = mainNum;
+        subIndex = 0;
+        displayNum = String(mainNum);
+      } else if (tier.startsWith("sub")) {
+        const sectionLabel = slide.dataset.navSection || "╰ DETAILS";
+        if (!sectionHeadersAdded.has(sectionLabel)) {
+          const head = document.createElement("p");
+          head.className = "side-nav-section";
+          head.textContent = sectionLabel;
+          sideNavList.appendChild(head);
+          sectionHeadersAdded.add(sectionLabel);
+        }
+        subIndex++;
+        displayNum = `${subParentNum}.${subIndex}`;
+      } else {
+        displayNum = String(j + 1);
+      }
+
+      const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      const isSub = tier.startsWith("sub");
+      btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+      btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
+      btn.addEventListener("click", () => show(j));
+      sideNavList.appendChild(btn);
+      navButtons.push(btn);
+    });
+    const headCore = document.createElement("p");
+    headCore.className = "side-nav-section";
+    headCore.textContent = "BAYES PATH — start here";
+    sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
+    let i = 0;
+    const counter = document.getElementById("counter");
+    function show(n) {
+      i = Math.max(0, Math.min(n, slides.length - 1));
+      slides.forEach((s, j) => s.classList.toggle("active", j === i));
+      navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+      counter.textContent = `${i + 1} / ${slides.length}`;
+      navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+    document.getElementById("prev").onclick = () => show(i - 1);
+    document.getElementById("next").onclick = () => show(i + 1);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") show(i + 1);
+      if (e.key === "ArrowLeft") show(i - 1);
+    });
+    show(0);
+  </script>
+
+  <div id="laser-dot"></div>
+  <script>
+  /* ── Cursor effects: fairydust trail + click explosion ── */
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var PALETTE = ['#1a5ca8','#c42848','#b86800','#0d7a6e','#6a5888','#f5c842','#e87060','#a8d870'];
+    var PETAL_COLORS = ['#c42848','#b86800','#f5c842','#6a5888','#1a5ca8','#e87060','#0d7a6e'];
+    var PISTIL_COLORS = ['#f5c842','#1c1a30','#c42848'];
+    var LEAF_COLORS = ['#a8d870','#4a9a40','#7bc860','#e8a040','#c84828'];
+    var STAR_COLORS = ['#1a5ca8','#b86800','#c42848','#0d7a6e'];
+    var PARTICLE_CAP = 40;
+    var lastSpawn = 0;
+    var particleCount = 0;
+    var laser = document.getElementById('laser-dot');
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function rnd(min, max) { return min + Math.random() * (max - min); }
+
+    function makeFlower() {
+      var color = pick(PETAL_COLORS);
+      var pistil = pick(PISTIL_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var g = document.createElementNS(NS, 'g');
+      g.setAttribute('transform', 'translate(8,8)');
+      for (var i = 0; i < 5; i++) {
+        var petal = document.createElementNS(NS, 'ellipse');
+        petal.setAttribute('cx', '0');
+        petal.setAttribute('cy', '-4');
+        petal.setAttribute('rx', '2.5');
+        petal.setAttribute('ry', '4');
+        petal.setAttribute('fill', color);
+        petal.setAttribute('opacity', '0.9');
+        if (i > 0) petal.setAttribute('transform', 'rotate(' + (i * 72) + ')');
+        g.appendChild(petal);
+      }
+      var pistilEl = document.createElementNS(NS, 'circle');
+      pistilEl.setAttribute('cx', '0');
+      pistilEl.setAttribute('cy', '0');
+      pistilEl.setAttribute('r', '2.5');
+      pistilEl.setAttribute('fill', pistil);
+      g.appendChild(pistilEl);
+      svg.appendChild(g);
+      return svg;
+    }
+
+    function makeLeaf() {
+      var color = pick(LEAF_COLORS);
+      var angle = Math.floor(rnd(0, 360));
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var ellipse = document.createElementNS(NS, 'ellipse');
+      ellipse.setAttribute('cx', '8');
+      ellipse.setAttribute('cy', '8');
+      ellipse.setAttribute('rx', '3.5');
+      ellipse.setAttribute('ry', '6.5');
+      ellipse.setAttribute('fill', color);
+      ellipse.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      var line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', '8');
+      line.setAttribute('y1', '2');
+      line.setAttribute('x2', '8');
+      line.setAttribute('y2', '14');
+      line.setAttribute('stroke', '#2a5a20');
+      line.setAttribute('stroke-width', '0.8');
+      line.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      svg.appendChild(ellipse);
+      svg.appendChild(line);
+      return svg;
+    }
+
+    function makeStar() {
+      var color = pick(STAR_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var polygon = document.createElementNS(NS, 'polygon');
+      polygon.setAttribute('points', '8,1 9.5,6.5 15,8 9.5,9.5 8,15 6.5,9.5 1,8 6.5,6.5');
+      polygon.setAttribute('fill', color);
+      svg.appendChild(polygon);
+      return svg;
+    }
+
+    /* Effect 1 — Fairydust trail */
+    document.addEventListener('mousemove', function (e) {
+      if (laser) {
+        laser.style.left = e.clientX + 'px';
+        laser.style.top = e.clientY + 'px';
+      }
+      var now = Date.now();
+      if (now - lastSpawn < 30 || particleCount >= PARTICLE_CAP) return;
+      lastSpawn = now;
+
+      var size = 4 + Math.floor(rnd(0, 3));
+      var el = document.createElement('div');
+      el.className = 'fd-particle';
+      el.style.cssText = [
+        'width:' + size + 'px',
+        'height:' + size + 'px',
+        'background:' + pick(PALETTE),
+        'border-radius:0',
+        'left:' + (e.clientX + rnd(-6, 6) - size / 2) + 'px',
+        'top:' + (e.clientY + rnd(-6, 6) - size / 2) + 'px'
+      ].join(';');
+      document.body.appendChild(el);
+      particleCount++;
+
+      var ty = -rnd(20, 40);
+      el.animate(
+        [{ opacity: 1, transform: 'translateY(0)' },
+         { opacity: 0, transform: 'translateY(' + ty + 'px)' }],
+        { duration: rnd(600, 800), easing: 'ease-out', fill: 'forwards' }
+      ).addEventListener('finish', function () { el.remove(); particleCount--; });
+    });
+
+    /* Effect 2 — Click explosion with random theme (flower / leaf / star) */
+    document.addEventListener('click', function (e) {
+      var themes = ['flower', 'leaf', 'star'];
+      var theme = themes[Math.floor(Math.random() * 3)];
+      var count = 12 + Math.floor(rnd(0, 5));
+      for (var k = 0; k < count; k++) {
+        var angle = rnd(0, 360) * Math.PI / 180;
+        var dist = rnd(40, 80);
+        var dx = Math.cos(angle) * dist;
+        var dy = Math.sin(angle) * dist;
+        var rotate = rnd(0, 360);
+        var el;
+        if (theme === 'flower') { el = makeFlower(); }
+        else if (theme === 'leaf') { el = makeLeaf(); }
+        else { el = makeStar(); }
+        el.setAttribute('class', 'fd-petal');
+        el.style.cssText = [
+          'left:' + (e.clientX - 7) + 'px',
+          'top:' + (e.clientY - 7) + 'px',
+          'transform:rotate(' + rotate + 'deg)'
+        ].join(';');
+        document.body.appendChild(el);
+
+        (function (el, rotate, dx, dy) {
+          el.animate(
+            [{ opacity: 1, transform: 'rotate(' + rotate + 'deg) translate(0,0)' },
+             { opacity: 0, transform: 'rotate(' + (rotate + 180) + 'deg) translate(' + dx + 'px,' + dy + 'px)' }],
+            { duration: rnd(700, 900), easing: 'ease-out', fill: 'forwards' }
+          ).addEventListener('finish', function () { el.remove(); });
+        }(el, rotate, dx, dy));
+      }
+    });
+  }());
+  </script>
+  <script>
+  /* ── hover tooltip engine ── */
+  (function () {
+    var box = document.createElement('div');
+    box.id = 'tip-box';
+    document.body.appendChild(box);
+    document.querySelectorAll('.tip').forEach(function (el) {
+      el.addEventListener('mouseenter', function (e) {
+        var lbl = el.dataset.tipTitle ? '<span class="tip-label">' + el.dataset.tipTitle + '</span>' : '';
+        box.innerHTML = lbl + (el.dataset.tip || '');
+        if (window.renderMathInElement) renderMathInElement(box, {
+          delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+          throwOnError: false
+        });
+        box.style.display = 'block'; move(e);
+      });
+      el.addEventListener('mousemove', move);
+      el.addEventListener('mouseleave', function () { box.style.display = 'none'; });
+    });
+    function move(e) {
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 310 > window.innerWidth)  x = e.clientX - 316;
+      if (y + 200 > window.innerHeight) y = e.clientY - 206;
+      box.style.left = x + 'px'; box.style.top = y + 'px';
+    }
+  }());
+  </script>
+</body>
+</html>

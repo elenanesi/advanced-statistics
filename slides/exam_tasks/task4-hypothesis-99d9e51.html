@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TASK 4 — Hypothesis Test (99d9e51)</title>
+  <!-- Technique C pixel-art favicon: Forge the bear / hammer head -->
+  <link rel="icon" href='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 shape-rendering=%22crispEdges%22%3E%3Crect x=%223%22 y=%224%22 width=%2210%22 height=%228%22 fill=%22%23a09090%22/%3E%3Crect x=%225%22 y=%227%22 width=%226%22 height=%224%22 fill=%22%23d8c8b8%22/%3E%3C/svg%3E' />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <!-- KaTeX — proper math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:     #f0ebe0;   /* warm parchment */
+      --card:   #fffef8;   /* near-white */
+      --accent: #1a5ca8;   /* deep sapphire — h1, checkpoints */
+      --rose:   #c42848;   /* vivid crimson — speech bubbles, callouts */
+      --honey:  #b86800;   /* deep amber — h2, formulas */
+      --text:   #1c1a30;   /* dark navy — body text */
+      --mist:   #6a5888;   /* muted plum — secondary, counters */
+      --teal:   #0d7a6e;   /* deep teal — positive signals */
+      --slate:  #3a4d7a;   /* slate blue — methodology callouts */
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      /* Consolas for body — matches slides/causal-impact/index.html */
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      /* subtle dot-grid: retro feel, not distracting */
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 720px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    /* Side navigation — jump to any slide by title */
+    .side-nav {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 52px;
+      width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto;
+      z-index: 9;
+    }
+    .side-nav-title {
+      font-family: "DotGothic16", monospace;
+      font-size: 8px;
+      color: var(--mist);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .side-nav-btn:hover {
+      background: rgba(26,92,168,.06);
+      border-color: #ccc4e0;
+    }
+    .side-nav-btn.active {
+      background: rgba(26,92,168,.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .side-nav-num {
+      flex-shrink: 0;
+      color: var(--mist);
+      font-size: 10px;
+      min-width: 1.2em;
+    }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9px;
+      color: var(--mist);
+      margin: 10px 0 4px;
+      padding-top: 10px;
+      border-top: 1px solid #d0c8e0;
+      letter-spacing: 1px;
+      line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+    .badge-sub {
+      border: 2px solid var(--slate);
+      color: var(--slate);
+      font-size: 10px;
+      padding: 4px 8px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    .slide {
+      display: none;
+      background: var(--card);
+      border: 2px solid #ccc4e0;
+      box-shadow: 4px 4px 0 rgba(80,60,140,.18);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .slide.active { display: block; }
+    h1 {
+      font-family: "DotGothic16", monospace;
+      font-size: 13px;
+      color: var(--accent);
+      margin: 0 0 16px;
+      letter-spacing: .5px;
+    }
+    h2 {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      color: var(--honey);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 18px 0 8px;
+    }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .buddy-speech {
+      flex: 1;
+      background: #fff8f2;
+      border: 2px solid var(--rose);
+      padding: 12px;
+      position: relative;
+    }
+    .buddy-speech::before {
+      content: "";
+      position: absolute;
+      left: -11px;
+      top: 14px;
+      border: 7px solid transparent;
+      border-right-color: var(--rose);
+    }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    .formula {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(26,92,168,.06);
+      padding: 14px 16px;
+      border: 2px solid rgba(26,92,168,.3);
+      margin: 12px 0;
+      overflow-x: auto;
+      line-height: 1.8;
+    }
+    .formula em { color: var(--honey); font-style: normal; }
+    .formula .katex { font-size: 1.08em; }
+    .formula .katex-display { margin: 6px 0; }
+
+    /* ── hover tooltips for jargon terms ── */
+    .tip { border-bottom: 2px dashed var(--honey); cursor: help; }
+    #tip-box {
+      position: fixed; display: none;
+      background: #fff8f2;
+      border: 2px solid var(--honey);
+      box-shadow: 4px 4px 0 rgba(80,60,140,.22);
+      padding: 10px 14px; max-width: 300px;
+      font-size: 11px; z-index: 99998;
+      color: var(--text); line-height: 1.6; pointer-events: none;
+    }
+    .tip-label {
+      font-weight: bold; color: var(--honey); display: block;
+      margin-bottom: 4px; font-size: 10px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    table.data { width:100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+    table.data th, table.data td { border: 1px solid #ccc4e0; padding: 6px 8px; text-align: left; }
+    table.data th { background: rgba(26,92,168,.08); color: var(--accent); }
+    .callout { border: 2px solid var(--teal); background: rgba(13,122,110,.06); padding: 10px 12px; margin: 10px 0; }
+    .warn { border: 2px solid var(--rose); background: rgba(196,40,72,.06); padding: 10px 12px; margin: 10px 0; }
+    .badge { display:inline-block; border:2px solid var(--accent); color:var(--accent); font-size:10px; padding:3px 8px; margin-bottom:10px; }
+    .prob { border-left: 3px solid var(--honey); padding-left: 10px; margin: 10px 0; }
+    .concept-link { color: var(--accent); font-weight: bold; }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 8px; }
+
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+
+    nav.deck-controls {
+      position: fixed;
+      bottom: 0;
+      left: 212px;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      background: rgba(240,235,224,.97);
+      border-top: 3px solid var(--honey);
+      z-index: 10;
+    }
+    #counter {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      color: var(--mist);
+    }
+    button {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fffef8;
+      border: 2px solid #0d3d7a;
+      box-shadow: 3px 3px 0 rgba(26,92,168,.25);
+      cursor: pointer;
+    }
+    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+
+    /* Fairydust trail & click explosion — effect elements */
+    .fd-particle, .fd-petal { position: fixed; z-index: 99999; pointer-events: none; }
+
+    /* Laser pointer cursor */
+    body { cursor: none; }
+    button, a, summary, [role="button"],
+    .side-nav, .side-nav-btn, details { cursor: none !important; }
+    #laser-dot {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, #c42848 45%, transparent 70%);
+      box-shadow: 0 0 6px 2px #c42848, 0 0 14px 4px #c4284855;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.05s ease;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #laser-dot { display: none; }
+      body { cursor: auto; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="side-nav" aria-label="Slide contents">
+    <p class="side-nav-title">CONTENTS</p>
+    <div id="side-nav-list" class="side-nav-list"></div>
+  </aside>
+
+  <div class="deck" id="deck">
+
+<!-- Slide 0: Title -->
+<section class="slide active" data-slide="0">
+    <h1>TASK 4: DID THE WEIGHTS GO UP?</h1>
+    <div class="buddy-row"><svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="2" y="2" width="2" height="2" fill="#a09090"/><rect x="12" y="2" width="2" height="2" fill="#a09090"/>
+    <rect x="3" y="3" width="1" height="1" fill="#c8a0a0"/><rect x="12" y="3" width="1" height="1" fill="#c8a0a0"/>
+    <rect x="3" y="4" width="10" height="8" fill="#a09090"/><rect x="5" y="7" width="6" height="4" fill="#d8c8b8"/>
+    <rect x="5" y="6" width="1" height="2" fill="#3a3040"/><rect x="10" y="6" width="1" height="2" fill="#3a3040"/>
+    <rect x="7" y="8" width="2" height="1" fill="#5a4848"/><rect x="7" y="9" width="2" height="1" fill="#6a5858"/>
+  </svg>
+      <div class="buddy-speech"><span class="speaker">Forge:</span> The old production line made hammers averaging <b>842 g</b> over 1000 pieces. New system, 10 new hammers. Your branch (ξ₁₃=2) asks: is the mean now <b>higher</b>? Look at the spread below before you guess.</div>
+    </div>
+    <p>Parameter signature <code>99d9e51</code>. Book: Unit 3.2 (Normal) + Unit 7.1–7.2 (hypothesis testing).</p>
+    <svg viewBox="0 0 420 150" width="100%" style="max-width:100%;margin:8px 0" role="img" aria-label="Ten sample hammer weights plotted on a weight axis, with the historical mean 842 g and the sample mean 852.2 g marked very close together.">
+  <line x1="45" y1="110" x2="400" y2="110" stroke="#6a5888" stroke-width="1.5"/>
+  <line x1="45" y1="110" x2="45" y2="115" stroke="#6a5888" stroke-width="1"/>
+  <line x1="131.3" y1="110" x2="131.3" y2="115" stroke="#6a5888" stroke-width="1"/>
+  <line x1="217.5" y1="110" x2="217.5" y2="115" stroke="#6a5888" stroke-width="1"/>
+  <line x1="303.8" y1="110" x2="303.8" y2="115" stroke="#6a5888" stroke-width="1"/>
+  <line x1="390" y1="110" x2="390" y2="115" stroke="#6a5888" stroke-width="1"/>
+  <text x="45" y="127" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">700</text>
+  <text x="131.3" y="127" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">800</text>
+  <text x="217.5" y="127" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">900</text>
+  <text x="303.8" y="127" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">1000</text>
+  <text x="390" y="127" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">1100</text>
+  <text x="222" y="143" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">weight of one hammer (g)</text>
+  <line x1="167.5" y1="30" x2="167.5" y2="110" stroke="#6a5888" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="167.5" y="25" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">μ₀=842</text>
+  <line x1="176.3" y1="52" x2="176.3" y2="110" stroke="#0d7a6e" stroke-width="2"/>
+  <text x="203" y="48" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#0d7a6e">x̄=852.2</text>
+  <circle cx="61.4" cy="100" r="4" fill="#1a5ca8"/>
+  <circle cx="82.1" cy="100" r="4" fill="#1a5ca8"/>
+  <circle cx="110.5" cy="100" r="4" fill="#1a5ca8"/>
+  <circle cx="133.0" cy="100" r="4" fill="#1a5ca8"/>
+  <circle cx="133.8" cy="91" r="4" fill="#1a5ca8"/>
+  <circle cx="136.4" cy="82" r="4" fill="#1a5ca8"/>
+  <circle cx="143.3" cy="100" r="4" fill="#1a5ca8"/>
+  <circle cx="239.1" cy="100" r="4" fill="#1a5ca8"/>
+  <circle cx="347.7" cy="100" r="4" fill="#1a5ca8"/>
+  <circle cx="375.3" cy="100" r="4" fill="#1a5ca8"/>
+  <text x="330" y="72" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#c42848">two heavy outliers pull x̄ up</text>
+</svg>
+    <p>The two averages are almost on top of each other, and the ten dots are scattered over <b>360 g</b>. That picture is the whole answer — the rest of this deck makes it rigorous.</p>
+</section>
+
+<!-- Slide 1: The business question -->
+<section class="slide" data-slide="1">
+    <h1>The question, in plain words</h1>
+    <p>A factory replaced its hammer-making system. Somebody has to sign a sentence like <i>"the new system produces heavier hammers"</i> — and be responsible for it.</p>
+    <h2>What we are given</h2>
+    <table class="data">
+      <tr><th>Symbol</th><th>Value</th><th>Where it comes from</th></tr>
+      <tr><td>$\mu_0$ (ξ₁₁)</td><td>842 g</td><td>Mean of a long run of <b>1000</b> hammers on the old system</td></tr>
+      <tr><td>$\sigma_0$ (ξ₁₂)</td><td>55.3 g</td><td>Standard deviation of that same long run</td></tr>
+      <tr><td>ξ₁₄</td><td>10 weights</td><td>719, 743, 803, 814, 925, 1051, 776, 806, 802, 1083</td></tr>
+    </table>
+    <div class="callout">The 1000-hammer history is what makes this a <b>z-test</b> rather than a t-test. Hold that thought — it is the trap on slide 8.</div>
+    <p>Branch ξ₁₃=2 fixes the direction of the question: <b>higher</b>, not "different", not "lower", not "more variable".</p>
+</section>
+
+<!-- Slide 2: The model -->
+<section class="slide" data-slide="2">
+    <h1>The model: a bell curve of weights</h1>
+    <p>Picture the factory running all day. Most hammers come out near the target; a few come out light, a few heavy, and the further you go from the middle the rarer they get. That shape — one hump, symmetric, thin tails — is what a <b>Normal distribution</b> looks like.</p>
+    <div class="formula">$W \sim \mathcal{N}(\mu,\ \sigma^{2})$</div>
+    <p>Read that as: "the weight $W$ of one randomly chosen hammer is Normal with unknown centre $\mu$ and spread $\sigma$." The centre $\mu$ is the thing the business cares about; it is what the test is about.</p>
+    <h2>Why we need a model at all</h2>
+    <p>Without a model, "852.2 is bigger than 842" is just arithmetic. The model is what lets us say how <b>surprising</b> that gap is when nothing has actually changed. No model, no probability, no decision.</p>
+    <div class="prob">Careful with symbols: $\mu$ is the <b>true, unknown</b> mean of the new process (a fixed number we never see). $\bar x$ is the <b>average of our 10 hammers</b> (a number we computed, which would change if we grabbed 10 different hammers).</div>
+</section>
+
+<!-- Slide 3: Assumptions -->
+<section class="slide" data-slide="3">
+    <h1>Assumptions — and the shaky one</h1>
+    <p>Write these four in the workbook. A test is only as trustworthy as the assumptions behind it.</p>
+    <ol>
+      <li><b>Independence.</b> One hammer's weight tells you nothing about the next one's. Breaks if hammers come in batches that share a bad steel delivery.</li>
+      <li><b>Identical process.</b> All 10 come from the same new system, settings unchanged during sampling.</li>
+      <li><b>Normality.</b> Weights are roughly bell-shaped. With $n=10$ this matters; the <span class="tip" data-tip-title="Central Limit Theorem (CLT)" data-tip="For large samples the average is approximately Normal even when single observations are not. 'Large' usually means dozens, so with n=10 the CLT is not much of a safety net.">Central Limit Theorem</span> is not a rescue at this size.</li>
+      <li><b>$\sigma$ known and unchanged</b> at 55.3 g, carried over from the old 1000-hammer run.</li>
+    </ol>
+    <div class="warn"><b>Assumption 4 is the uncertain one.</b> The new system changed the machine — why would it change the mean but leave the spread untouched? We will come back to this on slide 16 with a number that makes it look genuinely doubtful.</div>
+    <div class="formula">$\mu_0=\xi_{11}=842\ \text{g},\qquad \sigma_0=\xi_{12}=55.3\ \text{g},\qquad n=10$</div>
+</section>
+
+<!-- Slide 4: What a hypothesis is -->
+<section class="slide" data-slide="4">
+    <h1>What a hypothesis actually is</h1>
+    <p>Think of a courtroom. The defendant is <b>presumed innocent</b>. The prosecution must produce evidence strong enough that innocence becomes implausible. If it fails, the verdict is "not guilty" — which is <i>not</i> the same as "proven innocent".</p>
+    <table class="data">
+      <tr><th>Courtroom</th><th>Statistics</th><th>Here</th></tr>
+      <tr><td>Presumption of innocence</td><td>Null hypothesis $H_0$</td><td>The new system did not raise the mean</td></tr>
+      <tr><td>Prosecution's claim</td><td>Alternative $H_1$</td><td>The new system raised the mean</td></tr>
+      <tr><td>Evidence</td><td>The sample</td><td>10 weights, average 852.2 g</td></tr>
+      <tr><td>"Beyond reasonable doubt"</td><td>Significance level $\alpha$</td><td>5%</td></tr>
+      <tr><td>Verdict "not guilty"</td><td>Fail to reject $H_0$</td><td>← where we land</td></tr>
+    </table>
+    <div class="callout">The asymmetry is deliberate. $H_0$ is the boring, cheap-to-be-wrong-about claim; $H_1$ is the expensive claim that would trigger action. We only abandon $H_0$ when the data would be genuinely weird if $H_0$ were true.</div>
+</section>
+
+<!-- Slide 5: One-sided vs two-sided -->
+<section class="slide" data-slide="5">
+    <h1>Why "higher" forces one tail</h1>
+    <div class="formula">$H_0:\ \mu \le 842\ \text{g}\qquad\text{versus}\qquad H_1:\ \mu &gt; 842\ \text{g}$</div>
+    <p>The question is directional — "does the new system make <b>higher</b> weights?" So only <b>one</b> kind of result counts as evidence: a sample mean far above 842. A sample mean far <i>below</i> 842 is not weak evidence for $H_1$, it is evidence against it.</p>
+    <svg viewBox="0 0 420 150" width="100%" style="max-width:100%;margin:8px 0" role="img" aria-label="Two bell curves. The left curve has a single shaded 5 percent region in the right tail beyond 1.645. The right curve has two shaded 2.5 percent regions beyond plus and minus 1.96.">
+  <path d="M 158.7,110.0 L 158.7,91.9 L 160.1,93.4 L 162.8,96.2 L 165.6,98.6 L 168.3,100.7 L 171.1,102.5 L 173.8,104.0 L 176.6,105.2 L 179.3,106.3 L 182.1,107.1 L 184.9,107.8 L 187.6,108.3 L 190.4,108.7 L 193.1,109.1 L 195.9,109.3 L 198.6,109.5 L 200.0,109.6 L 200.0,110.0 Z" fill="rgba(196,40,72,.3)"/>
+  <polyline fill="none" stroke="#1a5ca8" stroke-width="2" points="30.0,109.6 33.5,109.4 37.1,109.1 40.6,108.6 44.2,108.0 47.7,107.2 51.3,106.1 54.8,104.6 58.3,102.8 61.9,100.5 65.4,97.7 69.0,94.4 72.5,90.5 76.0,86.1 79.6,81.2 83.1,75.9 86.7,70.4 90.2,64.7 93.8,59.2 97.3,53.9 100.8,49.3 104.4,45.4 107.9,42.4 111.5,40.6 115.0,40.0 118.5,40.6 122.1,42.4 125.6,45.4 129.2,49.3 132.7,53.9 136.2,59.2 139.8,64.7 143.3,70.4 146.9,75.9 150.4,81.2 154.0,86.1 157.5,90.5 161.0,94.4 164.6,97.7 168.1,100.5 171.7,102.8 175.2,104.6 178.8,106.1 182.3,107.2 185.8,108.0 189.4,108.6 192.9,109.1 196.5,109.4 200.0,109.6"/>
+  <line x1="30" y1="110" x2="205" y2="110" stroke="#6a5888" stroke-width="1"/>
+  <line x1="158.7" y1="36" x2="158.7" y2="110" stroke="#c42848" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="115" y="26" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#1a5ca8">ONE-SIDED — our test</text>
+  <text x="176" y="132" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#c42848">5% here</text>
+  <text x="158.7" y="33" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#c42848">1.645</text>
+  <path d="M 362.1,110.0 L 362.1,99.7 L 364.3,101.3 L 366.5,102.7 L 368.6,103.9 L 370.8,104.9 L 373.0,105.8 L 375.2,106.6 L 377.4,107.2 L 379.6,107.7 L 381.8,108.2 L 384.0,108.6 L 386.2,108.9 L 388.4,109.1 L 390.6,109.3 L 392.8,109.5 L 395.0,109.6 L 395.0,110.0 Z" fill="rgba(106,88,136,.3)"/>
+  <path d="M 225.0,110.0 L 225.0,109.6 L 227.2,109.5 L 229.4,109.3 L 231.6,109.1 L 233.8,108.9 L 236.0,108.6 L 238.2,108.2 L 240.4,107.7 L 242.6,107.2 L 244.8,106.6 L 247.0,105.8 L 249.2,104.9 L 251.4,103.9 L 253.5,102.7 L 255.7,101.3 L 257.9,99.7 L 257.9,110.0 Z" fill="rgba(106,88,136,.3)"/>
+  <polyline fill="none" stroke="#6a5888" stroke-width="2" points="225.0,109.6 228.5,109.4 232.1,109.1 235.6,108.6 239.2,108.0 242.7,107.2 246.2,106.1 249.8,104.6 253.3,102.8 256.9,100.5 260.4,97.7 264.0,94.4 267.5,90.5 271.0,86.1 274.6,81.2 278.1,75.9 281.7,70.4 285.2,64.7 288.8,59.2 292.3,53.9 295.8,49.3 299.4,45.4 302.9,42.4 306.5,40.6 310.0,40.0 313.5,40.6 317.1,42.4 320.6,45.4 324.2,49.3 327.7,53.9 331.2,59.2 334.8,64.7 338.3,70.4 341.9,75.9 345.4,81.2 349.0,86.1 352.5,90.5 356.0,94.4 359.6,97.7 363.1,100.5 366.7,102.8 370.2,104.6 373.8,106.1 377.3,107.2 380.8,108.0 384.4,108.6 387.9,109.1 391.5,109.4 395.0,109.6"/>
+  <line x1="225" y1="110" x2="400" y2="110" stroke="#6a5888" stroke-width="1"/>
+  <line x1="362.1" y1="36" x2="362.1" y2="110" stroke="#6a5888" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <line x1="257.9" y1="36" x2="257.9" y2="110" stroke="#6a5888" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="310" y="26" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">TWO-SIDED — not our question</text>
+  <text x="310" y="132" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">2.5% + 2.5%, cutoff 1.96</text>
+</svg>
+    <p>Spending the whole 5% on one tail lowers the bar from 1.96 to <b>1.645</b>, so the one-sided test is the more <span class="tip" data-tip-title="Power" data-tip="The probability of correctly rejecting H0 when H1 is actually true. More power = better chance of detecting a real increase.">powerful</span> choice <i>for this question</i>. Choosing the direction after seeing the data would be cheating; here the direction comes from the branch, before any data.</p>
+    <details><summary>Why write $H_0:\mu\le 842$ rather than $H_0:\mu=842$?</summary><p>Logically the two hypotheses should cover everything, and "not higher" means "$\le$". Operationally it makes no difference: the hardest case for us to detect inside $H_0$ is $\mu=842$ exactly, so that is the value we compute with. Both notations are accepted; state which you use.</p></details>
+</section>
+
+<!-- Slide 6: The test statistic -->
+<section class="slide" data-slide="6">
+    <h1>Turning grams into "how surprising"</h1>
+    <p>Is a 10.2 g gap big? Impossible to say in grams. It only becomes meaningful when measured in units of <b>how much the sample mean naturally wobbles</b>.</p>
+    <div class="formula">$\text{standard error}=\dfrac{\sigma_0}{\sqrt n}=\dfrac{55.3}{\sqrt{10}}=17.4874\ \text{g}$</div>
+    <p>Even if the new system were identical to the old one, the average of 10 hammers would bounce around 842 by roughly ±17 g just from luck of the draw. Our observed gap is 10.2 g — <b>less than one</b> unit of natural wobble.</p>
+    <div class="formula">$z=\dfrac{\bar x-\mu_0}{\sigma_0/\sqrt n}\ \xrightarrow{\ \text{under }H_0\ }\ \mathcal{N}(0,1)$</div>
+    <div class="warn"><b>Lookalike alert — standard deviation vs standard error.</b><br/>$\sigma=55.3$ g describes how much <b>one hammer</b> varies. $\sigma/\sqrt n=17.49$ g describes how much the <b>average of ten</b> varies. Averaging cancels noise, so the average is always the calmer quantity — by a factor $\sqrt n$. Using 55.3 in the denominator is one of the most common exam mistakes.</div>
+</section>
+
+<!-- Slide 7: z vs t rule -->
+<section class="slide" data-slide="7">
+    <h1>z or t? The one question that decides it</h1>
+    <p>Both statistics have the identical shape "(observed gap) ÷ (standard error)". They differ in <b>one</b> thing: where the number in the denominator came from.</p>
+    <table class="data">
+      <tr><th></th><th>z-test</th><th>t-test</th></tr>
+      <tr><td>Denominator uses</td><td>$\sigma_0$ — known, from outside the sample</td><td>$s$ — estimated from the same 10 numbers</td></tr>
+      <tr><td>Reference distribution</td><td>Standard Normal $\mathcal{N}(0,1)$</td><td>Student's t with $n-1$ <span class="tip" data-tip-title="Degrees of freedom" data-tip="Here n − 1 = 9. One degree of freedom is spent estimating the mean before the spread can be estimated, so nine independent pieces of information about the spread remain.">degrees of freedom</span></td></tr>
+      <tr><td>5% one-sided cutoff</td><td>1.644854</td><td>1.833113 (df = 9)</td></tr>
+      <tr><td>Why the cutoff differs</td><td>Nothing extra is guessed</td><td>$s$ is itself noisy → fatter tails → higher bar</td></tr>
+    </table>
+    <svg viewBox="0 0 420 150" width="100%" style="max-width:100%;margin:8px 0" role="img" aria-label="Standard normal density overlaid with the t density on nine degrees of freedom. The t curve is slightly lower in the middle and slightly fatter in the tails, and its five percent cutoff at 1.833 sits further right than the normal cutoff at 1.645.">
+  <line x1="45" y1="125" x2="400" y2="125" stroke="#6a5888" stroke-width="1"/>
+  <polyline fill="none" stroke="#1a5ca8" stroke-width="2.2" points="45.0,125.0 61.7,124.9 78.3,124.7 95.0,124.0 111.7,121.9 120.0,119.9 128.3,117.0 136.7,112.8 145.0,107.2 153.3,100.0 161.7,91.2 170.0,81.2 178.3,70.4 186.7,59.6 195.0,49.8 203.3,41.9 211.7,36.8 220.0,35.0 228.3,36.8 236.7,41.9 245.0,49.8 253.3,59.6 261.7,70.4 270.0,81.2 278.3,91.2 286.7,100.0 295.0,107.2 303.3,112.8 311.7,117.0 320.0,119.9 328.3,121.9 345.0,124.0 361.7,124.7 378.3,124.9 395.0,125.0"/>
+  <polyline fill="none" stroke="#c42848" stroke-width="2.2" stroke-dasharray="5 3" points="45.0,124.6 61.7,124.3 78.3,123.6 95.0,122.3 111.7,119.7 120.0,117.6 128.3,114.8 136.7,111.1 145.0,106.2 153.3,100.0 161.7,92.3 170.0,83.3 178.3,73.3 186.7,62.9 195.0,53.0 203.3,44.8 211.7,39.4 220.0,37.5 228.3,39.4 236.7,44.8 245.0,53.0 253.3,62.9 261.7,73.3 270.0,83.3 278.3,92.3 286.7,100.0 295.0,106.2 303.3,111.1 311.7,114.8 320.0,117.6 328.3,119.7 345.0,122.3 361.7,123.6 378.3,124.3 395.0,124.6"/>
+  <line x1="288.5" y1="40" x2="288.5" y2="125" stroke="#1a5ca8" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <line x1="296.4" y1="55" x2="296.4" y2="125" stroke="#c42848" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="278" y="36" text-anchor="end" font-size="10" font-family="Consolas,monospace" fill="#1a5ca8">z cutoff 1.645</text>
+  <text x="306" y="51" font-size="10" font-family="Consolas,monospace" fill="#c42848">t cutoff 1.833</text>
+  <text x="120" y="45" font-size="10" font-family="Consolas,monospace" fill="#1a5ca8">— standard Normal</text>
+  <text x="120" y="60" font-size="10" font-family="Consolas,monospace" fill="#c42848">- - t with 9 df (fatter tails)</text>
+  <text x="222" y="143" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">standardised distance from μ₀</text>
+</svg>
+    <div class="callout"><b>The rule, in one line:</b> $\sigma$ handed to you from a large historical run → <b>z</b>. $\sigma$ estimated from the sample you are testing → <b>t</b>. Here the task gives $\sigma_0=55.3$ from 1000 hammers, so the exam path is <b>z</b>.</div>
+</section>
+
+<!-- Slide 8: z vs t both numbers (sub-chapter) -->
+<section class="slide" data-slide="8" data-nav-tier="sub" data-nav-section="╰ THE z-vs-t TRAP">
+    <span class="badge badge-sub">SUB-CHAPTER</span>
+    <h1>Both numbers, side by side</h1>
+    <p>Same 10 hammers, same question, same 5% level. Only the denominator changes.</p>
+    <table class="data">
+      <tr><th>Path</th><th>Denominator</th><th>Statistic</th><th>Cutoff</th><th>p-value</th><th>Verdict</th></tr>
+      <tr><td><b>z</b> with $\sigma_0=55.3$ <i>(exam path)</i></td><td>17.4874</td><td>0.583277</td><td>1.644854</td><td>0.279853</td><td>Fail to reject</td></tr>
+      <tr><td><b>t</b> with $s=125.653$, df 9</td><td>39.7350</td><td>0.256701</td><td>1.833113</td><td>0.401591</td><td>Fail to reject</td></tr>
+    </table>
+    <div class="formula">$z=\dfrac{852.2-842}{55.3/\sqrt{10}}=0.583277 \qquad t_{9}=\dfrac{852.2-842}{125.653/\sqrt{10}}=0.256701$</div>
+    <p><b>The conclusion agrees, the numbers do not.</b> The t-statistic is less than half the z-statistic, because $s=125.653$ is far bigger than $\sigma_0=55.3$. This time you get away with the ambiguity — but only by luck. If the gap had been 30 g instead of 10.2 g, z would have rejected and t would not.</p>
+    <div class="warn">Never let the choice of ruler be implicit. In the workbook: state that $\sigma$ is treated as known from the 1000-hammer run, report the z-test as the main result, then report the t-statistic as a robustness check. That is exactly the "flag the uncertain assumption" move the graders are looking for.</div>
+</section>
+
+<!-- Slide 9: Decision rule -->
+<section class="slide" data-slide="9">
+    <h1>The decision rule, as a logical statement</h1>
+    <p>Fix the rule <b>before</b> looking at the number. That is what makes 5% mean 5%.</p>
+    <div class="formula">Reject $H_0$ $\iff$ $z &gt; z_{0.95}=1.644854$</div>
+    <p>Because $z$ is just a rescaled $\bar x$, the same rule can be written in grams — which is much easier to explain to a factory manager:</p>
+    <div class="formula">$\bar x &gt; \mu_0 + z_{0.95}\cdot\dfrac{\sigma_0}{\sqrt n} = 842 + 1.644854\times 17.4874 = \mathbf{870.76\ g}$</div>
+    <div class="callout">So the whole test collapses to one sentence: <b>"the ten hammers would have had to average more than 870.76 g."</b> They averaged 852.2 g. That is 18.6 g short of the bar.</div>
+    <p>The set of outcomes that trigger rejection is the <span class="tip" data-tip-title="Rejection region (critical region)" data-tip="The set of sample results that would make us abandon the null hypothesis. Chosen in advance so that, when the null is true, the chance of landing in it is exactly α = 5%.">rejection region</span>: here $\{\bar x &gt; 870.76\}$, equivalently $\{z &gt; 1.644854\}$.</p>
+</section>
+
+<!-- Slide 10: Compute -->
+<section class="slide" data-slide="10">
+    <h1>Compute — every step visible</h1>
+    <p>Sample ξ₁₄, $n=10$: 719, 743, 803, 814, 925, 1051, 776, 806, 802, 1083.</p>
+    <div class="formula">$\bar x=\dfrac{1}{10}\sum_{i=1}^{10}x_i=\dfrac{8522}{10}=852.2\ \text{g}$</div>
+    <table class="data">
+      <tr><th>Quantity</th><th>Formula</th><th>Value</th></tr>
+      <tr><td>Sample mean</td><td>$\bar x$</td><td>852.2 g</td></tr>
+      <tr><td>Observed increase</td><td>$\bar x-\mu_0$</td><td>+10.2 g</td></tr>
+      <tr><td>Sample standard deviation</td><td>$s=\sqrt{\frac{1}{n-1}\sum(x_i-\bar x)^2}$</td><td>125.653 g</td></tr>
+      <tr><td>Standard error</td><td>$\sigma_0/\sqrt n$</td><td>17.4874 g</td></tr>
+      <tr><td><b>Test statistic</b></td><td>$z=(\bar x-\mu_0)/(\sigma_0/\sqrt n)$</td><td><b>0.583277</b></td></tr>
+      <tr><td>Critical value</td><td>$z_{0.95}$</td><td>1.644854</td></tr>
+      <tr><td>p-value</td><td>$1-\Phi(z)$</td><td>0.279853</td></tr>
+    </table>
+    <p>Sanity check worth writing down: the median of the ten weights is 804.5 g, <b>below</b> $\mu_0$. The mean only exceeds 842 because two hammers (1051 and 1083) drag it up. That is a fragile kind of "increase".</p>
+</section>
+
+<!-- Slide 11: The picture -->
+<section class="slide" data-slide="11">
+    <h1>The picture: nowhere near the line</h1>
+    <svg viewBox="0 0 420 160" width="100%" style="max-width:100%;margin:8px 0" role="img" aria-label="Standard normal curve under the null hypothesis. The rejection region beyond 1.645 is shaded crimson. The observed z of 0.583 sits well inside the ordinary range, and the shaded p-value area to its right covers about 28 percent of the curve.">
+  <path d="M 245.0,130 L 245.0,54.1 L 252.3,60.8 L 259.5,68.1 L 266.8,75.7 L 274.0,83.4 L 281.3,90.7 L 288.5,97.5 L 295.8,103.7 L 303.0,109.1 L 310.3,113.8 L 317.5,117.6 L 324.8,120.7 L 332.0,123.2 L 339.3,125.1 L 346.5,126.6 L 353.8,127.6 L 361.0,128.4 L 368.3,128.9 L 375.5,129.3 L 382.8,129.6 L 390.0,129.7 L 390.0,130 Z" fill="rgba(184,104,0,.18)"/>
+  <path d="M 299.7,130 L 299.7,106.7 L 304.2,109.9 L 308.7,112.8 L 313.2,115.4 L 317.7,117.7 L 322.2,119.7 L 326.8,121.5 L 331.3,123.0 L 335.8,124.3 L 340.3,125.4 L 344.8,126.3 L 349.3,127.0 L 353.9,127.6 L 358.4,128.1 L 362.9,128.6 L 367.4,128.9 L 371.9,129.1 L 376.4,129.3 L 381.0,129.5 L 385.5,129.6 L 390.0,129.7 L 390.0,130 Z" fill="rgba(196,40,72,.3)"/>
+  <polyline fill="none" stroke="#1a5ca8" stroke-width="2.5" points="40.0,129.7 50.0,129.5 60.0,129.0 70.0,128.3 80.0,127.1 90.0,125.3 100.0,122.6 110.0,118.8 120.0,113.6 130.0,107.0 140.0,98.9 150.0,89.5 160.0,79.1 170.0,68.6 180.0,58.6 190.0,50.0 200.0,43.7 210.0,40.4 215.0,40.0 220.0,40.4 230.0,43.7 240.0,50.0 250.0,58.6 260.0,68.6 270.0,79.1 280.0,89.5 290.0,98.9 300.0,107.0 310.0,113.6 320.0,118.8 330.0,122.6 340.0,125.3 350.0,127.1 360.0,128.3 370.0,129.0 380.0,129.5 390.0,129.7"/>
+  <line x1="40" y1="130" x2="395" y2="130" stroke="#6a5888" stroke-width="1.5"/>
+  <line x1="215" y1="130" x2="215" y2="135" stroke="#6a5888" stroke-width="1"/>
+  <line x1="266.5" y1="130" x2="266.5" y2="135" stroke="#6a5888" stroke-width="1"/>
+  <line x1="318" y1="130" x2="318" y2="135" stroke="#6a5888" stroke-width="1"/>
+  <line x1="163.5" y1="130" x2="163.5" y2="135" stroke="#6a5888" stroke-width="1"/>
+  <line x1="112.1" y1="130" x2="112.1" y2="135" stroke="#6a5888" stroke-width="1"/>
+  <text x="215" y="147" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">0</text>
+  <text x="266.5" y="147" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">1</text>
+  <text x="318" y="147" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">2</text>
+  <text x="163.5" y="147" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">−1</text>
+  <text x="112.1" y="147" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">−2</text>
+  <line x1="299.7" y1="34" x2="299.7" y2="130" stroke="#c42848" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="299.7" y="29" text-anchor="middle" font-size="11" font-family="Consolas,monospace" fill="#c42848">cutoff 1.645</text>
+  <line x1="245.0" y1="54.1" x2="245.0" y2="130" stroke="#0d7a6e" stroke-width="2.5"/>
+  <text x="234" y="50" text-anchor="end" font-size="11" font-family="Consolas,monospace" fill="#0d7a6e">z=0.583</text>
+  <text x="345" y="100" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#c42848">reject region: 5%</text>
+  <text x="272" y="122" font-size="10" font-family="Consolas,monospace" fill="#b86800">p = 0.28</text>
+</svg>
+    <p>The teal line is our result. It sits inside the crowd of perfectly ordinary outcomes, well to the left of the crimson cutoff.</p>
+    <h2>What the p-value is — and is not</h2>
+    <p>$p=0.279853$ means: <b>if the new system had changed nothing</b>, we would see a sample mean at least this high about <b>28% of the time</b>, purely by sampling luck. Roughly one run in four. Nothing remarkable happened.</p>
+    <div class="warn">It is <b>not</b> the probability that $H_0$ is true, and <b>not</b> the probability that the new system failed. It is a probability computed <i>assuming</i> $H_0$ — about the data, not about the hypothesis.</div>
+</section>
+
+<!-- Slide 12: Conclusion -->
+<section class="slide" data-slide="12">
+    <h1>Conclusion: fail to reject</h1>
+    <div class="formula">$z=0.583277 \;&lt;\; 1.644854 \quad\Longrightarrow\quad \textbf{do not reject } H_0$</div>
+    <div class="callout"><b>Verdict to write in the workbook.</b> At the 5% significance level there is <b>no evidence</b> that the new system produces hammers with a higher mean weight. The observed increase of 10.2 g is well inside what sampling variation alone produces when $\sigma_0=55.3$ g and $n=10$ (equivalently, $p=0.2799$; equivalently, $\bar x=852.2$ g fell short of the 870.76 g bar).</div>
+    <h2>The discipline: "fail to reject" ≠ "accept"</h2>
+    <table class="data">
+      <tr><th>Do not write</th><th>Write</th></tr>
+      <tr><td>"We accept $H_0$."</td><td>"We fail to reject $H_0$."</td></tr>
+      <tr><td>"The new system does not raise weight."</td><td>"The data do not provide evidence, at the 5% level, that it raises weight."</td></tr>
+      <tr><td>"There is no effect."</td><td>"Any effect is too small for this sample to detect."</td></tr>
+    </table>
+    <p><b>Absence of evidence is not evidence of absence.</b> A test can fail for two very different reasons: nothing changed, or something changed but our measuring instrument was too blunt to see it. The next three slides show that here it is largely the second.</p>
+</section>
+
+<!-- Slide 13: Two ways to be wrong -->
+<section class="slide" data-slide="13">
+    <h1>Two ways to be wrong</h1>
+    <p>The task explicitly asks for the error probabilities. There are exactly two ways a test can be wrong, and they are not symmetric.</p>
+    <table class="data">
+      <tr><th></th><th>Truth: $\mu\le 842$ (no lift)</th><th>Truth: $\mu &gt; 842$ (real lift)</th></tr>
+      <tr><th>We reject $H_0$</th><td><b>Type I error</b> — false alarm. Probability $\alpha$</td><td>Correct detection. Probability $1-\beta$ = power</td></tr>
+      <tr><th>We fail to reject</th><td>Correct. Probability $1-\alpha$</td><td><b>Type II error</b> — missed a real lift. Probability $\beta$</td></tr>
+    </table>
+    <h2>Type I: fixed by us, at 5%</h2>
+    <div class="formula">$\mathbb{P}(\text{Type I})=\mathbb{P}(z &gt; 1.644854 \mid \mu=842)=\alpha=0.05$</div>
+    <p>This one needs no data. We <b>chose</b> it when we picked the cutoff: 5% of the time, an unchanged process would hand us a sample mean above 870.76 g and we would raise a false alarm. Type I error probability is a design decision, not a measurement.</p>
+    <div class="prob"><b>Type II is different.</b> $\beta$ is not a single number — it depends on how big the real increase is. A 200 g increase is nearly impossible to miss; a 1 g increase is nearly impossible to catch. So $\beta$ has to be quoted <i>at a stated value</i> of $\mu$.</div>
+</section>
+
+<!-- Slide 14: Power here -->
+<section class="slide" data-slide="14">
+    <h1>Power here: only 14.4%</h1>
+    <p>Take the observed mean 852.2 g at face value as the true one, and ask: with $n=10$, how often would this test actually catch an increase of that size?</p>
+    <svg viewBox="0 0 420 160" width="100%" style="max-width:100%;margin:8px 0" role="img" aria-label="Two overlapping bell curves for the sample mean. The null curve is centred at 842 and the alternative at 852.2, both with standard error 17.49. The cutoff at 870.76 leaves only a thin sliver of the alternative curve to its right, showing low power.">
+  <path d="M 40.0,128 L 40.0,128.0 L 47.9,128.0 L 55.8,127.9 L 63.7,127.9 L 71.5,127.8 L 79.4,127.6 L 87.3,127.4 L 95.2,126.9 L 103.1,126.2 L 111.0,125.1 L 118.8,123.5 L 126.7,121.2 L 134.6,118.0 L 142.5,113.8 L 150.4,108.5 L 158.3,102.0 L 166.1,94.3 L 174.0,85.7 L 181.9,76.6 L 189.8,67.3 L 197.7,58.5 L 205.6,50.8 L 213.4,44.9 L 221.3,41.2 L 229.2,40.0 L 237.1,41.5 L 245.0,45.6 L 252.9,51.8 L 260.7,59.7 L 268.6,68.6 L 276.5,77.9 L 276.5,128 Z" fill="rgba(184,104,0,.16)"/>
+  <path d="M 276.5,128 L 276.5,105.3 L 282.7,110.0 L 288.9,114.0 L 295.0,117.4 L 301.2,120.0 L 307.4,122.2 L 313.6,123.8 L 319.7,125.0 L 325.9,125.9 L 332.1,126.6 L 338.3,127.1 L 344.4,127.4 L 350.6,127.6 L 356.8,127.8 L 363.0,127.8 L 369.1,127.9 L 375.3,127.9 L 381.5,128.0 L 387.7,128.0 L 393.8,128.0 L 400.0,128.0 L 400.0,128 Z" fill="rgba(196,40,72,.35)"/>
+  <polyline fill="none" stroke="#6a5888" stroke-width="2" points="40.0,127.9 47.2,127.8 54.4,127.6 61.6,127.3 68.8,126.9 76.0,126.3 83.2,125.3 90.4,124.0 97.6,122.1 104.8,119.5 112.0,116.2 119.2,111.9 126.4,106.7 133.6,100.5 140.8,93.3 148.0,85.4 155.2,77.0 162.4,68.6 169.6,60.4 176.8,53.0 184.0,47.0 191.2,42.6 198.4,40.3 202.0,40.0 209.2,41.0 216.4,44.2 223.6,49.3 230.8,55.9 238.0,63.6 245.2,72.0 252.4,80.5 259.6,88.7 266.8,96.3 274.0,103.1 281.2,108.9 288.4,113.8 295.6,117.6 302.8,120.6 310.0,122.9 317.2,124.6 324.4,125.7 331.6,126.6 338.8,127.1 346.0,127.4 353.2,127.7 360.4,127.8 367.6,127.9 374.8,127.9 382.0,128.0 389.2,128.0 396.4,128.0"/>
+  <polyline fill="none" stroke="#0d7a6e" stroke-width="2" points="40.0,128.0 47.2,128.0 54.4,127.9 61.6,127.9 68.8,127.8 76.0,127.7 83.2,127.5 90.4,127.2 97.6,126.7 104.8,126.0 112.0,124.9 119.2,123.4 126.4,121.3 133.6,118.5 140.8,114.8 148.0,110.2 155.2,104.6 162.4,98.1 169.6,90.7 176.8,82.6 184.0,74.1 191.2,65.7 198.4,57.7 205.6,50.8 212.8,45.3 220.0,41.6 227.2,40.0 234.4,40.7 241.6,43.6 248.8,48.4 256.0,54.8 263.2,62.4 270.4,70.7 277.6,79.2 284.8,87.5 292.0,95.2 299.2,102.1 306.4,108.1 313.6,113.1 320.8,117.1 328.0,120.2 335.2,122.6 342.4,124.3 349.6,125.6 356.8,126.4 364.0,127.0 371.2,127.4 378.4,127.6 385.6,127.8 392.8,127.9 400.0,127.9"/>
+  <line x1="40" y1="128" x2="405" y2="128" stroke="#6a5888" stroke-width="1.5"/>
+  <line x1="202.3" y1="128" x2="202.3" y2="133" stroke="#6a5888" stroke-width="1"/>
+  <line x1="228.6" y1="128" x2="228.6" y2="133" stroke="#6a5888" stroke-width="1"/>
+  <text x="196" y="145" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">842</text>
+  <text x="238" y="145" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#0d7a6e">852.2</text>
+  <line x1="276.5" y1="30" x2="276.5" y2="128" stroke="#c42848" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="276.5" y="25" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#c42848">cutoff 870.76 g</text>
+  <text x="120" y="40" font-size="10" font-family="Consolas,monospace" fill="#6a5888">— H₀: mean of x̄ is 842</text>
+  <text x="120" y="55" font-size="10" font-family="Consolas,monospace" fill="#0d7a6e">— H₁: mean of x̄ is 852.2</text>
+  <text x="192" y="112" font-size="10" font-family="Consolas,monospace" fill="#b86800">β ≈ 86%</text>
+  <text x="330" y="118" font-size="10" font-family="Consolas,monospace" fill="#c42848">power ≈ 14%</text>
+</svg>
+    <div class="formula">$\text{power}(\mu)=1-\Phi\!\left(z_{0.95}-\frac{\mu-\mu_0}{\sigma_0/\sqrt n}\right),\qquad \text{power}(852.2)=1-\Phi(1.644854-0.583277)=\mathbf{0.1442}$</div>
+    <table class="data">
+      <tr><th>Quantity</th><th>Value</th><th>Meaning</th></tr>
+      <tr><td>$\alpha$ = P(Type I)</td><td>5.00%</td><td>False alarm rate, chosen by design</td></tr>
+      <tr><td>Power at $\mu=852.2$</td><td>14.42%</td><td>Chance of catching a 10.2 g lift</td></tr>
+      <tr><td>$\beta$ = P(Type II) at $\mu=852.2$</td><td><b>85.58%</b></td><td>Chance of missing it</td></tr>
+    </table>
+    <div class="warn">Read that last row slowly. <b>If the lift were real and exactly this size, this test would miss it 6 times out of 7.</b> Failing to reject was the overwhelmingly likely outcome regardless of the truth — so the non-rejection carries very little information.</div>
+</section>
+
+<!-- Slide 15: Underpowered -->
+<section class="slide" data-slide="15">
+    <h1>n = 10 is simply too small</h1>
+    <p>Flip the question round. Instead of "did we detect it?", ask: <b>how big would the increase have to be</b> for this design to have a decent chance (the conventional 80%) of catching it?</p>
+    <div class="formula">$\delta_{80\%}=\left(z_{0.95}+z_{0.80}\right)\dfrac{\sigma_0}{\sqrt n}=(1.644854+0.841621)\times 17.4874=\mathbf{43.48\ \text{g}}$</div>
+    <svg viewBox="0 0 420 160" width="100%" style="max-width:100%;margin:8px 0" role="img" aria-label="Power curve rising from 5 percent at zero increase to near 1 at seventy grams. The observed increase of 10.2 grams gives only 14 percent power, while 80 percent power requires an increase of 43.5 grams.">
+  <line x1="50" y1="130" x2="400" y2="130" stroke="#6a5888" stroke-width="1.5"/>
+  <line x1="50" y1="25" x2="50" y2="130" stroke="#6a5888" stroke-width="1.5"/>
+  <polyline fill="none" stroke="#1a5ca8" stroke-width="2.5" points="50.0,125.0 59.7,123.7 69.4,122.2 79.1,120.3 88.9,118.2 98.6,115.8 108.3,113.1 118.0,110.1 127.7,106.7 137.4,103.1 147.1,99.2 156.9,95.1 166.6,90.7 176.3,86.3 186.0,81.7 195.7,77.2 205.4,72.7 215.1,68.2 224.9,64.0 234.6,59.9 244.3,56.0 254.0,52.5 263.7,49.2 273.4,46.2 283.1,43.6 292.9,41.2 302.6,39.2 312.3,37.4 322.0,36.0 331.7,34.7 341.4,33.7 351.1,32.9 360.9,32.2 370.6,31.7 380.3,31.2 390.0,30.9"/>
+  <line x1="50" y1="50" x2="400" y2="50" stroke="#0d7a6e" stroke-width="1" stroke-dasharray="3 3"/>
+  <text x="404" y="53" font-size="10" font-family="Consolas,monospace" fill="#0d7a6e">80%</text>
+  <line x1="50" y1="125" x2="400" y2="125" stroke="#6a5888" stroke-width="1" stroke-dasharray="2 3"/>
+  <text x="404" y="128" font-size="10" font-family="Consolas,monospace" fill="#6a5888">5%</text>
+  <line x1="99.5" y1="115.6" x2="99.5" y2="130" stroke="#c42848" stroke-width="2"/>
+  <circle cx="99.5" cy="115.6" r="4" fill="#c42848"/>
+  <text x="105" y="112" font-size="10" font-family="Consolas,monospace" fill="#c42848">observed 10.2 g → 14%</text>
+  <line x1="261.2" y1="50" x2="261.2" y2="130" stroke="#0d7a6e" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="261.2" cy="50" r="4" fill="#0d7a6e"/>
+  <text x="266" y="66" font-size="10" font-family="Consolas,monospace" fill="#0d7a6e">need 43.5 g for 80%</text>
+  <text x="50" y="145" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">0</text>
+  <text x="147.1" y="145" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">20</text>
+  <text x="244.3" y="145" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">40</text>
+  <text x="341.4" y="145" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">60</text>
+  <text x="270" y="157" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">true increase μ − 842 (g)</text>
+  <text x="22" y="80" font-size="10" font-family="Consolas,monospace" fill="#6a5888" transform="rotate(-90 22 80)">power</text>
+</svg>
+    <div class="callout"><b>43.48 g needed, 10.2 g observed.</b> The instrument is calibrated to detect a change four times larger than the one in front of us. A non-rejection from a design like this says more about the <b>sample size</b> than about the hammers.</div>
+    <p>Because $\delta_{80\%}$ shrinks like $1/\sqrt n$, detecting a genuine 10.2 g lift with 80% power would need roughly $n=(2.4865\times55.3/10.2)^2\approx 182$ hammers. That is the constructive recommendation to put in the workbook: <b>this is not a verdict on the new system, it is a request for more data.</b></p>
+</section>
+
+<!-- Slide 16: Variance red flag -->
+<section class="slide" data-slide="16">
+    <h1>Red flag: the spread more than doubled</h1>
+    <p>We assumed $\sigma$ was still 55.3 g. The sample disagrees, loudly.</p>
+    <div class="formula">$s=125.653\ \text{g},\qquad \dfrac{s}{\sigma_0}=\dfrac{125.653}{55.3}=2.272,\qquad \dfrac{s^{2}}{\sigma_0^{2}}=\mathbf{5.16}$</div>
+    <svg viewBox="0 0 420 120" width="100%" style="max-width:100%;margin:8px 0" role="img" aria-label="Two horizontal bars comparing the assumed historical spread of plus or minus 55.3 grams with the much wider observed sample spread of plus or minus 125.7 grams around the sample mean.">
+  <line x1="45" y1="95" x2="400" y2="95" stroke="#6a5888" stroke-width="1.5"/>
+  <text x="45" y="112" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">700</text>
+  <text x="131.3" y="112" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">800</text>
+  <text x="217.5" y="112" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">900</text>
+  <text x="303.8" y="112" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">1000</text>
+  <text x="390" y="112" text-anchor="middle" font-size="10" font-family="Consolas,monospace" fill="#6a5888">1100</text>
+  <rect x="119.8" y="26" width="95.4" height="16" fill="rgba(13,122,110,.25)" stroke="#0d7a6e" stroke-width="1.5"/>
+  <text x="222" y="38" font-size="10" font-family="Consolas,monospace" fill="#0d7a6e">assumed: 842 ± 55.3</text>
+  <rect x="67.9" y="56" width="216.7" height="16" fill="rgba(196,40,72,.2)" stroke="#c42848" stroke-width="1.5"/>
+  <text x="290" y="68" font-size="10" font-family="Consolas,monospace" fill="#c42848">observed: 852.2 ± 125.7</text>
+  <circle cx="61.4" cy="88" r="3" fill="#1a5ca8"/><circle cx="82.1" cy="88" r="3" fill="#1a5ca8"/>
+  <circle cx="110.5" cy="88" r="3" fill="#1a5ca8"/><circle cx="133.0" cy="88" r="3" fill="#1a5ca8"/>
+  <circle cx="133.8" cy="80" r="3" fill="#1a5ca8"/><circle cx="136.4" cy="88" r="3" fill="#1a5ca8"/>
+  <circle cx="143.3" cy="80" r="3" fill="#1a5ca8"/><circle cx="239.1" cy="88" r="3" fill="#1a5ca8"/>
+  <circle cx="347.7" cy="88" r="3" fill="#1a5ca8"/><circle cx="375.3" cy="88" r="3" fill="#1a5ca8"/>
+</svg>
+    <p>The observed variance is <b>5.16 times</b> the historical variance. Some inflation is expected — with only 9 degrees of freedom the sample variance is a jumpy estimate — but a factor of five is a lot, and two hammers sit more than 4 historical standard deviations above $\mu_0$.</p>
+    <div class="warn"><b>The honest critical remark.</b> If the new system really did inflate the spread, then $\sigma_0=55.3$ understates the true standard error, the z-statistic is too <i>large</i>, and the real evidence is even weaker than 0.583 suggests — consistent with $t=0.257$. Either way the conclusion holds, but the interesting managerial finding may not be the mean at all: <b>the new system looks less consistent</b>. That is worth flagging even though branch ξ₁₃=2 does not ask about variance.</div>
+</section>
+
+<!-- Slide 17: Recap -->
+<section class="slide" data-slide="17">
+    <h1>Quest complete</h1>
+    <div class="buddy-row"><svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="2" y="2" width="2" height="2" fill="#a09090"/><rect x="12" y="2" width="2" height="2" fill="#a09090"/>
+    <rect x="3" y="3" width="1" height="1" fill="#c8a0a0"/><rect x="12" y="3" width="1" height="1" fill="#c8a0a0"/>
+    <rect x="3" y="4" width="10" height="8" fill="#a09090"/><rect x="5" y="7" width="6" height="4" fill="#d8c8b8"/>
+    <rect x="5" y="6" width="1" height="2" fill="#3a3040"/><rect x="10" y="6" width="1" height="2" fill="#3a3040"/>
+    <rect x="7" y="8" width="2" height="1" fill="#5a4848"/><rect x="7" y="9" width="2" height="1" fill="#6a5858"/>
+  </svg>
+      <div class="buddy-speech"><span class="speaker">Forge:</span> The exciting answer would have been "yes, heavier". The honest answer is "we cannot tell with ten hammers" — and saying that clearly is the harder skill.</div>
+    </div>
+    <ul class="checkpoint">
+      <li>Model $W\sim\mathcal{N}(\mu,\sigma^2)$; four assumptions stated, $\sigma$ known flagged as the shaky one</li>
+      <li>One-sided $H_0:\mu\le842$ vs $H_1:\mu&gt;842$ — direction comes from branch ξ₁₃=2, not from the data</li>
+      <li>Rule fixed in advance: reject iff $z&gt;1.644854$, i.e. $\bar x&gt;870.76$ g</li>
+      <li>$\bar x=852.2$, $z=0.583277$, $p=0.279853$ → <b>fail to reject</b>; no evidence of higher weights at 5%</li>
+      <li>$\sigma$ known → z; $\sigma$ from the sample → t. Robustness: $t_9=0.256701$, $p=0.401591$, same verdict</li>
+      <li>Errors: $\alpha=5\%$ by design; $\beta=85.58\%$ at $\mu=852.2$, power only 14.42%</li>
+      <li>Underpowered: 43.48 g detectable at 80%, 10.2 g observed → recommend more data, not a verdict</li>
+      <li>Red flag: $s^2/\sigma_0^2=5.16$ — the "$\sigma$ unchanged" assumption is doubtful</li>
+    </ul>
+    <details><summary>Quick self-check before the notebook</summary>
+      <p><b>Q1.</b> A colleague writes "p = 0.28, so there is a 28% chance the new system is no better." What is wrong?<br/>
+      <i>The p-value is computed assuming $H_0$ is true; it is the probability of data this extreme, not the probability of a hypothesis.</i></p>
+      <p><b>Q2.</b> Same data, but suppose the task had never mentioned the 1000-hammer history. Which test, and does the verdict change?<br/>
+      <i>t-test on 9 degrees of freedom: $t=0.256701$ against 1.833113, $p=0.401591$. Same verdict, weaker-looking statistic.</i></p>
+      <p><b>Q3.</b> Why is reporting $\beta=85.58\%$ more useful to the factory than reporting "not significant"?<br/>
+      <i>It converts a null result into an actionable statement: the study was too small, run about 180 hammers to detect a 10 g lift.</i></p>
+    </details>
+</section>
+
+  </div>
+
+<nav class="deck-controls">
+    <button type="button" id="prev">◀ PREV</button>
+    <span id="counter">1 / 18</span>
+    <button type="button" id="next">NEXT ▶</button>
+  </nav>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const sideNavList = document.getElementById("side-nav-list");
+    const navButtons = [];
+
+    let mainNum = 0;
+    let subParentNum = 0;
+    let subIndex = 0;
+    const sectionHeadersAdded = new Set();
+    const sectionDefaults = {
+      "sub-control": "╰ WITH A CONTROL GROUP",
+      "sub-its": "╰ INTERRUPTED TIME SERIES",
+    };
+
+    slides.forEach((slide, j) => {
+      const tier = slide.dataset.navTier || "core";
+      let displayNum;
+
+      if (tier === "core") {
+        mainNum++;
+        subParentNum = mainNum;
+        subIndex = 0;
+        displayNum = String(mainNum);
+      } else if (tier.startsWith("sub")) {
+        const sectionLabel = slide.dataset.navSection || sectionDefaults[tier] || "╰ DETAILS";
+        if (!sectionHeadersAdded.has(sectionLabel)) {
+          const head = document.createElement("p");
+          head.className = "side-nav-section";
+          head.textContent = sectionLabel;
+          sideNavList.appendChild(head);
+          sectionHeadersAdded.add(sectionLabel);
+        }
+        subIndex++;
+        displayNum = `${subParentNum}.${subIndex}`;
+      } else {
+        displayNum = String(j + 1);
+      }
+
+      const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      const isSub = tier.startsWith("sub");
+      btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+      btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
+      btn.addEventListener("click", () => show(j));
+      sideNavList.appendChild(btn);
+      navButtons.push(btn);
+    });
+    const headCore = document.createElement("p");
+    headCore.className = "side-nav-section";
+    headCore.textContent = "HAMMER PATH — start here";
+    sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
+    let i = 0;
+    const counter = document.getElementById("counter");
+    function show(n) {
+      i = Math.max(0, Math.min(n, slides.length - 1));
+      slides.forEach((s, j) => s.classList.toggle("active", j === i));
+      navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+      counter.textContent = `${i + 1} / ${slides.length}`;
+      navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+    document.getElementById("prev").onclick = () => show(i - 1);
+    document.getElementById("next").onclick = () => show(i + 1);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") show(i + 1);
+      if (e.key === "ArrowLeft") show(i - 1);
+    });
+    show(0);
+  </script>
+
+  <div id="laser-dot"></div>
+  <script>
+  /* ── Cursor effects: fairydust trail + click explosion ── */
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var PALETTE = ['#1a5ca8','#c42848','#b86800','#0d7a6e','#6a5888','#f5c842','#e87060','#a8d870'];
+    var PETAL_COLORS = ['#c42848','#b86800','#f5c842','#6a5888','#1a5ca8','#e87060','#0d7a6e'];
+    var PISTIL_COLORS = ['#f5c842','#1c1a30','#c42848'];
+    var LEAF_COLORS = ['#a8d870','#4a9a40','#7bc860','#e8a040','#c84828'];
+    var STAR_COLORS = ['#1a5ca8','#b86800','#c42848','#0d7a6e'];
+    var PARTICLE_CAP = 40;
+    var lastSpawn = 0;
+    var particleCount = 0;
+    var laser = document.getElementById('laser-dot');
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function rnd(min, max) { return min + Math.random() * (max - min); }
+
+    function makeFlower() {
+      var color = pick(PETAL_COLORS);
+      var pistil = pick(PISTIL_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var g = document.createElementNS(NS, 'g');
+      g.setAttribute('transform', 'translate(8,8)');
+      for (var i = 0; i < 5; i++) {
+        var petal = document.createElementNS(NS, 'ellipse');
+        petal.setAttribute('cx', '0');
+        petal.setAttribute('cy', '-4');
+        petal.setAttribute('rx', '2.5');
+        petal.setAttribute('ry', '4');
+        petal.setAttribute('fill', color);
+        petal.setAttribute('opacity', '0.9');
+        if (i > 0) petal.setAttribute('transform', 'rotate(' + (i * 72) + ')');
+        g.appendChild(petal);
+      }
+      var pistilEl = document.createElementNS(NS, 'circle');
+      pistilEl.setAttribute('cx', '0');
+      pistilEl.setAttribute('cy', '0');
+      pistilEl.setAttribute('r', '2.5');
+      pistilEl.setAttribute('fill', pistil);
+      g.appendChild(pistilEl);
+      svg.appendChild(g);
+      return svg;
+    }
+
+    function makeLeaf() {
+      var color = pick(LEAF_COLORS);
+      var angle = Math.floor(rnd(0, 360));
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var ellipse = document.createElementNS(NS, 'ellipse');
+      ellipse.setAttribute('cx', '8');
+      ellipse.setAttribute('cy', '8');
+      ellipse.setAttribute('rx', '3.5');
+      ellipse.setAttribute('ry', '6.5');
+      ellipse.setAttribute('fill', color);
+      ellipse.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      var line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', '8');
+      line.setAttribute('y1', '2');
+      line.setAttribute('x2', '8');
+      line.setAttribute('y2', '14');
+      line.setAttribute('stroke', '#2a5a20');
+      line.setAttribute('stroke-width', '0.8');
+      line.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      svg.appendChild(ellipse);
+      svg.appendChild(line);
+      return svg;
+    }
+
+    function makeStar() {
+      var color = pick(STAR_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var polygon = document.createElementNS(NS, 'polygon');
+      polygon.setAttribute('points', '8,1 9.5,6.5 15,8 9.5,9.5 8,15 6.5,9.5 1,8 6.5,6.5');
+      polygon.setAttribute('fill', color);
+      svg.appendChild(polygon);
+      return svg;
+    }
+
+    /* Effect 1 — Fairydust trail */
+    document.addEventListener('mousemove', function (e) {
+      if (laser) {
+        laser.style.left = e.clientX + 'px';
+        laser.style.top = e.clientY + 'px';
+      }
+      var now = Date.now();
+      if (now - lastSpawn < 30 || particleCount >= PARTICLE_CAP) return;
+      lastSpawn = now;
+
+      var size = 4 + Math.floor(rnd(0, 3));
+      var el = document.createElement('div');
+      el.className = 'fd-particle';
+      el.style.cssText = [
+        'width:' + size + 'px',
+        'height:' + size + 'px',
+        'background:' + pick(PALETTE),
+        'border-radius:0',
+        'left:' + (e.clientX + rnd(-6, 6) - size / 2) + 'px',
+        'top:' + (e.clientY + rnd(-6, 6) - size / 2) + 'px'
+      ].join(';');
+      document.body.appendChild(el);
+      particleCount++;
+
+      var ty = -rnd(20, 40);
+      el.animate(
+        [{ opacity: 1, transform: 'translateY(0)' },
+         { opacity: 0, transform: 'translateY(' + ty + 'px)' }],
+        { duration: rnd(600, 800), easing: 'ease-out', fill: 'forwards' }
+      ).addEventListener('finish', function () { el.remove(); particleCount--; });
+    });
+
+    /* Effect 2 — Click explosion with random theme (flower / leaf / star) */
+    document.addEventListener('click', function (e) {
+      var themes = ['flower', 'leaf', 'star'];
+      var theme = themes[Math.floor(Math.random() * 3)];
+      var count = 12 + Math.floor(rnd(0, 5));
+      for (var k = 0; k < count; k++) {
+        var angle = rnd(0, 360) * Math.PI / 180;
+        var dist = rnd(40, 80);
+        var dx = Math.cos(angle) * dist;
+        var dy = Math.sin(angle) * dist;
+        var rotate = rnd(0, 360);
+        var el;
+        if (theme === 'flower') { el = makeFlower(); }
+        else if (theme === 'leaf') { el = makeLeaf(); }
+        else { el = makeStar(); }
+        el.setAttribute('class', 'fd-petal');
+        el.style.cssText = [
+          'left:' + (e.clientX - 7) + 'px',
+          'top:' + (e.clientY - 7) + 'px',
+          'transform:rotate(' + rotate + 'deg)'
+        ].join(';');
+        document.body.appendChild(el);
+
+        (function (el, rotate, dx, dy) {
+          el.animate(
+            [{ opacity: 1, transform: 'rotate(' + rotate + 'deg) translate(0,0)' },
+             { opacity: 0, transform: 'rotate(' + (rotate + 180) + 'deg) translate(' + dx + 'px,' + dy + 'px)' }],
+            { duration: rnd(700, 900), easing: 'ease-out', fill: 'forwards' }
+          ).addEventListener('finish', function () { el.remove(); });
+        }(el, rotate, dx, dy));
+      }
+    });
+  }());
+  </script>
+  <script>
+  /* ── hover tooltip engine ── */
+  (function () {
+    var box = document.createElement('div');
+    box.id = 'tip-box';
+    document.body.appendChild(box);
+    document.querySelectorAll('.tip').forEach(function (el) {
+      el.addEventListener('mouseenter', function (e) {
+        var lbl = el.dataset.tipTitle ? '<span class="tip-label">' + el.dataset.tipTitle + '</span>' : '';
+        box.innerHTML = lbl + (el.dataset.tip || '');
+        if (window.renderMathInElement) renderMathInElement(box, {
+          delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+          throwOnError: false
+        });
+        box.style.display = 'block'; move(e);
+      });
+      el.addEventListener('mousemove', move);
+      el.addEventListener('mouseleave', function () { box.style.display = 'none'; });
+    });
+    function move(e) {
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 310 > window.innerWidth)  x = e.clientX - 316;
+      if (y + 200 > window.innerHeight) y = e.clientY - 206;
+      box.style.left = x + 'px'; box.style.top = y + 'px';
+    }
+  }());
+  </script>
+</body>
+</html>
