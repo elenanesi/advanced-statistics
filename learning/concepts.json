@@ -60,7 +60,7 @@
     {
       "id": "bernoulli-expectation",
       "title": "Bernoulli trial & expectation",
-      "mastery": "solid",
+      "mastery": "developing",
       "prerequisites": ["stats-probability-foundations"],
       "related_exam_tasks": [1],
       "course_book": ["Unit 1 — 1.3"],
@@ -72,7 +72,7 @@
     {
       "id": "unit3-distributions",
       "title": "Important probability distributions (Unit 3 survey)",
-      "mastery": "novice",
+      "mastery": "developing",
       "prerequisites": ["stats-probability-foundations"],
       "related_exam_tasks": [1, 2, 3, 4, 6],
       "course_book": ["Unit 3 — 3.1", "Unit 3 — 3.2", "Unit 3 — 3.3", "Unit 3 — 3.4", "Unit 3 — 3.5"],
@@ -108,7 +108,7 @@
     {
       "id": "hypothesis-test-mean",
       "title": "Testing mean / variance claims",
-      "mastery": "novice",
+      "mastery": "developing",
       "prerequisites": ["stats-probability-foundations", "unit3-distributions"],
       "related_exam_tasks": [4],
       "course_book": ["Unit 3 — 3.2", "Unit 7 — 7.1", "Unit 7 — 7.2"],
@@ -153,6 +153,32 @@
       "slide_status": "ready",
       "tags": ["work-transfer", "monks"],
       "notes": "2026-08-06. Categorised marketing/creative/ecom problems mapped to exam + causal-impact + VBB concepts."
+    },
+    {
+      "id": "marketing-mix-modeling",
+      "title": "Marketing Mix Modeling (MMM) for media plans",
+      "mastery": "solid",
+      "prerequisites": ["ols-ridge"],
+      "related_exam_tasks": [],
+      "course_book": [],
+      "buddy_id": "ridge-sprite",
+      "slide_path": "slides/mmm/index.html",
+      "slide_status": "ready",
+      "tags": ["off-syllabus", "work-transfer", "monks"],
+      "notes": "2026-09-21. Media-plan-first teaching deck. Covers: MMM vs causal impact vs MTA vs tests; media plan as channel×week calendar; decomposition; adstock (flighting); saturation; average ROI vs mROI; reallocation numeric example; optimizer→heatmap; collinearity; calibration with geo-tests. Ridge the penguin (OLS cousin). Sibling OLS deck: slides/mmm/ols.html."
+    },
+    {
+      "id": "ordinary-least-squares",
+      "title": "OLS as a measurement instrument (A/B tests)",
+      "mastery": "novice",
+      "prerequisites": [],
+      "related_exam_tasks": [5],
+      "course_book": ["Unit 6 — 6.2"],
+      "buddy_id": "ridge-sprite",
+      "slide_path": "slides/mmm/ols.html",
+      "slide_status": "ready",
+      "tags": ["off-syllabus", "work-transfer", "monks"],
+      "notes": "2026-09-21. Separate from Task 5 ridge polynomial. OLS = minimise leftover²; A/B t-test is OLS of Y on 0/1; covariates/CUPED; randomisation vs observational; MMM is OLS plus adstock/saturation; LPM vs logistic. User believed OLS is used in A/B — correct, and they are the same estimator."
     }
   ]
 }

@@ -19,7 +19,7 @@
       "Be concise and direct — no filler, no cheerleading",
       "Work/manual cards: lead with the stakeholder ask in quotes, then plain-English 'what that means', then the concept — never concept jargon as the headline"
     ],
-    "notes": "CONFIRMED 2026-06-24: visual learner — 'I'm a very visual person, an image and a comparison with something I can imagine helps me learning'. Intuition MUST precede formalism — 'X : Ω → R means almost nothing to me' when definition came first; label-gun analogy worked. Needs conceptual WHY before WHAT. Thinks in prerequisite chains — spontaneously requested intro deck before task deck. Always anchor abstract definitions with a concrete real-world example before notation."
+    "notes": "CONFIRMED 2026-06-24: visual learner — 'I'm a very visual person, an image and a comparison with something I can imagine helps me learning'. Intuition MUST precede formalism — 'X : Ω → R means almost nothing to me' when definition came first; label-gun analogy worked. Needs conceptual WHY before WHAT. Thinks in prerequisite chains — spontaneously requested intro deck before task deck. Always anchor abstract definitions with a concrete real-world example before notation. 2026-09-25: for z-scores, 'spread' and 'ruler' did not help; use average, variance, standard deviation, and a tiny numeric example. The phrase that unlocked standard deviation was 'an average distance from 0'. 2026-09-25 evening: the two-proportion explanation was too dense — bounce of the gap, both-arms denominator, hammer z/t rule, and OLS identity in one turn. Redo one mechanism at a time; park OLS until she asks."
   },
   "agent_memory": {
     "source_of_truth": [
@@ -42,41 +42,93 @@
   ],
   "weaknesses": [
     "formal probability theory (measure theory, σ-algebras) — notation without intuition fails",
-    "Bayesian statistics beyond applied use"
+    "Bayesian statistics beyond applied use",
+    "retrieval after understanding: concepts feel clear in the session, then go foggy because decks were built and not retrieved (fluency from re-reading is not recall)"
   ],
   "misconceptions": [
     {
       "concept": "random-variable",
       "question_asked": "Why is X called a random variable if the values 0 and 1 are fixed?",
       "clarification_needed": "The function X(·) is deterministic. The randomness comes from the input ω — which outcome the experiment produces. Capital X = the rule + uncertainty about input; lowercase x = a realized value.",
-      "last_seen": "2026-06-24",
+      "last_seen": "2026-09-29",
       "addressed_in": "slides/exam_tasks/task1-bernoulli.html slide 3",
-      "status": "resolved"
+      "status": "reopened",
+      "belief": "2026-09-29 retest: x = 1 is correct and the flip is random. Capital X was given as the list [1, 0]. X is the fixed rule that turns a face into a number. The list is only the set of possible results."
     },
     {
       "concept": "expected-value",
       "question_asked": "What exactly IS E[X]? Still not 100% clear.",
       "clarification_needed": "E[X] = weighted average of all possible values (each value × its probability, summed). It's the long-run average after many trials, not a prediction of any single trial, and it need not be a possible value (die E[X] = 3.5).",
-      "last_seen": "2026-06-24",
+      "last_seen": "2026-09-29",
       "addressed_in": "slides/intro-stats-probability/index.html slides 3–4; slides/exam_tasks/task1-bernoulli.html slide 8",
+      "status": "resolved",
+      "belief": "2026-09-29 retest held: 1-or-6 die averages 3.5, no roll lands there, it is the long-run average of many rolls."
+    },
+    {
+      "concept": "probability-vs-statistics-direction",
+      "question_asked": "What does probability start from, and what does statistics start from?",
+      "belief": "2026-09-29 retest held. Known 60% coin before flipping is probability. 58 heads in 100 is statistics. Earlier inversion is gone. The word stamp was unclear.",
+      "clarification_needed": "Probability starts from a known mechanism and goes forward to possible data. Statistics starts from observed data and goes backward to an unknown mechanism.",
+      "last_seen": "2026-09-29",
       "status": "resolved"
+    },
+    {
+      "concept": "poisson-vs-exponential",
+      "question_asked": "Match binomial, Poisson, exponential to the question each answers.",
+      "belief": "2026-09-29 retest held: exponential is the wait, Poisson is the count in a time span. The earlier swap did not return.",
+      "clarification_needed": "Poisson counts events in a fixed window. Exponential is the wait until the next event.",
+      "last_seen": "2026-09-29",
+      "status": "resolved"
+    },
+    {
+      "concept": "z-vs-t",
+      "question_asked": "Who uses z and who uses t when testing a mean?",
+      "belief": "2026-09-29 retest held: z when the population standard deviation is known, t when it is computed from the sample. Both ask whether the sample average is far from the stated average.",
+      "clarification_needed": "Both test a mean. z uses a known population standard deviation. t uses a standard deviation computed from the sample.",
+      "last_seen": "2026-09-29",
+      "status": "resolved"
+    },
+    {
+      "concept": "two-sample-conversion-z",
+      "question_asked": "If the control sample is large enough to proxy the population, can I z-test the exposed conversion rate against the control rate and variance, and otherwise use a t-test?",
+      "belief": "2026-09-29 retest: blank. The percentage-point version did not stick.",
+      "clarification_needed": "A 1 percentage-point gap is compared with a typical lucky gap of about 0.3 points when the campaign did nothing. Both the exposed rate and the control rate can be lucky. A large control makes 4% sit stiller. It does not make 4% exact.",
+      "last_seen": "2026-09-29",
+      "status": "open"
+    },
+    {
+      "concept": "z-test-tail-and-h1",
+      "question_asked": "If z falls in the tail of the standard normal, do we know the result is not by chance and H1 is likely true?",
+      "belief": "2026-09-29 retest: correctly rejects H0 and will not say H1 is certain. Still says the result makes H1 likely, and that there is not enough evidence to reject H1.",
+      "clarification_needed": "Rejecting H0 does not produce a probability that H1 is true, and it is not a failure to reject H1. The test made one decision: the claim is a poor account of this sample.",
+      "last_seen": "2026-09-29",
+      "status": "open"
+    },
+    {
+      "concept": "z-score-bounds",
+      "question_asked": "If a z-score makes the average 0 and the variance 1, are the values between -1 and 1, or between -3 and 3?",
+      "belief": "Variance 1 means the transformed values sit between -1 and 1. Separately, z-scores might be capped at -3 and 3.",
+      "clarification_needed": "After z-scoring, the average is 0, the variance is 1, and the standard deviation is 1. A standard deviation of 1 is an average distance from 0, so some values sit closer than 1 and some farther. The cutoff 3 is a rarity rule for a bell curve, not a limit of the formula.",
+      "last_seen": "2026-09-25",
+      "status": "resolved",
+      "resolved_by": "Phrase that landed: a standard deviation of 1 is an average distance from 0. The squared-distance table showed why a 0 in the middle forces other values past 1."
     }
   ],
   "concepts": {
     "bernoulli-expectation": {
-      "mastery": "solid",
-      "last_assessed": "2026-06-24",
-      "notes": "Full slide deck built (slides/exam_tasks/task1-bernoulli.html). E[X] confusion resolved via die analogy + seesaw."
+      "mastery": "developing",
+      "last_assessed": "2026-09-25",
+      "notes": "2026-09-29 retest: 1-or-6 average held (3.5, long-run, no roll lands there). Lowercase x = 1 held. Capital X still given as the list [1, 0] rather than the fixed rule."
     },
     "stats-probability-foundations": {
       "mastery": "developing",
-      "last_assessed": "2026-06-24",
-      "notes": "Intro deck created. Not yet tested in a diagnostic."
+      "last_assessed": "2026-09-25",
+      "notes": "2026-09-29 retest: probability starts from the known 60% coin; statistics starts from 58 heads in 100. PMF vs PDF not retested."
     },
     "unit3-distributions": {
-      "mastery": "novice",
-      "last_assessed": "2026-07-06",
-      "notes": "ch3-distributions deck ready; diagnostic pending."
+      "mastery": "developing",
+      "last_assessed": "2026-09-25",
+      "notes": "2026-09-29 retest: Poisson is the count in a time span, exponential is the wait. Swap did not return. Rest of the distribution catalogue not retested."
     },
     "continuous-survival-pdf": {
       "mastery": "novice",
@@ -89,25 +141,35 @@
       "notes": "task3-gamma-mle deck ready; notebook not started."
     },
     "hypothesis-test-mean": {
-      "mastery": "novice",
-      "last_assessed": null,
-      "notes": "slides/exam_tasks/task4-hypothesis.html"
+      "mastery": "developing",
+      "last_assessed": "2026-09-29",
+      "notes": "2026-09-29: z vs t switch held (known standard deviation vs computed from the sample). Tail still over-read as H1 being likely. Campaign two-sample gap was blank."
     },
     "ols-ridge": {
       "mastery": "novice",
-      "last_assessed": null,
-      "notes": "slides/exam_tasks/task5-ridge.html"
+      "last_assessed": "2026-09-25",
+      "notes": "OLS recognized only as 'some sort of regression'. Ridge unknown. Distinct from the applied regression she can already describe inside MMM."
     },
     "gamma-conjugate-bayes": {
       "mastery": "novice",
-      "last_assessed": null,
-      "notes": "slides/exam_tasks/task6-bayes.html — Hogg rate parameterization for Gamma."
+      "last_assessed": "2026-09-25",
+      "notes": "Prior-as-refinement-beyond-frequency is present. MLE unknown. Conjugate Gamma update not assessed."
+    },
+    "marketing-mix-modeling": {
+      "mastery": "solid",
+      "last_assessed": "2026-09-25",
+      "notes": "Live answer: MMM = baseline, channel contributions, halo, saturation, budget allocation across channels and time. Causal impact = singular intervention vs counterfactual. Slight fuzz: counterfactual described as a model on selected features; BSTS is primarily the pre-period of the outcome itself, with covariates optional."
+    },
+    "ordinary-least-squares": {
+      "mastery": "novice",
+      "last_assessed": "2026-09-25",
+      "notes": "Could not say what OLS minimises, and could not say whether a two-sample t-test and OLS of a 0/1 outcome on a group flag are the same comparison. Applied regression inside MMM is ahead of the OLS name. One user's convert/not called binomial; that count is binomial, the single trial is Bernoulli."
     }
   },
   "calibration": {
     "status": "partial",
-    "sessions_completed": 2,
-    "recommended_next_probe": "hypothesis-test-mean z-vs-t and conjugate-gamma rate vs scale",
-    "notes": "Tasks 4–6 deck created 2026-08-06. Next: live diagnostic on z-test vs t-test trap and Task 6 rate parameterization, then notebook implementation."
+    "sessions_completed": 4,
+    "recommended_next_probe": "Study again only: (1) capital X is the rule, not the list [1, 0]; (2) a tail z rejects H0 and does not make H1 likely; (3) campaign gap of 1 point versus a typical lucky gap of about 0.3 points, both rates uncertain. Leave the retained pictures alone.",
+    "notes": "2026-09-25 diagnostic scored. Solid: variance intuition, PMF vs PDF, MMM vs causal impact. Active wrong beliefs: directions inverted, Poisson/exponential swapped, t assigned to variance, mean described as where most values lie. Blanks: ridge, MLE, t-test vs OLS identity. When a correction is unclear she reaches for the course book; redraw the picture instead. The book is for attaching a formula after the picture is stable."
   }
 }

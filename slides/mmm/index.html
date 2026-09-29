@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MMM for media plans — Advanced Stats Quest</title>
+  <!-- Technique C pixel-art favicon: Ridge the Penguin -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect x="4" y="2" width="8" height="4" fill="%23485880"/><rect x="3" y="6" width="10" height="6" fill="%23485880"/><rect x="5" y="4" width="6" height="3" fill="%23e8e0d8"/><rect x="6" y="4" width="1" height="1" fill="%233a3040"/><rect x="9" y="4" width="1" height="1" fill="%233a3040"/><rect x="7" y="6" width="2" height="1" fill="%23d4a060"/></svg>' />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet" />
+  <!-- KaTeX — proper math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <style>
+    :root {
+      --bg:     #f0ebe0;   /* warm parchment */
+      --card:   #fffef8;   /* near-white */
+      --accent: #1a5ca8;   /* deep sapphire — h1, checkpoints */
+      --rose:   #c42848;   /* vivid crimson — speech bubbles, callouts */
+      --honey:  #b86800;   /* deep amber — h2, formulas */
+      --text:   #1c1a30;   /* dark navy — body text */
+      --mist:   #6a5888;   /* muted plum — secondary, counters */
+      --teal:   #0d7a6e;   /* deep teal — positive signals */
+      --slate:  #3a4d7a;   /* slate blue — methodology callouts */
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100vh;
+      /* Consolas for body — matches slides/causal-impact/index.html */
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      /* subtle dot-grid: retro feel, not distracting */
+      background-image: radial-gradient(circle, rgba(80,60,140,.07) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .deck { max-width: 740px; margin: 0 auto; padding: 24px 16px 90px; margin-left: 212px; }
+
+    /* Side navigation — jump to any slide by title */
+    .side-nav {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 52px;
+      width: 212px;
+      padding: 16px 10px 16px 12px;
+      background: var(--card);
+      border-right: 2px solid #ccc4e0;
+      box-shadow: 2px 0 0 rgba(80,60,140,.08);
+      overflow-y: auto;
+      z-index: 9;
+    }
+    .side-nav-title {
+      font-family: "DotGothic16", monospace;
+      font-size: 8px;
+      color: var(--mist);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .side-nav-list { display: flex; flex-direction: column; gap: 4px; }
+    .side-nav-btn {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px;
+      border: 2px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .side-nav-btn:hover {
+      background: rgba(26,92,168,.06);
+      border-color: #ccc4e0;
+    }
+    .side-nav-btn.active {
+      background: rgba(26,92,168,.1);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .side-nav-num {
+      flex-shrink: 0;
+      color: var(--mist);
+      font-size: 10px;
+      min-width: 1.2em;
+    }
+    .side-nav-btn.active .side-nav-num { color: var(--accent); }
+    .side-nav-label { flex: 1; }
+    .side-nav-btn:active { transform: none; box-shadow: none; }
+    .side-nav-section {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9px;
+      color: var(--mist);
+      margin: 10px 0 4px;
+      padding-top: 10px;
+      border-top: 1px solid #d0c8e0;
+      letter-spacing: 1px;
+      line-height: 1.4;
+    }
+    .side-nav-list .side-nav-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+    .side-nav-btn.is-sub { padding-left: 18px; font-size: 10px; color: #3a6090; }
+    .side-nav-btn.is-sub .side-nav-label { font-style: italic; }
+    .side-nav-btn.is-sub.active { color: var(--accent); font-style: normal; }
+    .side-nav-btn.is-sub .side-nav-num { min-width: 2.4em; }
+    .badge-sub {
+      border: 2px solid var(--slate);
+      color: var(--slate);
+      font-size: 10px;
+      padding: 4px 8px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    .slide {
+      display: none;
+      background: var(--card);
+      border: 2px solid #ccc4e0;
+      box-shadow: 4px 4px 0 rgba(80,60,140,.18);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .slide.active { display: block; }
+    h1 {
+      font-family: "DotGothic16", monospace;
+      font-size: 13px;
+      color: var(--accent);
+      margin: 0 0 16px;
+      letter-spacing: .5px;
+    }
+    h2 {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      color: var(--honey);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 18px 0 8px;
+    }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+
+    .buddy-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+    .buddy-svg { flex-shrink: 0; animation: float 3s ease-in-out infinite; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .buddy-speech {
+      flex: 1;
+      background: #fff8f2;
+      border: 2px solid var(--rose);
+      padding: 12px;
+      position: relative;
+    }
+    .buddy-speech::before {
+      content: "";
+      position: absolute;
+      left: -11px;
+      top: 14px;
+      border: 7px solid transparent;
+      border-right-color: var(--rose);
+    }
+    .buddy-speech .speaker { color: var(--rose); font-weight: bold; }
+
+    .formula {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(26,92,168,.06);
+      padding: 14px 16px;
+      border: 2px solid rgba(26,92,168,.3);
+      margin: 12px 0;
+      overflow-x: auto;
+      line-height: 1.8;
+    }
+    .formula em { color: var(--honey); font-style: normal; }
+    .formula .katex { font-size: 1.08em; }
+    .formula .katex-display { margin: 6px 0; }
+
+    /* ── hover tooltips for jargon terms ── */
+    .tip { border-bottom: 2px dashed var(--honey); cursor: help; }
+    #tip-box {
+      position: fixed; display: none;
+      background: #fff8f2;
+      border: 2px solid var(--honey);
+      box-shadow: 4px 4px 0 rgba(80,60,140,.22);
+      padding: 10px 14px; max-width: 300px;
+      font-size: 11px; z-index: 99998;
+      color: var(--text); line-height: 1.6; pointer-events: none;
+    }
+    .tip-label {
+      font-weight: bold; color: var(--honey); display: block;
+      margin-bottom: 4px; font-size: 10px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    table.data { width:100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+    table.data th, table.data td { border: 1px solid #ccc4e0; padding: 6px 8px; text-align: left; }
+    table.data th { background: rgba(26,92,168,.08); color: var(--accent); }
+    table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    table.data .cut { color: var(--rose); font-weight: bold; }
+    table.data .add { color: var(--teal); font-weight: bold; }
+    .callout { border: 2px solid var(--teal); background: rgba(13,122,110,.06); padding: 10px 12px; margin: 10px 0; }
+    .warn { border: 2px solid var(--rose); background: rgba(196,40,72,.06); padding: 10px 12px; margin: 10px 0; }
+    .ask { border: 2px solid var(--honey); background: rgba(184,104,0,.07); padding: 10px 12px; margin: 10px 0; }
+    .ask .quote { color: var(--honey); font-weight: bold; margin: 0 0 8px; }
+    .badge { display:inline-block; border:2px solid var(--accent); color:var(--accent); font-size:10px; padding:3px 8px; margin-bottom:10px; }
+    svg.scene { width: 100%; max-width: 100%; height: auto; margin: 10px 0; display: block; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+    .mini { border: 2px solid #ccc4e0; padding: 10px; }
+    .mini h3 { font-size: 11px; color: var(--accent); margin: 0 0 6px; }
+    .mini p { margin: 0; font-size: 12px; }
+    .note { color: var(--mist); font-size: 11px; }
+    .means { color: var(--text); margin: 4px 0 0; }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--rose); font-size: 13px; }
+    details[open] summary { margin-bottom: 8px; }
+
+    .checkpoint { color: var(--accent); }
+    .checkpoint li::marker { content: "✦ "; }
+
+    nav.deck-controls {
+      position: fixed;
+      bottom: 0;
+      left: 212px;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      background: rgba(240,235,224,.97);
+      border-top: 3px solid var(--honey);
+      z-index: 10;
+    }
+    #counter {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      color: var(--mist);
+    }
+    button {
+      font-family: "DotGothic16", monospace;
+      font-size: 9px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fffef8;
+      border: 2px solid #0d3d7a;
+      box-shadow: 3px 3px 0 rgba(26,92,168,.25);
+      cursor: pointer;
+    }
+    button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(26,92,168,.2); }
+
+    /* Fairydust trail & click explosion — effect elements */
+    .fd-particle, .fd-petal { position: fixed; z-index: 99999; pointer-events: none; }
+
+    /* Laser pointer cursor */
+    body { cursor: none; }
+    button, a, summary, [role="button"],
+    .side-nav, .side-nav-btn, details { cursor: none !important; }
+    #laser-dot {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, #c42848 45%, transparent 70%);
+      box-shadow: 0 0 6px 2px #c42848, 0 0 14px 4px #c4284855;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.05s ease;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #laser-dot { display: none; }
+      body { cursor: auto; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="side-nav" aria-label="Slide contents">
+    <p class="side-nav-title">CONTENTS</p>
+    <div id="side-nav-list" class="side-nav-list"></div>
+  </aside>
+
+  <div class="deck" id="deck">
+
+  <!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  BUDDY SPRITE CATALOG — copy the one matching buddy_id     ║
+  ║  from learning/concepts.json into the <svg> below.          ║
+  ║  All are 16×16 viewBox, Technique C, shape-rendering=       ║
+  ║  "crispEdges". Display at width/height 64.                  ║
+  ╠══════════════════════════════════════════════════════════════╣
+  ║                                                              ║
+  ║  coin-sprite  → Penny the Cat (warm cream, dusty-rose ears) ║
+  ║  owl-sprite   → Hootsworth the Owl (plum body, big eyes)    ║
+  ║  router-sprite→ Packet the Bunny (mint, tall ears)          ║
+  ║  hammer-sprite→ Forge the Bear (warm grey, cream snout)     ║
+  ║  ridge-sprite → Ridge the Penguin (slate blue, white belly) ║
+  ║  prior-sprite → Bayes the Fox (amber, cream muzzle)         ║
+  ║                                                              ║
+  ╚══════════════════════════════════════════════════════════════╝
+
+  ─── coin-sprite: Penny the Cat ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="3"  y="2" width="2" height="3" fill="#c4919e"/>
+    <rect x="11" y="2" width="2" height="3" fill="#c4919e"/>
+    <rect x="4"  y="3" width="1" height="1" fill="#a87888"/>
+    <rect x="11" y="3" width="1" height="1" fill="#a87888"/>
+    <rect x="3"  y="5" width="10" height="8" fill="#f0dcc0"/>
+    <rect x="5"  y="7" width="1" height="2" fill="#3a3040"/>
+    <rect x="10" y="7" width="1" height="2" fill="#3a3040"/>
+    <rect x="7"  y="9" width="2" height="1" fill="#c4919e"/>
+    <rect x="4"  y="9" width="1" height="1" fill="#e8a8b0"/>
+    <rect x="11" y="9" width="1" height="1" fill="#e8a8b0"/>
+    <rect x="7"  y="10" width="1" height="1" fill="#5a4858"/>
+    <rect x="8"  y="10" width="1" height="1" fill="#5a4858"/>
+  </svg>
+
+  ─── owl-sprite: Hootsworth the Owl ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="3"  y="1" width="1" height="2" fill="#706090"/>
+    <rect x="12" y="1" width="1" height="2" fill="#706090"/>
+    <rect x="3"  y="3" width="10" height="9" fill="#8870a0"/>
+    <rect x="4"  y="4" width="3" height="3" fill="#f0e8d8"/>
+    <rect x="9"  y="4" width="3" height="3" fill="#f0e8d8"/>
+    <rect x="5"  y="5" width="1" height="1" fill="#3a3040"/>
+    <rect x="10" y="5" width="1" height="1" fill="#3a3040"/>
+    <rect x="7"  y="7" width="2" height="1" fill="#d4a060"/>
+    <rect x="5"  y="8" width="6" height="3" fill="#c8a870"/>
+    <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+    <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+  </svg>
+
+  ─── router-sprite: Packet the Bunny ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="4"  y="0" width="2" height="4" fill="#88c8c0"/>
+    <rect x="10" y="0" width="2" height="4" fill="#88c8c0"/>
+    <rect x="5"  y="1" width="1" height="2" fill="#d0a0a8"/>
+    <rect x="10" y="1" width="1" height="2" fill="#d0a0a8"/>
+    <rect x="3"  y="4" width="10" height="7" fill="#88c8c0"/>
+    <rect x="5"  y="6" width="1" height="2" fill="#3a3040"/>
+    <rect x="10" y="6" width="1" height="2" fill="#3a3040"/>
+    <rect x="7"  y="8" width="2" height="1" fill="#d0a0a8"/>
+    <rect x="4"  y="8" width="1" height="1" fill="#e8a8b0"/>
+    <rect x="11" y="8" width="1" height="1" fill="#e8a8b0"/>
+    <rect x="7"  y="9" width="2" height="1" fill="#508880"/>
+  </svg>
+
+  ─── hammer-sprite: Forge the Bear ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="2"  y="2" width="2" height="2" fill="#a09090"/>
+    <rect x="12" y="2" width="2" height="2" fill="#a09090"/>
+    <rect x="3"  y="3" width="1" height="1" fill="#c8a0a0"/>
+    <rect x="12" y="3" width="1" height="1" fill="#c8a0a0"/>
+    <rect x="3"  y="4" width="10" height="8" fill="#a09090"/>
+    <rect x="5"  y="7" width="6" height="4" fill="#d8c8b8"/>
+    <rect x="5"  y="6" width="1" height="2" fill="#3a3040"/>
+    <rect x="10" y="6" width="1" height="2" fill="#3a3040"/>
+    <rect x="7"  y="8" width="2" height="1" fill="#5a4848"/>
+    <rect x="7"  y="9" width="2" height="1" fill="#6a5858"/>
+  </svg>
+
+  ─── ridge-sprite: Ridge the Penguin ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="4"  y="2" width="8" height="4" fill="#485880"/>
+    <rect x="3"  y="6" width="10" height="6" fill="#485880"/>
+    <rect x="5"  y="4" width="6" height="3" fill="#e8e0d8"/>
+    <rect x="5"  y="7" width="6" height="4" fill="#e8e0d8"/>
+    <rect x="6"  y="4" width="1" height="1" fill="#3a3040"/>
+    <rect x="9"  y="4" width="1" height="1" fill="#3a3040"/>
+    <rect x="5"  y="5" width="1" height="1" fill="#c8a0a8"/>
+    <rect x="10" y="5" width="1" height="1" fill="#c8a0a8"/>
+    <rect x="7"  y="6" width="2" height="1" fill="#d4a060"/>
+    <rect x="5"  y="12" width="2" height="1" fill="#d4a060"/>
+    <rect x="9"  y="12" width="2" height="1" fill="#d4a060"/>
+  </svg>
+
+  ─── prior-sprite: Bayes the Fox ───
+  <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16"
+       shape-rendering="crispEdges" aria-hidden="true">
+    <rect x="3"  y="1" width="2" height="3" fill="#c8804c"/>
+    <rect x="11" y="1" width="2" height="3" fill="#c8804c"/>
+    <rect x="4"  y="2" width="1" height="1" fill="#f0dcc0"/>
+    <rect x="11" y="2" width="1" height="1" fill="#f0dcc0"/>
+    <rect x="3"  y="4" width="10" height="7" fill="#c8804c"/>
+    <rect x="5"  y="7" width="6" height="3" fill="#f0dcc0"/>
+    <rect x="5"  y="6" width="1" height="1" fill="#3a3040"/>
+    <rect x="10" y="6" width="1" height="1" fill="#3a3040"/>
+    <rect x="7"  y="7" width="2" height="1" fill="#5a4040"/>
+    <rect x="7"  y="8" width="2" height="1" fill="#8a6050"/>
+    <rect x="4"  y="7" width="1" height="1" fill="#e0a088"/>
+    <rect x="11" y="7" width="1" height="1" fill="#e0a088"/>
+  </svg>
+
+  ═══════════════════════════════════════════════════════════════
+  -->
+
+  <!-- Slide 0: Title -->
+  <section class="slide active" data-slide="0">
+    <h1>MMM FOR MEDIA PLANS</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="4" y="2" width="8" height="4" fill="#485880"/>
+        <rect x="3" y="6" width="10" height="6" fill="#485880"/>
+        <rect x="5" y="4" width="6" height="3" fill="#e8e0d8"/>
+        <rect x="5" y="7" width="6" height="4" fill="#e8e0d8"/>
+        <rect x="6" y="4" width="1" height="1" fill="#3a3040"/>
+        <rect x="9" y="4" width="1" height="1" fill="#3a3040"/>
+        <rect x="5" y="5" width="1" height="1" fill="#c8a0a8"/>
+        <rect x="10" y="5" width="1" height="1" fill="#c8a0a8"/>
+        <rect x="7" y="6" width="2" height="1" fill="#d4a060"/>
+        <rect x="5" y="12" width="2" height="1" fill="#d4a060"/>
+        <rect x="9" y="12" width="2" height="1" fill="#d4a060"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Ridge:</span> Marketing Mix Modeling (MMM) is not a last-click report. It is a model of the shopping list — so you can rewrite next year’s media plan.
+      </div>
+    </div>
+    <p>Work transfer · off-syllabus · cousin of OLS (ordinary least squares) with two extra “physics” terms.</p>
+  </section>
+
+  <!-- Slide 1 -->
+  <section class="slide" data-slide="1">
+    <h1>The question it answers</h1>
+    <div class="ask">
+      <p class="quote">“Where should next year’s media money go?”</p>
+      <p class="means">They are not asking whether last month’s promo “worked”. They already have a <span class="tip" data-tip-title="Media plan" data-tip="The operational document: channel, weekly/monthly budget, flight dates, and what you are buying (GRPs, impressions, clicks). It is the shopping list + calendar — not the creative.">media plan</span> to write: channel totals, and which weeks those channels fly.</p>
+    </div>
+    <p>That is what MMM is <em>for</em>. You watch many weeks where the mix changed, reverse-engineer how sales respond to each channel, then propose a new mix.</p>
+    <p>You already have a tool for a different question. <strong>Causal impact</strong> (Bayesian structural time series — BSTS) asks: did <em>this</em> campaign add lift vs a counterfactual? MMM asks: if we change the <em>whole mix</em> next year, how does the KPI move?</p>
+    <details>
+      <summary>Check yourself — one sentence</summary>
+      <p>If your answer was “attribute conversions to touchpoints”, that is multi-touch attribution (MTA), not MMM. If it was “did the promo work?”, that is causal impact. MMM is the allocation engine.</p>
+    </details>
+  </section>
+
+  <!-- Slide 2 -->
+  <section class="slide" data-slide="2">
+    <h1>Taste the soup, not the salt</h1>
+    <p>You never taste salt alone. You taste soup every week. Over a hundred weeks you change how much salt, pepper, and stock you put in — and you reverse-engineer the recipe. Then you write next year’s shopping list.</p>
+    <svg class="scene" viewBox="0 0 680 230" role="img" aria-label="Three taps pouring into a pot of weekly sales; baseline stock already in the pot">
+      <rect x="1" y="1" width="678" height="228" fill="#fff8f2" stroke="#ccc4e0" stroke-width="2"/>
+      <!-- taps -->
+      <g font-family="Consolas, monospace" font-size="11">
+        <rect x="70" y="18" width="90" height="28" fill="#b86800"/>
+        <text x="115" y="37" text-anchor="middle" fill="#fffef8" font-weight="bold">TV</text>
+        <rect x="112" y="46" width="6" height="70" fill="#b86800"/>
+        <rect x="295" y="18" width="90" height="28" fill="#1a5ca8"/>
+        <text x="340" y="37" text-anchor="middle" fill="#fffef8" font-weight="bold">Search</text>
+        <rect x="337" y="46" width="6" height="70" fill="#1a5ca8"/>
+        <rect x="520" y="18" width="90" height="28" fill="#0d7a6e"/>
+        <text x="565" y="37" text-anchor="middle" fill="#fffef8" font-weight="bold">Social</text>
+        <rect x="562" y="46" width="6" height="70" fill="#0d7a6e"/>
+      </g>
+      <!-- pot -->
+      <path d="M80,130 L600,130 L570,205 L110,205 Z" fill="#e8e0d0" stroke="#1c1a30" stroke-width="2"/>
+      <rect x="80" y="118" width="520" height="14" fill="#d4c8b0" stroke="#1c1a30" stroke-width="2"/>
+      <!-- baseline stock already in pot -->
+      <rect x="120" y="168" width="440" height="28" fill="#9fb3c2"/>
+      <text x="340" y="187" text-anchor="middle" font-family="Consolas, monospace" font-size="12" fill="#1c1a30">baseline stock already in the pot</text>
+      <text x="340" y="222" text-anchor="middle" font-family="Consolas, monospace" font-size="12" fill="#6a5888">WEEKLY SALES — you only ever taste the mix</text>
+    </svg>
+    <p><strong>Baseline</strong> (plain English: sales you would still get with £0 media — brand, distribution, season, habit) is the stock already in the pot. Media is the seasoning. MMM estimates how much each seasoning moved the taste.</p>
+  </section>
+
+  <!-- Slide 3 -->
+  <section class="slide" data-slide="3">
+    <h1>Four tools that get confused</h1>
+    <p>Same boardroom sentence — “what did media do?” — four different objects. The fork is the <em>question</em>, not the dashboard.</p>
+    <div class="grid-2">
+      <div class="mini">
+        <h3>Causal impact / BSTS</h3>
+        <p>Did <em>this</em> campaign add lift vs a no-campaign world? One intervention, one series. Post-mortem. You already use this.</p>
+      </div>
+      <div class="mini">
+        <h3>MTA / last-click</h3>
+        <p>Which touchpoint sat on the path of people who converted? User-level credit. Digital-only. Not incrementality of spend.</p>
+      </div>
+      <div class="mini">
+        <h3>A/B or geo-lift</h3>
+        <p>Gold-standard incrementality for <em>one</em> tactic. Expensive. Too slow to rewrite a full annual plan every quarter.</p>
+      </div>
+      <div class="mini" style="border-color: var(--accent);">
+        <h3>MMM</h3>
+        <p>If we change the <em>mix of spend</em> across channels and weeks, how does the KPI move? Built to output a new plan.</p>
+      </div>
+    </div>
+    <div class="callout">Lookalike trap: platform ROAS (return on ad spend) from Meta or Google is closer to MTA than to MMM. It is not “what would sales have been if we had not spent”.</div>
+  </section>
+
+  <!-- Slide 4 -->
+  <section class="slide" data-slide="4">
+    <h1>What a media plan actually is</h1>
+    <p>A media plan is a calendar of spend — not a ranking of channels. Rows are channels. Columns are weeks or months. Each cell is “how much we buy here”.</p>
+    <svg class="scene" viewBox="0 0 680 210" role="img" aria-label="Media plan heatmap: TV bursts in Q4, Search always-on, Social always-on">
+      <rect x="1" y="1" width="678" height="208" fill="#fffef8" stroke="#ccc4e0" stroke-width="2"/>
+      <text x="340" y="22" text-anchor="middle" font-family="Consolas, monospace" font-size="12" fill="#6a5888">THIS YEAR’S PLAN (illustrative)</text>
+      <g font-family="Consolas, monospace" font-size="10" fill="#1c1a30">
+        <text x="70" y="58" text-anchor="end">TV</text>
+        <text x="70" y="98" text-anchor="end">Search</text>
+        <text x="70" y="138" text-anchor="end">Social</text>
+      </g>
+      <!-- months -->
+      <g font-family="Consolas, monospace" font-size="10" fill="#6a5888">
+        <text x="95" y="38">J</text><text x="140" y="38">F</text><text x="185" y="38">M</text><text x="230" y="38">A</text>
+        <text x="275" y="38">M</text><text x="320" y="38">J</text><text x="365" y="38">J</text><text x="410" y="38">A</text>
+        <text x="455" y="38">S</text><text x="500" y="38">O</text><text x="545" y="38">N</text><text x="590" y="38">D</text>
+      </g>
+      <!-- TV: off Jan-Feb, ramp, Q4 heavy -->
+      <g fill="#b86800">
+        <rect x="86" y="44" width="38" height="24" opacity=".08"/><rect x="131" y="44" width="38" height="24" opacity=".08"/>
+        <rect x="176" y="44" width="38" height="24" opacity=".25"/><rect x="221" y="44" width="38" height="24" opacity=".3"/>
+        <rect x="266" y="44" width="38" height="24" opacity=".35"/><rect x="311" y="44" width="38" height="24" opacity=".35"/>
+        <rect x="356" y="44" width="38" height="24" opacity=".4"/><rect x="401" y="44" width="38" height="24" opacity=".45"/>
+        <rect x="446" y="44" width="38" height="24" opacity=".7"/><rect x="491" y="44" width="38" height="24" opacity=".85"/>
+        <rect x="536" y="44" width="38" height="24" opacity=".95"/><rect x="581" y="44" width="38" height="24" opacity="1"/>
+      </g>
+      <!-- Search always-on -->
+      <g fill="#1a5ca8">
+        <rect x="86" y="84" width="38" height="24" opacity=".55"/><rect x="131" y="84" width="38" height="24" opacity=".55"/>
+        <rect x="176" y="84" width="38" height="24" opacity=".55"/><rect x="221" y="84" width="38" height="24" opacity=".55"/>
+        <rect x="266" y="84" width="38" height="24" opacity=".55"/><rect x="311" y="84" width="38" height="24" opacity=".55"/>
+        <rect x="356" y="84" width="38" height="24" opacity=".55"/><rect x="401" y="84" width="38" height="24" opacity=".55"/>
+        <rect x="446" y="84" width="38" height="24" opacity=".6"/><rect x="491" y="84" width="38" height="24" opacity=".7"/>
+        <rect x="536" y="84" width="38" height="24" opacity=".7"/><rect x="581" y="84" width="38" height="24" opacity=".75"/>
+      </g>
+      <!-- Social -->
+      <g fill="#0d7a6e">
+        <rect x="86" y="124" width="38" height="24" opacity=".4"/><rect x="131" y="124" width="38" height="24" opacity=".4"/>
+        <rect x="176" y="124" width="38" height="24" opacity=".4"/><rect x="221" y="124" width="38" height="24" opacity=".4"/>
+        <rect x="266" y="124" width="38" height="24" opacity=".45"/><rect x="311" y="124" width="38" height="24" opacity=".45"/>
+        <rect x="356" y="124" width="38" height="24" opacity=".5"/><rect x="401" y="124" width="38" height="24" opacity=".5"/>
+        <rect x="446" y="124" width="38" height="24" opacity=".55"/><rect x="491" y="124" width="38" height="24" opacity=".6"/>
+        <rect x="536" y="124" width="38" height="24" opacity=".6"/><rect x="581" y="124" width="38" height="24" opacity=".6"/>
+      </g>
+      <text x="86" y="172" font-family="Consolas, monospace" font-size="11" fill="#b86800">TV = bursts (Q4 pile-up)</text>
+      <text x="300" y="172" font-family="Consolas, monospace" font-size="11" fill="#1a5ca8">Search = always-on</text>
+      <text x="86" y="192" font-family="Consolas, monospace" font-size="11" fill="#6a5888">Darker cell = more spend. MMM reads this calendar + sales, then proposes a new one.</text>
+    </svg>
+  </section>
+
+  <!-- Slide 5 -->
+  <section class="slide" data-slide="5">
+    <h1>Split last year’s sales</h1>
+    <p>First output is a <span class="tip" data-tip-title="Decomposition" data-tip="Split of the KPI into baseline (would happen with £0 media) plus each channel’s incremental contribution, after controls like price, promo, season.">decomposition</span>: how much of sales was baseline vs each channel. Tiny retailer, made-up but consistent numbers we will reuse.</p>
+    <svg class="scene" viewBox="0 0 680 150" role="img" aria-label="Stacked bar of £40M sales split into baseline, TV, Search, Social">
+      <rect x="1" y="1" width="678" height="148" fill="#fffef8" stroke="#ccc4e0" stroke-width="2"/>
+      <text x="24" y="28" font-family="Consolas, monospace" font-size="12" fill="#6a5888">£40M sales</text>
+      <rect x="24" y="44" width="310" height="36" fill="#9fb3c2"/>
+      <rect x="334" y="44" width="190" height="36" fill="#b86800"/>
+      <rect x="524" y="44" width="95" height="36" fill="#1a5ca8"/>
+      <rect x="619" y="44" width="38" height="36" fill="#0d7a6e"/>
+      <g font-family="Consolas, monospace" font-size="11" fill="#1c1a30">
+        <text x="179" y="67" text-anchor="middle">Baseline £19.6M</text>
+        <text x="429" y="67" text-anchor="middle" fill="#fffef8">TV £12.0</text>
+        <text x="571" y="67" text-anchor="middle" fill="#fffef8">£6.0</text>
+        <text x="24" y="106" fill="#6a5888">£19.6M would happen with £0 media. The rest is what the plan bought.</text>
+        <text x="24" y="126" fill="#6a5888">Social is the thin teal sliver on the right (£2.4M). Easy to miss; still real.</text>
+      </g>
+    </svg>
+    <table class="data">
+      <thead><tr><th>Channel</th><th>Spend</th><th>Incremental sales</th><th>Avg ROI</th></tr></thead>
+      <tbody>
+        <tr><td>TV</td><td class="num">£8.0M</td><td class="num">£12.0M</td><td class="num">1.50</td></tr>
+        <tr><td>Search</td><td class="num">£2.0M</td><td class="num">£6.0M</td><td class="num">3.00</td></tr>
+        <tr><td>Social</td><td class="num">£1.5M</td><td class="num">£2.4M</td><td class="num">1.60</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Average ROI = incremental sales / spend. Useful as a rear-view mirror. It is the wrong number for rewriting the plan — next two slides say why.</p>
+    <details>
+      <summary>The regression skeleton (after the picture)</summary>
+      <div class="formula">$Sales_t = Baseline_t + \sum_c f_c(\tilde{x}_{c,t}) + Controls_t + error_t$</div>
+      <p>$f_c$ is that channel’s saturation curve. $\tilde{x}$ is adstocked spend. Baseline swallows intercept + season + trend. Same family as OLS; the two extra physics terms are why this is not “regress sales on spend”.</p>
+    </details>
+  </section>
+
+  <!-- Slide 6 -->
+  <section class="slide" data-slide="6">
+    <h1>Adstock — the echo</h1>
+    <p><strong>Why this exists:</strong> a TV spot on Monday still sells on Thursday. If you credit only the spend week, you under-count brand channels and over-count always-on digital.</p>
+    <p>Picture: food colouring in a glass (TV — the water stays tinted). An ice cube (Search — gone when it melts, this week).</p>
+    <svg class="scene" viewBox="0 0 680 210" role="img" aria-label="Adstock bars: TV pulse decays slowly, Search decays in one week">
+      <rect x="1" y="1" width="678" height="208" fill="#fffef8" stroke="#ccc4e0" stroke-width="2"/>
+      <text x="24" y="24" font-family="Consolas, monospace" font-size="12" fill="#6a5888">Same £ spend pulse in week 0 — how much “effective media” remains?</text>
+      <!-- TV bars λ=0.5 -->
+      <g font-family="Consolas, monospace" font-size="11">
+        <text x="24" y="50" fill="#b86800" font-weight="bold">TV echo (slow)</text>
+        <rect x="24" y="58" width="40" height="100" fill="#b86800"/>
+        <rect x="84" y="108" width="40" height="50" fill="#b86800"/>
+        <rect x="144" y="133" width="40" height="25" fill="#b86800"/>
+        <rect x="204" y="145" width="40" height="13" fill="#b86800"/>
+        <rect x="264" y="151" width="40" height="7" fill="#b86800"/>
+        <text x="44" y="176" text-anchor="middle" fill="#6a5888">0</text>
+        <text x="104" y="176" text-anchor="middle" fill="#6a5888">1</text>
+        <text x="164" y="176" text-anchor="middle" fill="#6a5888">2</text>
+        <text x="224" y="176" text-anchor="middle" fill="#6a5888">3</text>
+        <text x="284" y="176" text-anchor="middle" fill="#6a5888">4</text>
+        <text x="360" y="50" fill="#1a5ca8" font-weight="bold">Search echo (fast)</text>
+        <rect x="360" y="58" width="40" height="100" fill="#1a5ca8"/>
+        <rect x="420" y="148" width="40" height="10" fill="#1a5ca8"/>
+        <rect x="480" y="156" width="40" height="2" fill="#1a5ca8"/>
+        <text x="380" y="176" text-anchor="middle" fill="#6a5888">0</text>
+        <text x="440" y="176" text-anchor="middle" fill="#6a5888">1</text>
+        <text x="500" y="176" text-anchor="middle" fill="#6a5888">2</text>
+        <text x="24" y="198" fill="#6a5888">Week →    This is why TV can fly in bursts. Search goes dark and the effect dies immediately.</text>
+      </g>
+    </svg>
+    <div class="callout"><strong>Media-plan consequence:</strong> decay speed writes the calendar. Slow echo → bursts can be efficient (spend, then ride the tint). Fast echo → always-on, or you are dark.</div>
+  </section>
+
+  <!-- Slide 7 sub adstock -->
+  <section class="slide" data-slide="7" data-nav-tier="sub" data-nav-section="╰ THE TWO PHYSICS TERMS">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>Geometric adstock</h1>
+    <p>Turn this week’s spend $x_t$ into “effective media” $\tilde{x}_t$ by keeping a fraction $\lambda$ of last week’s echo.</p>
+    <div class="formula">$\tilde{x}_t = x_t + \lambda\,\tilde{x}_{t-1}$</div>
+    <p>$\lambda$ near 0.5–0.8: TV, video, OOH (out-of-home). $\lambda$ near 0–0.2: search, shopping. The model estimates $\lambda$ per channel from the data (often with a prior in Bayesian MMM).</p>
+    <p>Then sales respond to $\tilde{x}$, not to raw $x$. That is how a Monday spot is allowed to explain Thursday’s sales.</p>
+    <details>
+      <summary>Why geometric, not “lag 1, lag 2, lag 3…” as separate regressors?</summary>
+      <p>Free lags eat degrees of freedom and collinear with each other. One $\lambda$ is a one-knob echo. Same job as an exponentially weighted moving average of spend.</p>
+    </details>
+  </section>
+
+  <!-- Slide 8 -->
+  <section class="slide" data-slide="8">
+    <h1>Saturation — leftover pizza</h1>
+    <p><strong>Why this exists:</strong> the first £ of search is hungry customers you were not already reaching. The 8-millionth £ of TV is the same people, again. Returns fall. That curve is the whole reason a plan can be <em>wrong even when every channel has positive ROI</em>.</p>
+    <svg class="scene" viewBox="0 0 680 250" role="img" aria-label="Diminishing-returns curve with Search on the steep part and TV on the flat part">
+      <rect x="1" y="1" width="678" height="248" fill="#fffef8" stroke="#ccc4e0" stroke-width="2"/>
+      <g stroke="#e8e0d0">
+        <line x1="60" y1="40" x2="60" y2="210"/><line x1="60" y1="210" x2="650" y2="210"/>
+        <line x1="60" y1="168" x2="650" y2="168" stroke-dasharray="3 4"/>
+        <line x1="60" y1="126" x2="650" y2="126" stroke-dasharray="3 4"/>
+        <line x1="60" y1="84" x2="650" y2="84" stroke-dasharray="3 4"/>
+      </g>
+      <path d="M60,210 C140,118 220,84 320,68 C420,54 520,48 650,44" fill="none" stroke="#0d7a6e" stroke-width="3"/>
+      <!-- Search at steep -->
+      <line x1="175" y1="210" x2="175" y2="128" stroke="#1a5ca8" stroke-dasharray="4 3"/>
+      <circle cx="175" cy="128" r="6" fill="#1a5ca8"/>
+      <text x="183" y="122" font-family="Consolas, monospace" font-size="11" fill="#1a5ca8">Search now — still steep</text>
+      <!-- TV at flat -->
+      <line x1="470" y1="210" x2="470" y2="52" stroke="#b86800" stroke-dasharray="4 3"/>
+      <circle cx="470" cy="52" r="6" fill="#b86800"/>
+      <text x="390" y="38" font-family="Consolas, monospace" font-size="11" fill="#b86800">TV now — leftover pizza</text>
+      <text x="340" y="232" text-anchor="middle" font-family="Consolas, monospace" font-size="12" fill="#6a5888">spend on this channel →</text>
+      <text x="18" y="130" font-family="Consolas, monospace" font-size="11" fill="#6a5888" transform="rotate(-90 18 130)">incremental sales</text>
+    </svg>
+    <p>The slope at the current point is the return on the <em>next</em> pound. Average ROI is the slope of the chord from the origin. Those two numbers tell different stories on purpose.</p>
+  </section>
+
+  <!-- Slide 9 sub hill -->
+  <section class="slide" data-slide="9" data-nav-tier="sub" data-nav-section="╰ THE TWO PHYSICS TERMS">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>The Hill curve</h1>
+    <p>A common saturation shape (Hill / Michaelis–Menten family): extra spend still helps, but less and less, and it never goes negative.</p>
+    <div class="formula">$f(x)=\beta\dfrac{x^{\alpha}}{x^{\alpha}+\gamma^{\alpha}}$</div>
+    <ul>
+      <li>$\beta$ — ceiling: max sales this channel can ever add.</li>
+      <li>$\gamma$ — the spend level at which you are halfway to the ceiling (the “half-saturation” knob).</li>
+      <li>$\alpha$ — how sharp the elbow is. $\alpha=1$ is a smooth bend; large $\alpha$ is more of a cliff then a plateau.</li>
+    </ul>
+    <p>You do not need to fit this by hand. You need to <em>read</em> it: if the plan sits past $\gamma$, the next pound is cheap-looking in average ROI and expensive in slope.</p>
+  </section>
+
+  <!-- Slide 10 -->
+  <section class="slide" data-slide="10">
+    <h1>Average ROI vs the next pound</h1>
+    <p>Two lookalikes. Mixing them up is how good channels get cut and saturated channels get fed.</p>
+    <div class="grid-2">
+      <div class="mini">
+        <h3>Average ROI</h3>
+        <p>Total incremental sales / total spend. Rear-view. “What did this channel return this year?”</p>
+      </div>
+      <div class="mini" style="border-color: var(--honey);">
+        <h3>Marginal ROI (mROI)</h3>
+        <p>Slope of the response curve <em>at current spend</em>. Forward-looking. “What does the next pound return?”</p>
+      </div>
+    </div>
+    <table class="data">
+      <thead><tr><th>Channel</th><th>Spend</th><th>Avg ROI</th><th>mROI now</th><th>Read</th></tr></thead>
+      <tbody>
+        <tr><td>TV</td><td class="num">£8.0M</td><td class="num">1.50</td><td class="num cut">0.60</td><td>Saturated. Next £ returns 60p of sales.</td></tr>
+        <tr><td>Search</td><td class="num">£2.0M</td><td class="num">3.00</td><td class="num add">2.10</td><td>Still steep. Next £ returns £2.10.</td></tr>
+        <tr><td>Social</td><td class="num">£1.5M</td><td class="num">1.60</td><td class="num add">1.40</td><td>Healthy. Not the star, not done.</td></tr>
+      </tbody>
+    </table>
+    <div class="warn"><strong>The trap:</strong> a planner who sorts by average ROI pours more into Search <em>and also</em> protects TV because “1.5 is fine”. The plan question is mROI vs a hurdle — and the hurdle should use contribution margin, not revenue. If margin is 50%, you need mROI ≥ 2 just to break even on the next pound.</div>
+  </section>
+
+  <!-- Slide 11 -->
+  <section class="slide" data-slide="11">
+    <h1>Rewrite the plan (numbers)</h1>
+    <p>Same £11.5M budget. Move £1.0M from TV → Search. Use the current slopes as a <em>local</em> guess (honest caveat below).</p>
+    <table class="data">
+      <thead><tr><th></th><th>TV incremental</th><th>Search incremental</th><th>Total sales</th></tr></thead>
+      <tbody>
+        <tr><td>Now</td><td class="num">£12.00M</td><td class="num">£6.00M</td><td class="num">£40.00M</td></tr>
+        <tr>
+          <td>After £1M shift</td>
+          <td class="num cut">£11.40M <span class="note">(−0.60)</span></td>
+          <td class="num add">£8.10M <span class="note">(+2.10)</span></td>
+          <td class="num add">£41.50M</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Same money, +£1.5M sales — <em>if</em> the slopes stay put. They do not. After the shift, TV’s mROI rises (less pizza) and Search’s mROI falls (more pizza). A real optimizer walks along the curves until mROIs are equal (or hit a constraint), not one £1M leap.</p>
+    <div class="callout">This is the media-plan move: you are not “picking a winner”. You are moving money down the leftover-pizza channel and up the still-hungry one, until the next pound is worth the same everywhere you are allowed to spend.</div>
+  </section>
+
+  <!-- Slide 12 -->
+  <section class="slide" data-slide="12">
+    <h1>From curves to a calendar</h1>
+    <p>The optimizer’s real output is not a bar chart of ROI. It is a new heatmap: channel × week, under constraints the planner already has (min TV for brand, contracts, production lead time, cannot 10× search in a week without CPCs exploding).</p>
+    <svg class="scene" viewBox="0 0 680 250" role="img" aria-label="Before and after media plan heatmaps">
+      <rect x="1" y="1" width="678" height="248" fill="#fffef8" stroke="#ccc4e0" stroke-width="2"/>
+      <text x="175" y="22" text-anchor="middle" font-family="Consolas, monospace" font-size="12" fill="#6a5888">PLAN NOW</text>
+      <text x="505" y="22" text-anchor="middle" font-family="Consolas, monospace" font-size="12" fill="#0d7a6e">MMM DRAFT PLAN</text>
+      <!-- left small heatmap -->
+      <g transform="translate(20,36)">
+        <text x="0" y="18" font-family="Consolas, monospace" font-size="10" fill="#1c1a30">TV</text>
+        <rect x="28" y="4" width="14" height="16" fill="#b86800" opacity=".1"/>
+        <rect x="44" y="4" width="14" height="16" fill="#b86800" opacity=".1"/>
+        <rect x="60" y="4" width="14" height="16" fill="#b86800" opacity=".3"/>
+        <rect x="76" y="4" width="14" height="16" fill="#b86800" opacity=".35"/>
+        <rect x="92" y="4" width="14" height="16" fill="#b86800" opacity=".4"/>
+        <rect x="108" y="4" width="14" height="16" fill="#b86800" opacity=".45"/>
+        <rect x="124" y="4" width="14" height="16" fill="#b86800" opacity=".5"/>
+        <rect x="140" y="4" width="14" height="16" fill="#b86800" opacity=".55"/>
+        <rect x="156" y="4" width="14" height="16" fill="#b86800" opacity=".75"/>
+        <rect x="172" y="4" width="14" height="16" fill="#b86800" opacity=".9"/>
+        <rect x="188" y="4" width="14" height="16" fill="#b86800" opacity="1"/>
+        <rect x="204" y="4" width="14" height="16" fill="#b86800" opacity="1"/>
+        <text x="0" y="42" font-family="Consolas, monospace" font-size="10">SE</text>
+        <g fill="#1a5ca8">
+          <rect x="28" y="28" width="14" height="16" opacity=".5"/><rect x="44" y="28" width="14" height="16" opacity=".5"/>
+          <rect x="60" y="28" width="14" height="16" opacity=".5"/><rect x="76" y="28" width="14" height="16" opacity=".5"/>
+          <rect x="92" y="28" width="14" height="16" opacity=".5"/><rect x="108" y="28" width="14" height="16" opacity=".5"/>
+          <rect x="124" y="28" width="14" height="16" opacity=".5"/><rect x="140" y="28" width="14" height="16" opacity=".5"/>
+          <rect x="156" y="28" width="14" height="16" opacity=".55"/><rect x="172" y="28" width="14" height="16" opacity=".65"/>
+          <rect x="188" y="28" width="14" height="16" opacity=".65"/><rect x="204" y="28" width="14" height="16" opacity=".7"/>
+        </g>
+        <text x="0" y="66" font-family="Consolas, monospace" font-size="10">SO</text>
+        <g fill="#0d7a6e">
+          <rect x="28" y="52" width="14" height="16" opacity=".4"/><rect x="44" y="52" width="14" height="16" opacity=".4"/>
+          <rect x="60" y="52" width="14" height="16" opacity=".4"/><rect x="76" y="52" width="14" height="16" opacity=".4"/>
+          <rect x="92" y="52" width="14" height="16" opacity=".45"/><rect x="108" y="52" width="14" height="16" opacity=".45"/>
+          <rect x="124" y="52" width="14" height="16" opacity=".5"/><rect x="140" y="52" width="14" height="16" opacity=".5"/>
+          <rect x="156" y="52" width="14" height="16" opacity=".55"/><rect x="172" y="52" width="14" height="16" opacity=".55"/>
+          <rect x="188" y="52" width="14" height="16" opacity=".55"/><rect x="204" y="52" width="14" height="16" opacity=".55"/>
+        </g>
+      </g>
+      <polygon points="268,78 300,90 268,102" fill="#1a5ca8"/>
+      <!-- right heatmap: TV still bursts but smaller Q4; Search up; Social up a bit -->
+      <g transform="translate(340,36)">
+        <text x="0" y="18" font-family="Consolas, monospace" font-size="10" fill="#1c1a30">TV</text>
+        <rect x="28" y="4" width="14" height="16" fill="#b86800" opacity=".15"/>
+        <rect x="44" y="4" width="14" height="16" fill="#b86800" opacity=".15"/>
+        <rect x="60" y="4" width="14" height="16" fill="#b86800" opacity=".45"/>
+        <rect x="76" y="4" width="14" height="16" fill="#b86800" opacity=".2"/>
+        <rect x="92" y="4" width="14" height="16" fill="#b86800" opacity=".45"/>
+        <rect x="108" y="4" width="14" height="16" fill="#b86800" opacity=".2"/>
+        <rect x="124" y="4" width="14" height="16" fill="#b86800" opacity=".45"/>
+        <rect x="140" y="4" width="14" height="16" fill="#b86800" opacity=".2"/>
+        <rect x="156" y="4" width="14" height="16" fill="#b86800" opacity=".55"/>
+        <rect x="172" y="4" width="14" height="16" fill="#b86800" opacity=".25"/>
+        <rect x="188" y="4" width="14" height="16" fill="#b86800" opacity=".6"/>
+        <rect x="204" y="4" width="14" height="16" fill="#b86800" opacity=".25"/>
+        <text x="0" y="42" font-family="Consolas, monospace" font-size="10">SE</text>
+        <g fill="#1a5ca8">
+          <rect x="28" y="28" width="14" height="16" opacity=".8"/><rect x="44" y="28" width="14" height="16" opacity=".8"/>
+          <rect x="60" y="28" width="14" height="16" opacity=".8"/><rect x="76" y="28" width="14" height="16" opacity=".8"/>
+          <rect x="92" y="28" width="14" height="16" opacity=".8"/><rect x="108" y="28" width="14" height="16" opacity=".8"/>
+          <rect x="124" y="28" width="14" height="16" opacity=".85"/><rect x="140" y="28" width="14" height="16" opacity=".85"/>
+          <rect x="156" y="28" width="14" height="16" opacity=".9"/><rect x="172" y="28" width="14" height="16" opacity=".9"/>
+          <rect x="188" y="28" width="14" height="16" opacity=".9"/><rect x="204" y="28" width="14" height="16" opacity=".95"/>
+        </g>
+        <text x="0" y="66" font-family="Consolas, monospace" font-size="10">SO</text>
+        <g fill="#0d7a6e">
+          <rect x="28" y="52" width="14" height="16" opacity=".55"/><rect x="44" y="52" width="14" height="16" opacity=".55"/>
+          <rect x="60" y="52" width="14" height="16" opacity=".55"/><rect x="76" y="52" width="14" height="16" opacity=".55"/>
+          <rect x="92" y="52" width="14" height="16" opacity=".6"/><rect x="108" y="52" width="14" height="16" opacity=".6"/>
+          <rect x="124" y="52" width="14" height="16" opacity=".65"/><rect x="140" y="52" width="14" height="16" opacity=".65"/>
+          <rect x="156" y="52" width="14" height="16" opacity=".7"/><rect x="172" y="52" width="14" height="16" opacity=".7"/>
+          <rect x="188" y="52" width="14" height="16" opacity=".7"/><rect x="204" y="52" width="14" height="16" opacity=".7"/>
+        </g>
+      </g>
+      <text x="24" y="140" font-family="Consolas, monospace" font-size="12" fill="#1c1a30">What changed in the calendar, and why:</text>
+      <text x="24" y="162" font-family="Consolas, monospace" font-size="12" fill="#b86800">TV: still bursts (slow echo) but Q4 pile-up is cut — that was leftover pizza.</text>
+      <text x="24" y="182" font-family="Consolas, monospace" font-size="12" fill="#1a5ca8">Search: up, still always-on — fast echo + still-steep slope.</text>
+      <text x="24" y="202" font-family="Consolas, monospace" font-size="12" fill="#0d7a6e">Social: modest up — mROI was above hurdle, not the main lever.</text>
+      <text x="24" y="226" font-family="Consolas, monospace" font-size="12" fill="#6a5888">Annual totals moved. Flighting pattern came from adstock, not from taste.</text>
+    </svg>
+  </section>
+
+  <!-- Slide 13 -->
+  <section class="slide" data-slide="13">
+    <h1>What MMM cannot plan</h1>
+    <p>Grain is usually <strong>market × week × channel</strong> (sometimes tactic). Everything finer than that is a different tool.</p>
+    <table class="data">
+      <thead><tr><th>MMM can rewrite</th><th>Still a human / another model</th></tr></thead>
+      <tbody>
+        <tr><td>Channel budgets (year / quarter)</td><td>Creative, endline, offer</td></tr>
+        <tr><td>Burst vs always-on (if weekly)</td><td>Audience, keyword, placement inside a platform</td></tr>
+        <tr><td>Scenarios: “same money, more search”</td><td>Dayparting, bidding, frequency caps</td></tr>
+        <tr><td>A forecast of the KPI under a plan</td><td>A new channel with no history (needs a test first)</td></tr>
+      </tbody>
+    </table>
+    <div class="warn">If someone hands you an MMM and asks which Meta lookalike to buy, they have the wrong instrument. That is in-platform incrementality or a test, not mix modeling.</div>
+    <p class="note">Also not a substitute for causal impact on a single national promo. Different question, different output (cumulative lift vs a counterfactual, not a 12-month heatmap).</p>
+  </section>
+
+  <!-- Slide 14 -->
+  <section class="slide" data-slide="14">
+    <h1>Traps</h1>
+    <ul>
+      <li><strong>Sorting the plan by average ROI.</strong> You already saw this. mROI + constraints rewrite the calendar.</li>
+      <li><strong>No spend variation.</strong> If search is a flat always-on line, the model has nothing to learn. It will invent a plausible coefficient anyway.</li>
+      <li><strong>Lockstep channels.</strong> TV and OOH that only ever fly together in Q4 share one effect. The split is a story, not a measurement. (Next sub-chapter.)</li>
+      <li><strong>Last-click as ground truth.</strong> If you “validate” MMM against Google last-click, you are forcing it to reproduce a biased report.</li>
+      <li><strong>Ignoring controls.</strong> Price, promo, distribution, competitors, weather, season. Leave them out and media eats their credit (or vice versa).</li>
+      <li><strong>Acting on one refresh.</strong> Plans are sticky. Use MMM for the next planning cycle and for scenario tables, not for Tuesday’s bid change.</li>
+    </ul>
+  </section>
+
+  <!-- Slide 15 sub collinearity -->
+  <section class="slide" data-slide="15" data-nav-tier="sub" data-nav-section="╰ WHEN THE PLAN FOOLS THE MODEL">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>Collinearity</h1>
+    <p>If two rows of the media plan are nearly the same shape, MMM cannot taste them apart. It sees one seasoning called “Q4 brand pile-up”.</p>
+    <svg class="scene" viewBox="0 0 680 130" role="img" aria-label="TV and OOH spend lines overlapping in Q4">
+      <rect x="1" y="1" width="678" height="128" fill="#fffef8" stroke="#ccc4e0" stroke-width="2"/>
+      <text x="24" y="22" font-family="Consolas, monospace" font-size="12" fill="#6a5888">Spend over the year — TV (amber) vs OOH (plum), lockstep</text>
+      <polyline points="24,100 80,100 140,96 200,92 260,88 320,84 380,78 440,50 500,36 560,28 640,24" fill="none" stroke="#b86800" stroke-width="3"/>
+      <polyline points="24,104 80,104 140,98 200,94 260,90 320,86 380,80 440,54 500,40 560,32 640,28" fill="none" stroke="#6a5888" stroke-width="3" stroke-dasharray="6 4"/>
+      <text x="500" y="70" font-family="Consolas, monospace" font-size="11" fill="#c42848">the model sees one bump</text>
+    </svg>
+    <p>Fixes that are actually plan decisions: stagger flights, hold one channel dark in a region, or run a geo-test on one of them. A prettier Bayesian prior does not create information the calendar never provided.</p>
+  </section>
+
+  <!-- Slide 16 sub calibrate -->
+  <section class="slide" data-slide="16" data-nav-tier="sub" data-nav-section="╰ WHEN THE PLAN FOOLS THE MODEL">
+    <span class="badge-sub">SUB-CHAPTER</span>
+    <h1>Calibrate with tests</h1>
+    <p>MMM is observational. Experiments pin a channel down. That is how this sits next to work you already do.</p>
+    <ul>
+      <li><strong>Geo-lift / causal impact</strong> on one channel → a number you trust for <em>that</em> tactic. Use it as a prior or a constraint so MMM cannot wander off.</li>
+      <li><strong>Holdouts</strong> in the media plan (a dark week, a dark region) are not waste. They are identification. Planners hate them; the model needs them.</li>
+      <li><strong>New channel</strong> (TikTok, retail media): no history → do not ask MMM to invent a response curve. Test first, then add a row to the plan and the model.</li>
+    </ul>
+    <div class="callout">Division of labour: tests tell you the truth in one cell. MMM copies that truth across the rest of the calendar and the other cells you cannot test every quarter.</div>
+  </section>
+
+  <!-- Slide 17 -->
+  <section class="slide" data-slide="17">
+    <h1>Quiz</h1>
+    <p><strong>1.</strong> Search avg ROI = 3.0, TV = 1.5. A planner zeros TV. What did they mix up?</p>
+    <details>
+      <summary>Answer 1</summary>
+      <p>They sorted by average ROI and ignored saturation, constraints, and echo. TV’s mROI was 0.60 — cut some, not necessarily all. Brand, contracts, and slow adstock can still justify a smaller burst pattern. Zeroing a channel is a plan decision with extra costs MMM’s slope does not price.</p>
+    </details>
+    <p><strong>2.</strong> Can MMM tell you which TikTok creative to run next month?</p>
+    <details>
+      <summary>Answer 2</summary>
+      <p>No. Wrong grain. Creative is inside a cell of the plan. MMM rewrites cells (channel × week), not the ad inside the cell. Use a test or in-platform incrementality.</p>
+    </details>
+    <p><strong>3.</strong> TV and OOH only ever fly together in Q4. The model says OOH ROI is 4.0 and TV is 0.9. Trust it?</p>
+    <details>
+      <summary>Answer 3</summary>
+      <p>No. Collinearity: one bump, two labels. The split is unidentified. Stagger, geo-holdout, or report them as a combined brand block until the plan creates independent variation.</p>
+    </details>
+  </section>
+
+  <!-- Slide 18 -->
+  <section class="slide" data-slide="18">
+    <h1>Quest complete</h1>
+    <div class="buddy-row">
+      <svg class="buddy-svg" width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="4" y="2" width="8" height="4" fill="#485880"/>
+        <rect x="3" y="6" width="10" height="6" fill="#485880"/>
+        <rect x="5" y="4" width="6" height="3" fill="#e8e0d8"/>
+        <rect x="5" y="7" width="6" height="4" fill="#e8e0d8"/>
+        <rect x="6" y="4" width="1" height="1" fill="#3a3040"/>
+        <rect x="9" y="4" width="1" height="1" fill="#3a3040"/>
+        <rect x="5" y="5" width="1" height="1" fill="#c8a0a8"/>
+        <rect x="10" y="5" width="1" height="1" fill="#c8a0a8"/>
+        <rect x="7" y="6" width="2" height="1" fill="#d4a060"/>
+        <rect x="5" y="12" width="2" height="1" fill="#d4a060"/>
+        <rect x="9" y="12" width="2" height="1" fill="#d4a060"/>
+      </svg>
+      <div class="buddy-speech">
+        <span class="speaker">Ridge:</span> If someone shows you average ROI and calls it a plan, ask for the response curve and the heatmap.
+      </div>
+    </div>
+    <ul class="checkpoint">
+      <li>MMM answers “how should the mix change?”, not “did this promo work?” and not “who got last click?”</li>
+      <li>A media plan is a calendar. Adstock writes burst vs always-on; saturation writes where the next pound goes (mROI, not average ROI).</li>
+      <li>The usable output is a new channel×week plan under constraints — plus honesty about what the calendar never identified.</li>
+    </ul>
+    <p class="note">Deck: <code>slides/mmm/index.html</code>. Neighbours: causal-impact decks for one-campaign lift; OLS/ridge (Task 5) for the regression skeleton.</p>
+  </section>
+
+  </div>
+
+  <nav class="deck-controls">
+    <button type="button" id="prev">◀ PREV</button>
+    <span id="counter">1 / 19</span>
+    <button type="button" id="next">NEXT ▶</button>
+  </nav>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const sideNavList = document.getElementById("side-nav-list");
+    const navButtons = [];
+
+    let mainNum = 0;
+    let subParentNum = 0;
+    let subIndex = 0;
+    const sectionHeadersAdded = new Set();
+    const sectionDefaults = {
+      "sub-control": "╰ WITH A CONTROL GROUP",
+      "sub-its": "╰ INTERRUPTED TIME SERIES",
+    };
+
+    slides.forEach((slide, j) => {
+      const tier = slide.dataset.navTier || "core";
+      let displayNum;
+
+      if (tier === "core") {
+        mainNum++;
+        subParentNum = mainNum;
+        subIndex = 0;
+        displayNum = String(mainNum);
+      } else if (tier.startsWith("sub")) {
+        const sectionLabel = slide.dataset.navSection || sectionDefaults[tier] || "╰ DETAILS";
+        if (!sectionHeadersAdded.has(sectionLabel)) {
+          const head = document.createElement("p");
+          head.className = "side-nav-section";
+          head.textContent = sectionLabel;
+          sideNavList.appendChild(head);
+          sectionHeadersAdded.add(sectionLabel);
+        }
+        subIndex++;
+        displayNum = `${subParentNum}.${subIndex}`;
+      } else {
+        displayNum = String(j + 1);
+      }
+
+      const label = slide.querySelector("h1")?.textContent?.trim() || `Slide ${j + 1}`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      const isSub = tier.startsWith("sub");
+      btn.className = "side-nav-btn" + (isSub ? " is-sub" : "");
+      btn.innerHTML = `<span class="side-nav-num">${displayNum}</span><span class="side-nav-label">${label}</span>`;
+      btn.addEventListener("click", () => show(j));
+      sideNavList.appendChild(btn);
+      navButtons.push(btn);
+    });
+    const headCore = document.createElement("p");
+    headCore.className = "side-nav-section";
+    headCore.textContent = "360° PATH — start here";
+    sideNavList.insertBefore(headCore, sideNavList.firstChild);
+
+    let i = 0;
+    const counter = document.getElementById("counter");
+    function show(n) {
+      i = Math.max(0, Math.min(n, slides.length - 1));
+      slides.forEach((s, j) => s.classList.toggle("active", j === i));
+      navButtons.forEach((btn, j) => btn.classList.toggle("active", j === i));
+      counter.textContent = `${i + 1} / ${slides.length}`;
+      navButtons[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+    document.getElementById("prev").onclick = () => show(i - 1);
+    document.getElementById("next").onclick = () => show(i + 1);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") show(i + 1);
+      if (e.key === "ArrowLeft") show(i - 1);
+    });
+    show(0);
+  </script>
+
+  <div id="laser-dot"></div>
+  <script>
+  /* ── Cursor effects: fairydust trail + click explosion ── */
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var PALETTE = ['#1a5ca8','#c42848','#b86800','#0d7a6e','#6a5888','#f5c842','#e87060','#a8d870'];
+    var PETAL_COLORS = ['#c42848','#b86800','#f5c842','#6a5888','#1a5ca8','#e87060','#0d7a6e'];
+    var PISTIL_COLORS = ['#f5c842','#1c1a30','#c42848'];
+    var LEAF_COLORS = ['#a8d870','#4a9a40','#7bc860','#e8a040','#c84828'];
+    var STAR_COLORS = ['#1a5ca8','#b86800','#c42848','#0d7a6e'];
+    var PARTICLE_CAP = 40;
+    var lastSpawn = 0;
+    var particleCount = 0;
+    var laser = document.getElementById('laser-dot');
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function rnd(min, max) { return min + Math.random() * (max - min); }
+
+    function makeFlower() {
+      var color = pick(PETAL_COLORS);
+      var pistil = pick(PISTIL_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var g = document.createElementNS(NS, 'g');
+      g.setAttribute('transform', 'translate(8,8)');
+      for (var i = 0; i < 5; i++) {
+        var petal = document.createElementNS(NS, 'ellipse');
+        petal.setAttribute('cx', '0');
+        petal.setAttribute('cy', '-4');
+        petal.setAttribute('rx', '2.5');
+        petal.setAttribute('ry', '4');
+        petal.setAttribute('fill', color);
+        petal.setAttribute('opacity', '0.9');
+        if (i > 0) petal.setAttribute('transform', 'rotate(' + (i * 72) + ')');
+        g.appendChild(petal);
+      }
+      var pistilEl = document.createElementNS(NS, 'circle');
+      pistilEl.setAttribute('cx', '0');
+      pistilEl.setAttribute('cy', '0');
+      pistilEl.setAttribute('r', '2.5');
+      pistilEl.setAttribute('fill', pistil);
+      g.appendChild(pistilEl);
+      svg.appendChild(g);
+      return svg;
+    }
+
+    function makeLeaf() {
+      var color = pick(LEAF_COLORS);
+      var angle = Math.floor(rnd(0, 360));
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var ellipse = document.createElementNS(NS, 'ellipse');
+      ellipse.setAttribute('cx', '8');
+      ellipse.setAttribute('cy', '8');
+      ellipse.setAttribute('rx', '3.5');
+      ellipse.setAttribute('ry', '6.5');
+      ellipse.setAttribute('fill', color);
+      ellipse.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      var line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', '8');
+      line.setAttribute('y1', '2');
+      line.setAttribute('x2', '8');
+      line.setAttribute('y2', '14');
+      line.setAttribute('stroke', '#2a5a20');
+      line.setAttribute('stroke-width', '0.8');
+      line.setAttribute('transform', 'rotate(' + angle + ',8,8)');
+      svg.appendChild(ellipse);
+      svg.appendChild(line);
+      return svg;
+    }
+
+    function makeStar() {
+      var color = pick(STAR_COLORS);
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 16 16');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      var polygon = document.createElementNS(NS, 'polygon');
+      polygon.setAttribute('points', '8,1 9.5,6.5 15,8 9.5,9.5 8,15 6.5,9.5 1,8 6.5,6.5');
+      polygon.setAttribute('fill', color);
+      svg.appendChild(polygon);
+      return svg;
+    }
+
+    /* Effect 1 — Fairydust trail */
+    document.addEventListener('mousemove', function (e) {
+      if (laser) {
+        laser.style.left = e.clientX + 'px';
+        laser.style.top = e.clientY + 'px';
+      }
+      var now = Date.now();
+      if (now - lastSpawn < 30 || particleCount >= PARTICLE_CAP) return;
+      lastSpawn = now;
+
+      var size = 4 + Math.floor(rnd(0, 3));
+      var el = document.createElement('div');
+      el.className = 'fd-particle';
+      el.style.cssText = [
+        'width:' + size + 'px',
+        'height:' + size + 'px',
+        'background:' + pick(PALETTE),
+        'border-radius:0',
+        'left:' + (e.clientX + rnd(-6, 6) - size / 2) + 'px',
+        'top:' + (e.clientY + rnd(-6, 6) - size / 2) + 'px'
+      ].join(';');
+      document.body.appendChild(el);
+      particleCount++;
+
+      var ty = -rnd(20, 40);
+      el.animate(
+        [{ opacity: 1, transform: 'translateY(0)' },
+         { opacity: 0, transform: 'translateY(' + ty + 'px)' }],
+        { duration: rnd(600, 800), easing: 'ease-out', fill: 'forwards' }
+      ).addEventListener('finish', function () { el.remove(); particleCount--; });
+    });
+
+    /* Effect 2 — Click explosion with random theme (flower / leaf / star) */
+    document.addEventListener('click', function (e) {
+      var themes = ['flower', 'leaf', 'star'];
+      var theme = themes[Math.floor(Math.random() * 3)];
+      var count = 12 + Math.floor(rnd(0, 5));
+      for (var k = 0; k < count; k++) {
+        var angle = rnd(0, 360) * Math.PI / 180;
+        var dist = rnd(40, 80);
+        var dx = Math.cos(angle) * dist;
+        var dy = Math.sin(angle) * dist;
+        var rotate = rnd(0, 360);
+        var el;
+        if (theme === 'flower') { el = makeFlower(); }
+        else if (theme === 'leaf') { el = makeLeaf(); }
+        else { el = makeStar(); }
+        el.setAttribute('class', 'fd-petal');
+        el.style.cssText = [
+          'left:' + (e.clientX - 7) + 'px',
+          'top:' + (e.clientY - 7) + 'px',
+          'transform:rotate(' + rotate + 'deg)'
+        ].join(';');
+        document.body.appendChild(el);
+
+        (function (el, rotate, dx, dy) {
+          el.animate(
+            [{ opacity: 1, transform: 'rotate(' + rotate + 'deg) translate(0,0)' },
+             { opacity: 0, transform: 'rotate(' + (rotate + 180) + 'deg) translate(' + dx + 'px,' + dy + 'px)' }],
+            { duration: rnd(700, 900), easing: 'ease-out', fill: 'forwards' }
+          ).addEventListener('finish', function () { el.remove(); });
+        }(el, rotate, dx, dy));
+      }
+    });
+  }());
+  </script>
+  <script>
+  /* ── hover tooltip engine ── */
+  (function () {
+    var box = document.createElement('div');
+    box.id = 'tip-box';
+    document.body.appendChild(box);
+    document.querySelectorAll('.tip').forEach(function (el) {
+      el.addEventListener('mouseenter', function (e) {
+        var lbl = el.dataset.tipTitle ? '<span class="tip-label">' + el.dataset.tipTitle + '</span>' : '';
+        box.innerHTML = lbl + (el.dataset.tip || '');
+        if (window.renderMathInElement) renderMathInElement(box, {
+          delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+          throwOnError: false
+        });
+        box.style.display = 'block'; move(e);
+      });
+      el.addEventListener('mousemove', move);
+      el.addEventListener('mouseleave', function () { box.style.display = 'none'; });
+    });
+    function move(e) {
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 310 > window.innerWidth)  x = e.clientX - 316;
+      if (y + 200 > window.innerHeight) y = e.clientY - 206;
+      box.style.left = x + 'px'; box.style.top = y + 'px';
+    }
+  }());
+  </script>
+</body>
+</html>
