@@ -11,7 +11,7 @@ How agents (and human tutors) adapt teaching for Elena and maintain shared state
 3. **Shared memory** — `learning/profile.json` + `learning/session_log.jsonl` are the cross-agent source of truth (optional for one-off `general` chat).
 4. **Multimodal preference** — HTML slides (90s game aesthetic) complement notebook math.
 5. **Honest uncertainty** — distinguish “can compute” vs “understands why.”
-6. **Open scope** — Statistics beyond the IU book, other courses, and non-stats questions are in scope; see [AGENTS.md](AGENTS.md) § Open questions.
+6. **Open scope** — Statistics beyond the IU book, other courses, and non-stats questions are in scope; see [EXAM_WORKFLOW.md](EXAM_WORKFLOW.md) § Open questions.
 
 ---
 
@@ -19,7 +19,7 @@ How agents (and human tutors) adapt teaching for Elena and maintain shared state
 
 When the question is **not** one of Tasks 1–6:
 
-- Use the same rubric and teaching modes; do **not** open or edit `bernoulli_vote_analysis.ipynb` unless the user asks to connect or practice there.
+- Use the same rubric and teaching modes; do **not** open or edit `deliverables/workbook/workbook_analysis.ipynb` unless the user asks to connect or practice there.
 - Prefer `knowledge/Advanced_statistics_Course_Book.pdf` when the topic exists in the TOC; otherwise use [SOURCES.md](SOURCES.md) or standard references.
 - Log with `"intent": "open_stats"` and `"related_exam_tasks": []` when you append to `session_log.jsonl`.
 - Register new concepts in `learning/concepts.json` with optional `"tags": ["off-syllabus"]` so slides can be built later without implying an exam task exists.
@@ -109,7 +109,7 @@ When the user says “I don’t get X” or fails a diagnostic, add or refresh a
   "user_reaction_notes": "Wanted more on measurability hypotheses",
   "follow_ups": ["kolmogorov-axioms-light"],
   "related_exam_tasks": [1],
-  "artifacts_updated": ["learning/profile.json", "exam_tasks/bernoulli_vote_analysis.ipynb"]
+  "artifacts_updated": ["learning/profile.json", "deliverables/workbook/workbook_analysis.ipynb"]
 }
 ```
 

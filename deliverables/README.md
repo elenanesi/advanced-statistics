@@ -4,16 +4,19 @@ Final exports for IU submission and personal archives.
 
 | Artifact | Status | Source |
 |----------|--------|--------|
-| `exam_tasks/bernoulli_vote_analysis.ipynb` | In progress (Task 1) | Primary computational workbook |
-| `Advanced_Workbook.docx` (name TBD) | Not started | Export from notebook + markdown derivations |
+| `workbook/workbook_analysis.ipynb` | All six tasks, current parameter set | The computational source of truth — owns every number and figure |
+| `workbook/Advanced_Workbook_DLMDSAS01_DRAFT.docx` | Draft builds clean | `workbook/build.sh` — executes the notebook, substitutes `{{task.key}}` tokens into `workbook/src/*.md` |
 
-## `.docx` workbook (future)
+`exam_tasks/user_notebook.ipynb` is Elena's scratch notebook (Task 1 only, superseded
+parameter values) and is not a deliverable.
 
-When the user requests the formal document:
+## `.docx` workbook
 
-1. Mirror PDF task order (Tasks 1–6).
-2. Include branch statements, proofs, figures (export from notebook), and tool-trust paragraphs.
-3. Match IU formatting expectations (title page, course code DLMDSAS01) — confirm with user.
-4. Suggested tool: `python-docx` script in this folder (create when needed).
+Build it with `cd workbook && ./build.sh`. The pipeline:
 
-Do not commit personal `assignment_values.txt` to public remotes if the user plans to open-source the repo.
+1. Mirrors PDF task order (Tasks 1–6).
+2. **Executes** `workbook_analysis.ipynb` via `run_notebook.py` and harvests its results — it does not read the notebook as text.
+3. Substitutes `{{task.key}}` tokens into `src/*.md`, so prose files must carry no literal results. To change a number, change the notebook.
+4. Emits the `.docx` with title page, course code DLMDSAS01, figures, and tool-trust paragraphs, plus the notebook as copyable text in Appendix B.
+
+Do not commit personal `assignment_values*.txt` to public remotes if the user plans to open-source the repo.

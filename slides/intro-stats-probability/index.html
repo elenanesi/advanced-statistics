@@ -214,7 +214,7 @@
         <rect x="10" y="60" width="170" height="80" rx="4" fill="rgba(26,92,168,.07)" stroke="#1a5ca8" stroke-width="2"/>
         <text x="95" y="90" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#1a5ca8" font-weight="bold">MODEL</text>
         <text x="95" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1a5ca8">(theory, parameters)</text>
-        <text x="95" y="126" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">e.g. "p = 0.58"</text>
+        <text x="95" y="126" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">e.g. "p = 0.65"</text>
 
         <!-- DATA box -->
         <rect x="400" y="60" width="170" height="80" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
@@ -241,7 +241,7 @@
     </div>
 
     <div class="callout">
-      <strong>Simple test:</strong> if you're told the parameter and asked to describe outcomes → probability. If you're given data and asked to find the parameter → statistics. Task 1 gives you p = 0.58 and asks you to describe the distribution. That's probability.
+      <strong>Simple test:</strong> if you're told the parameter and asked to describe outcomes → probability. If you're given data and asked to find the parameter → statistics. Task 1 gives you p = 0.65 and asks you to describe the distribution. That's probability.
     </div>
   </section>
 
@@ -415,9 +415,9 @@
     </div>
 
     <h2>3. E[X] is NOT the most likely value (mode)</h2>
-    <div class="formula">Bernoulli(0.58):
-  E[X] = 0.58  ← weighted average (not a possible value)
-  Mode = 1     ← most likely single outcome (since 0.58 &gt; 0.5)
+    <div class="formula">Bernoulli(0.65):
+  E[X] = 0.65  ← weighted average (not a possible value)
+  Mode = 1     ← most likely single outcome (since 0.65 &gt; 0.5)
 
 These happen to be close but they're different concepts.</div>
 
@@ -471,7 +471,7 @@ These happen to be close but they're different concepts.</div>
     $$\text{SD}[X] = \sqrt{\text{Var}[X]} \quad \text{(same units as } X \text{)}$$</div>
 
     <div class="callout">
-      For <strong>Bernoulli(p):</strong> Var[X] = p(1−p). This is maximized at p=0.5 (most uncertain) and goes to 0 as p→0 or p→1 (outcome almost certain). Your task: Var[X] = 0.58 × 0.42 = 0.2436.
+      For <strong>Bernoulli(p):</strong> Var[X] = p(1−p). This is maximized at p=0.5 (most uncertain) and goes to 0 as p→0 or p→1 (outcome almost certain). Your task: Var[X] = 0.65 × 0.35 = 0.2275.
     </div>
   </section>
 
@@ -570,7 +570,7 @@ These happen to be close but they're different concepts.</div>
           <text x="145" y="143" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">1</text>
           <!-- y label -->
           <text x="21" y="95" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888" transform="rotate(-90,21,95)">P(X=k)</text>
-          <text x="105" y="158" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">your task: p = 0.58</text>
+          <text x="105" y="158" text-anchor="middle" font-family="Consolas,monospace" font-size="8" fill="#6a5888">your task: p = 0.65</text>
         </svg>
         <p class="visual-caption">Only two possible values: 0 and 1</p>
       </div>
@@ -583,7 +583,7 @@ $P(X = 0) = 1-p$ ← "failure"<br><br>
 $E[X] = p$ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$\text{Var}[X] = p(1-p)$
 </div>
 <div style="font-family:Consolas,monospace; font-size:11px; color:var(--honey); margin-top:8px; border-top:1px solid rgba(184,104,0,.3); padding-top:6px">
-Your task: $p = 0.58$, $E[X] = 0.58$, $\text{Var}[X] = 0.58 \times 0.42 = 0.2436$
+Your task: $p = 0.65$, $E[X] = 0.65$, $\text{Var}[X] = 0.65 \times 0.35 = 0.2275$
 </div></div>
         <div class="callout" style="margin-top:8px; font-size:11px">
           Why does E[X] = p? Because:<br/>
@@ -708,7 +708,7 @@ $\sigma = \text{SD}[X]$ &nbsp;&nbsp;← same units as $X$
 </div></div>
 
     <div class="callout">
-      <strong>Task 4:</strong> historical hammer weights ~ Normal(μ₀=956g, σ₀=17.2g). You're testing whether new production raised the mean. The Normal distribution describes the weights; hypothesis testing decides if the mean shifted.
+      <strong>Task 4:</strong> historical hammer weights ~ Normal(μ₀=842g, σ₀=55.3g). You're testing whether new production raised the mean. The Normal distribution describes the weights; hypothesis testing decides if the mean shifted.
     </div>
   </section>
 
@@ -743,7 +743,7 @@ $\sigma = \text{SD}[X]$ &nbsp;&nbsp;← same units as $X$
           </ul>
           <div class="formula" style="margin:6px 0">$$E[X] = \alpha\theta \qquad \text{Var}[X] = \alpha\theta^2$$
 <div style="font-family:Consolas,monospace; font-size:10px; color:var(--mist); text-align:center; margin-top:4px">Erlang = Gamma with integer $\alpha$</div></div>
-          <p style="font-size:9px; color:var(--mist)">Task 3: router time ~ Gamma(7, θ). Task 6: prior on θ is Gamma(35, 51).</p>
+          <p style="font-size:9px; color:var(--mist)">Task 3: one router is Exp(θ), so two sum to Gamma(2, θ). Task 6: prior on θ is Gamma(23, 63).</p>
         </div>
       </div>
     </div>
@@ -764,10 +764,10 @@ $\sigma = \text{SD}[X]$ &nbsp;&nbsp;← same units as $X$
         <text x="152" y="32" font-family="Consolas,monospace" font-size="9" fill="#b86800" font-weight="bold">Gamma(3,θ)</text>
         <!-- Gamma α=7: broader hump, further right -->
         <path d="M42,109 C80,108 120,100 155,86 C175,78 200,64 225,52 C245,44 265,40 280,40 C295,40 315,44 335,52 C360,62 390,80 420,96 C450,106 480,110 500,111" stroke="#0d7a6e" stroke-width="2.5" fill="none"/>
-        <text x="285" y="34" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e" font-weight="bold">Gamma(7,θ) ← Task 3</text>
+        <text x="285" y="34" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e" font-weight="bold">Gamma(7,θ)</text>
       </svg>
     </div>
-    <p class="visual-caption">As α increases, the Gamma distribution shifts right and becomes more bell-shaped</p>
+    <p class="visual-caption">As α increases, the Gamma distribution shifts right and becomes more bell-shaped. Your Task 3 sits at the left of this picture: one router is the red Exp(λ) curve (α = 1), and two routers added together give α = 2, just to its right.</p>
   </section>
 
   <!-- ══ 11: Survival Function ══ -->

@@ -1,13 +1,14 @@
-# Agent playbook
+# Exam workflow
 
-Instructions for Cursor agents, CLI agents, and other tutors working in this repository. **Read this file before making changes.**
+Reference detail for the exam and learning tracks. The session contract every agent must
+follow lives in [../AGENTS.md](../AGENTS.md); this file expands on the workflow it points to.
 
 ---
 
 ## Mission
 
-1. **Exam track:** Complete Tasks 1–6 from `exam_tasks/Task_Advanced_Workbook_DLMDSAS011.pdf` using values in `exam_tasks/assignment_values.txt`, with theory from `knowledge/Advanced_statistics_Course_Book.pdf` (+ vetted externals in [SOURCES.md](SOURCES.md)). Implement in `exam_tasks/bernoulli_vote_analysis.ipynb`; eventually help produce `deliverables/*.docx`.
-2. **Learning track:** Teach advanced statistics, **assess understanding first**, maintain `learning/profile.json` and `learning/session_log.jsonl`, and build **90s videogame-style HTML slides** with buddy mascots per [../slides/README.md](../slides/README.md).
+1. **Exam track:** Complete Tasks 1–6 from `exam_tasks/Task_Advanced_Workbook_DLMDSAS011.pdf` using values in `exam_tasks/assignment_values_2.txt`, with theory from `knowledge/Advanced_statistics_Course_Book.pdf` (+ vetted externals in [SOURCES.md](SOURCES.md)). Implement in `deliverables/workbook/workbook_analysis.ipynb`, which feeds the `.docx` build.
+2. **Learning track:** Teach advanced statistics, **assess understanding first**, maintain `learning/profile.json` and `learning/session_log.jsonl`, and build HTML slides with buddy mascots from `slides/_template/index.html` (style reference: [../AGENTS.md](../AGENTS.md) § Slide system — *not* `slides/README.md`).
 
 Both tracks share concepts; when teaching overlaps an exam task, cross-link notebook sections and slides.
 
@@ -21,7 +22,7 @@ A third mode — **open Q&A** — is always available (see below). Do not force 
 
 | User intent | Examples | What to do | What to skip |
 |-------------|----------|------------|--------------|
-| **open_stats** | “What is a copula?”, “Explain EM again”, homework from another course | Teach/diagnose per [LEARNING_SYSTEM.md](LEARNING_SYSTEM.md); cite book or [SOURCES.md](SOURCES.md) when relevant; **optional** log | Exam notebook, `assignment_values.txt`, task branches |
+| **open_stats** | “What is a copula?”, “Explain EM again”, homework from another course | Teach/diagnose per [LEARNING_SYSTEM.md](LEARNING_SYSTEM.md); cite book or [SOURCES.md](SOURCES.md) when relevant; **optional** log | Exam notebook, `assignment_values_2.txt`, task branches |
 | **general** | Coding, career, non-stats topic | Normal helpful answer; use repo files only if user points to them | Exam edits, slides, profile unless user wants tracking |
 | **exam** | “Do Task 3”, “fix my hammer test” | Full exam workflow | — |
 | **mixed** | “How does ridge relate to Task 5?” | Answer concept; link to exam only if useful | — |
@@ -44,9 +45,9 @@ A third mode — **open Q&A** — is always available (see below). Do not force 
 
 ## Session startup checklist
 
-- [ ] Read root [README.md](../README.md) for current progress.
+- [ ] Read root [../AGENTS.md](../AGENTS.md) — it carries the current exam status and Elena's learning profile.
 - [ ] **Classify intent:** `exam` | `teach` | `slides` | `open_stats` | `general` | `mixed` — from the **latest user message**, not from repo layout alone.
-- [ ] If intent is `exam` or `mixed` (exam part): open `exam_tasks/assignment_values.txt`; confirm `signature` if values matter this turn.
+- [ ] If intent is `exam` or `mixed` (exam part): open `exam_tasks/assignment_values_2.txt`; confirm `signature` if values matter this turn.
 - [ ] If intent involves teaching (`teach`, `open_stats`, `mixed`): skim last 5 lines of `learning/session_log.jsonl` and `learning/profile.json`.
 - [ ] Do not commit unless the user explicitly asks.
 
@@ -59,7 +60,7 @@ A third mode — **open Q&A** — is always available (see below). Do not force 
 | File | Role |
 |------|------|
 | `exam_tasks/Task_Advanced_Workbook_DLMDSAS011.pdf` | Official wording, branching conditions |
-| `exam_tasks/assignment_values.txt` | Personal \(\xi_1\ldots\xi_{20}\) |
+| `exam_tasks/assignment_values_2.txt` | Personal \(\xi_1\ldots\xi_{20}\), signature `99d9e51e…` |
 | `knowledge/Advanced_statistics_Course_Book.pdf` | Primary citations |
 
 ### Output contract (per task section in notebook)
@@ -73,18 +74,18 @@ Each task section must include, in order:
 5. **Visualization** — labeled axes, **units**, and **scale** (e.g. y-axis 0–100% for percentages).
 6. **Trust** — short paragraph: what was hand-derived vs library (`numpy`, `scipy`, `sklearn`), and sanity checks.
 
-Match the tone and structure of existing Task 1 cells in `bernoulli_vote_analysis.ipynb`.
+Match the tone and structure of the existing Task 1 cells in `deliverables/workbook/workbook_analysis.ipynb`.
 
 ### Task order and dependencies
 
-| Task | Depends on | Notebook section suggestion |
+| Task | Depends on | Notebook section |
 |------|------------|-----------------------------|
-| 1 | \(\xi_1,\xi_2\) | Done / extend |
-| 2 | \(\xi_4\ldots\xi_8\) | New: owl waiting time |
-| 3 | \(\xi_9,\xi_{10}\) | New: dual-router \(T\), MLE |
-| 4 | \(\xi_{11}\ldots\xi_{14}\) | New: hammer hypothesis test |
-| 5 | \(\xi_{15},\xi_{16}\) | New: OLS + ridge |
-| 6 | \(\xi_{17}\ldots\xi_{19}\) | New: Bayesian posterior |
+| 1 | \(\xi_1,\xi_2\) | Bernoulli vote |
+| 2 | \(\xi_4\ldots\xi_8\) | Owl waiting time (survival mixture) |
+| 3 | \(\xi_9,\xi_{10}\) | Dual-router \(T\), MLE |
+| 4 | \(\xi_{11}\ldots\xi_{14}\) | Hammer hypothesis test |
+| 5 | \(\xi_{15},\xi_{16}\) | OLS + ridge |
+| 6 | \(\xi_{17}\ldots\xi_{19}\) | Bayesian posterior |
 
 Full specs: [EXAM_WORKBOOK.md](EXAM_WORKBOOK.md).
 
@@ -95,11 +96,13 @@ Full specs: [EXAM_WORKBOOK.md](EXAM_WORKBOOK.md).
 - Prefer **reproducible** notebook cells over one-off scripts unless user requests scripts.
 - When PDF wording is ambiguous, state the interpretation chosen and proceed consistently.
 
-### `.docx` workbook (later phase)
+### `.docx` workbook
 
-- Source of truth remains the notebook + markdown derivations.
-- Target path: `deliverables/Advanced_Workbook_<student>_<course>.docx` (name TBD with user).
-- Export workflow not defined yet; when asked, use structured headings mirroring Tasks 1–6 and embed key figures.
+Built, not hypothetical. `deliverables/workbook/build.sh` emits
+`Advanced_Workbook_DLMDSAS01_DRAFT.docx`. The pipeline **executes**
+`workbook_analysis.ipynb` via `run_notebook.py` and substitutes `{{task.key}}` tokens into
+`src/*.md`, so prose files must never carry literal results — change the notebook instead.
+The notebook is reproduced as copyable text in Appendix B.
 
 ---
 
@@ -125,8 +128,8 @@ Update `learning/profile.json` when:
 
 ### Slides
 
-- One concept → one folder: `slides/<concept-id>/index.html`
-- Copy from `slides/_template/`; follow [../slides/README.md](../slides/README.md).
+- Concept decks: `slides/<concept-id>/index.html`. Exam task decks are flat files: `slides/exam_tasks/taskN-<topic>.html`.
+- Copy from `slides/_template/`; follow [../AGENTS.md](../AGENTS.md) § Slide system.
 - Register concept in `learning/concepts.json` with `slide_path` and `related_exam_tasks`.
 
 ### Retro cute slides skill
@@ -141,12 +144,13 @@ For slide deck styling, buddy sprites, and pixel-art visuals, use the **retro-cu
 
 | Path | Agents may |
 |------|------------|
-| `exam_tasks/bernoulli_vote_analysis.ipynb` | Edit freely for exam work |
+| `deliverables/workbook/**` | Edit freely for exam work — `workbook_analysis.ipynb` owns every number |
+| `exam_tasks/user_notebook.ipynb` | Elena's scratch notebook. Leave alone unless she asks |
 | `learning/*.json`, `learning/*.jsonl` | Append/update for teaching |
 | `slides/**` | Create/update HTML/CSS |
 | `deliverables/**` | Write when user requests export |
 | `exam_tasks/*.pdf`, `knowledge/*.pdf` | **Read only** — do not edit |
-| `assignment_values.txt` | **Read only** unless user pastes new generator output |
+| `exam_tasks/assignment_values*.txt` | **Read only** unless user pastes new generator output |
 
 ---
 
@@ -159,7 +163,7 @@ For slide deck styling, buddy sprites, and pixel-art visuals, use the **retro-cu
 | User asks off-exam / unrelated | Answer first; no notebook edits; log/slides only if useful or requested |
 | Agent assumes everything is Task N | Re-read latest message; use intent table in § Open questions |
 | `profile.json` vs log disagree | Prefer **most recent log entry**; fix profile |
-| Branch value in txt ≠ EXAM_WORKBOOK snapshot | **Trust `assignment_values.txt`** and update README snapshot |
+| Branch value in txt ≠ EXAM_WORKBOOK snapshot | **Trust `assignment_values_2.txt`** and update the snapshot in `docs/EXAM_WORKBOOK.md` |
 
 ---
 
@@ -169,15 +173,15 @@ For slide deck styling, buddy sprites, and pixel-art visuals, use the **retro-cu
 |------|--------|
 | **Exam solver** | Notebook + math + plots |
 | **Theory tutor** | Diagnostics, explanations, profile updates |
-| **Slide artist** | HTML decks, buddies, 90s CSS |
+| **Slide artist** | HTML decks, buddies, parchment CSS |
 | **Editor** | `.docx` assembly from notebook (later) |
 
-Pass context via: `learning/session_log.jsonl` + git diff + “Handoff phrase” in README.
+Pass context via: `learning/session_log.jsonl` + git diff + the handoff phrase in [../README.md](../README.md).
 
 ---
 
 ## Definition of done
 
-**Exam:** All six tasks in notebook with branch notes, figures with scales, trust sections; user satisfied for submission; optional `.docx`.
+**Exam:** All six tasks in `workbook_analysis.ipynb` with branch notes, figures with scales, trust sections; `build.sh` runs clean; Elena satisfied for submission.
 
 **Learning:** Concept assessed; profile and log updated; slide exists or refresh queued in `concepts.json` → `slide_status`.

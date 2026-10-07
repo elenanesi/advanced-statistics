@@ -181,7 +181,7 @@
     <div style="background:rgba(106,88,136,.07); border:2px solid var(--mist); padding:10px; margin-bottom:16px; font-size:11px">
       <strong style="color:var(--mist)">Prerequisites:</strong> This deck assumes you've been through <code>slides/intro-stats-probability/</code> — specifically what a distribution is, what E[X] means, and the PMF/PDF distinction. If any of that feels shaky, do the intro deck first.
     </div>
-    <p><strong>Your personal setup:</strong> ξ1 = 0 → Bernoulli branch. P(vote = for) = ξ2 = <strong>0.58</strong>.</p>
+    <p><strong>Your personal setup:</strong> ξ1 = 0 → Bernoulli branch. P(vote = for) = ξ2 = <strong>0.65</strong>.</p>
     <h2>What you will deliver</h2>
     <ul>
       <li>Formal probabilistic model + PMF table</li>
@@ -289,8 +289,8 @@
         <text x="490" y="70" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">assigns numbers</text>
         <text x="490" y="92" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">= gives each event</text>
         <text x="490" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">a weight 0 to 1</text>
-        <text x="490" y="130" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e">P({"for"}) = 0.58</text>
-        <text x="490" y="150" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e">P({"against"}) = 0.42</text>
+        <text x="490" y="130" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e">P({"for"}) = 0.65</text>
+        <text x="490" y="150" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e">P({"against"}) = 0.35</text>
         <text x="490" y="170" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e">P(Ω) = 1.00</text>
       </svg>
     </div>
@@ -332,11 +332,11 @@
         <!-- ballot for -->
         <rect x="28" y="55" width="114" height="34" rx="3" fill="rgba(13,122,110,.12)" stroke="#0d7a6e" stroke-width="1.5"/>
         <text x="85" y="68" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#1c1a30">👍  vote = "for"</text>
-        <text x="85" y="83" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">58% of the time</text>
+        <text x="85" y="83" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">65% of the time</text>
         <!-- ballot against -->
         <rect x="28" y="100" width="114" height="34" rx="3" fill="rgba(196,40,72,.10)" stroke="#c42848" stroke-width="1.5"/>
         <text x="85" y="113" text-anchor="middle" font-family="Consolas,monospace" font-size="12" fill="#1c1a30">👎  vote = "against"</text>
-        <text x="85" y="128" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">42% of the time</text>
+        <text x="85" y="128" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">35% of the time</text>
 
         <!-- middle: label gun -->
         <rect x="195" y="60" width="140" height="60" rx="8" fill="rgba(26,92,168,.10)" stroke="#1a5ca8" stroke-width="2"/>
@@ -376,7 +376,7 @@
     <div class="formula">X("for")    = 1     ← label assigned to "for"
 X("against") = 0     ← label assigned to "against"
 
-Shorthand: X ~ Bernoulli(0.58)</div>
+Shorthand: X ~ Bernoulli(0.65)</div>
     <p>Why 1 and 0? Convention — but also convenient. 0 = "event didn't happen", 1 = "event happened". This lets us write E[X] = P(event happened), which is elegant.</p>
 
     <h2>But wait — why is X called "random" if 0 and 1 are fixed?</h2>
@@ -486,7 +486,7 @@ Shorthand: X ~ Bernoulli(0.58)</div>
         <svg width="220" height="160" viewBox="0 0 220 160" xmlns="http://www.w3.org/2000/svg">
           <!-- bounded case -->
           <rect x="10" y="10" width="200" height="140" rx="4" fill="rgba(13,122,110,.06)" stroke="#0d7a6e" stroke-width="2"/>
-          <text x="110" y="30" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">X ~ Bernoulli(0.58)</text>
+          <text x="110" y="30" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">X ~ Bernoulli(0.65)</text>
           <!-- value markers -->
           <line x1="30" y1="120" x2="190" y2="120" stroke="#1c1a30" stroke-width="1.5"/>
           <!-- 0 bar -->
@@ -555,7 +555,7 @@ Shorthand: X ~ Bernoulli(0.58)</div>
           <text x="50" y="48" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1a5ca8">☑ FOR</text>
           <text x="50" y="68" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#6a5888">☐ against</text>
         </svg>
-        <p class="visual-label">Your task<br/>p = <strong>0.58</strong></p>
+        <p class="visual-label">Your task<br/>p = <strong>0.65</strong></p>
       </div>
       <!-- test -->
       <div style="text-align:center">
@@ -577,24 +577,24 @@ Shorthand: X ~ Bernoulli(0.58)</div>
         <line x1="50" y1="145" x2="290" y2="145" stroke="#1c1a30" stroke-width="1.5"/>
         <!-- y-axis ticks -->
         <line x1="44" y1="145" x2="50" y2="145" stroke="#1c1a30" stroke-width="1.5"/><text x="40" y="149" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0%</text>
-        <line x1="44" y1="103" x2="50" y2="103" stroke="#1c1a30" stroke-width="1.5"/><text x="40" y="107" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">42%</text>
-        <line x1="44" y1="77" x2="50" y2="77" stroke="#1c1a30" stroke-width="1.5"/><text x="40" y="81" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">58%</text>
+        <line x1="44" y1="101" x2="50" y2="101" stroke="#1c1a30" stroke-width="1.5"/><text x="40" y="105" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">35%</text>
+        <line x1="44" y1="64" x2="50" y2="64" stroke="#1c1a30" stroke-width="1.5"/><text x="40" y="68" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">65%</text>
         <line x1="44" y1="20" x2="50" y2="20" stroke="#1c1a30" stroke-width="1.5"/><text x="40" y="24" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">100%</text>
         <!-- gridlines -->
         <line x1="50" y1="20" x2="290" y2="20" stroke="#ccc4e0" stroke-width="1" stroke-dasharray="4,3"/>
-        <line x1="50" y1="77" x2="290" y2="77" stroke="#c42848" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
-        <!-- bar: "against" (0.42) -->
-        <rect x="75" y="103" width="80" height="42" fill="#c42848" opacity="0.75"/>
-        <text x="115" y="99" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#c42848" font-weight="bold">42.0%</text>
+        <line x1="50" y1="64" x2="290" y2="64" stroke="#c42848" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+        <!-- bar: "against" (0.35) -->
+        <rect x="75" y="101" width="80" height="44" fill="#c42848" opacity="0.75"/>
+        <text x="115" y="97" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#c42848" font-weight="bold">35.0%</text>
         <text x="115" y="162" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">👎 against</text>
-        <text x="115" y="175" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">X = 0  (p=0.42)</text>
-        <!-- bar: "for" (0.58) -->
-        <rect x="175" y="77" width="80" height="68" fill="#0d7a6e" opacity="0.75"/>
-        <text x="215" y="73" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e" font-weight="bold">58.0%</text>
+        <text x="115" y="175" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">X = 0  (p=0.35)</text>
+        <!-- bar: "for" (0.65) -->
+        <rect x="175" y="64" width="80" height="81" fill="#0d7a6e" opacity="0.75"/>
+        <text x="215" y="60" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e" font-weight="bold">65.0%</text>
         <text x="215" y="162" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">👍 for</text>
-        <text x="215" y="175" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">X = 1  (p=0.58)</text>
+        <text x="215" y="175" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">X = 1  (p=0.65)</text>
         <!-- axis label -->
-        <text x="170" y="12" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Bernoulli(0.58) PMF — this is your bar chart</text>
+        <text x="170" y="12" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">Bernoulli(0.65) PMF — this is your bar chart</text>
       </svg>
     </div>
   </section>
@@ -615,18 +615,18 @@ Shorthand: X ~ Bernoulli(0.58)</div>
           <line x1="30" y1="130" x2="210" y2="130" stroke="#1c1a30" stroke-width="1.5"/>
           <line x1="30" y1="40" x2="30" y2="130" stroke="#1c1a30" stroke-width="1.5"/>
           <!-- isolated bars — values only at 0 and 1 -->
-          <rect x="60" y="95" width="35" height="35" fill="#c42848" opacity="0.7"/>
-          <text x="77" y="91" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">0.42</text>
+          <rect x="60" y="100" width="35" height="30" fill="#c42848" opacity="0.7"/>
+          <text x="77" y="96" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">0.35</text>
           <text x="77" y="144" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">0</text>
-          <rect x="140" y="80" width="35" height="50" fill="#0d7a6e" opacity="0.7"/>
-          <text x="157" y="76" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">0.58</text>
+          <rect x="140" y="75" width="35" height="55" fill="#0d7a6e" opacity="0.7"/>
+          <text x="157" y="71" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">0.65</text>
           <text x="157" y="144" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#1c1a30">1</text>
           <!-- dots on x-axis showing ONLY those two points -->
           <circle cx="77" cy="130" r="3" fill="#c42848"/>
           <circle cx="157" cy="130" r="3" fill="#0d7a6e"/>
           <text x="115" y="160" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">sum of bars = 1 ✓</text>
         </svg>
-        <p class="visual-caption">PMF: probability AT specific points<br/>P(X=0) = 0.42, P(X=1) = 0.58</p>
+        <p class="visual-caption">PMF: probability AT specific points<br/>P(X=0) = 0.35, P(X=1) = 0.65</p>
       </div>
       <div>
         <svg width="230" height="170" viewBox="0 0 230 170" xmlns="http://www.w3.org/2000/svg">
@@ -646,7 +646,7 @@ Shorthand: X ~ Bernoulli(0.58)</div>
       </div>
     </div>
     <div class="warn">
-      <strong>Common mistake:</strong> calling P(X = 1) = 0.58 a "density." It's a probability mass. Bernoulli is discrete — you sum, not integrate. If you write "density" the examiner will notice.
+      <strong>Common mistake:</strong> calling P(X = 1) = 0.65 a "density." It's a probability mass. Bernoulli is discrete — you sum, not integrate. If you write "density" the examiner will notice.
     </div>
   </section>
 
@@ -686,37 +686,35 @@ Shorthand: X ~ Bernoulli(0.58)</div>
         <!-- actually let's keep it level since we're showing the balance point -->
         <line x1="40" y1="120" x2="480" y2="120" stroke="#1c1a30" stroke-width="3"/>
 
-        <!-- weight at 0 (against) — size proportional to 0.42 -->
-        <rect x="90" y="73" width="52" height="47" rx="3" fill="#c42848" opacity="0.8"/>
-        <text x="116" y="97" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="white" font-weight="bold">0.42</text>
-        <text x="116" y="111" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="white">kg</text>
+        <!-- weight at 0 (against) — size proportional to 0.35 -->
+        <rect x="93" y="85" width="46" height="35" rx="3" fill="#c42848" opacity="0.8"/>
+        <text x="116" y="103" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="white" font-weight="bold">0.35</text>
+        <text x="116" y="115" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="white">kg</text>
         <!-- weight label -->
         <text x="116" y="140" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#c42848" font-weight="bold">0</text>
         <text x="116" y="155" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">(against)</text>
 
-        <!-- weight at 1 (for) — size proportional to 0.58 -->
-        <rect x="362" y="60" width="64" height="60" rx="3" fill="#0d7a6e" opacity="0.8"/>
-        <text x="394" y="87" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="white" font-weight="bold">0.58</text>
-        <text x="394" y="101" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="white">kg</text>
+        <!-- weight at 1 (for) — size proportional to 0.65 -->
+        <rect x="363" y="55" width="62" height="65" rx="3" fill="#0d7a6e" opacity="0.8"/>
+        <text x="394" y="86" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="white" font-weight="bold">0.65</text>
+        <text x="394" y="100" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="white">kg</text>
         <text x="394" y="140" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#0d7a6e" font-weight="bold">1</text>
         <text x="394" y="155" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">(for)</text>
 
-        <!-- fulcrum / balance point at E[X] = 0.58 -->
-        <!-- fulcrum is at position x = 40 + 0.58 * 440 = 295 -->
-        <polygon points="295,120 275,170 315,170" fill="#b86800"/>
-        <line x1="275" y1="170" x2="315" y2="170" stroke="#b86800" stroke-width="3"/>
-        <text x="295" y="188" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#b86800" font-weight="bold">E[X] = 0.58</text>
-        <text x="295" y="200" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800">balance point</text>
+        <!-- fulcrum / balance point at E[X] = 0.65 -->
+        <!-- value 0 sits at x=116, value 1 at x=394, so x = 116 + 0.65 * 278 = 297 -->
+        <polygon points="297,120 277,170 317,170" fill="#b86800"/>
+        <line x1="277" y1="170" x2="317" y2="170" stroke="#b86800" stroke-width="3"/>
+        <text x="297" y="188" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#b86800" font-weight="bold">E[X] = 0.65</text>
+        <text x="297" y="200" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#b86800">balance point</text>
 
-        <!-- number line labels -->
-        <text x="40" y="115" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">|</text>
-        <text x="40" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">-1</text>
-        <text x="480" y="115" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">|</text>
-        <text x="480" y="108" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">2</text>
+        <!-- number line: only the two values the variable can take are marked, under the weights -->
+        <text x="116" y="115" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">|</text>
+        <text x="394" y="115" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#6a5888">|</text>
 
         <!-- dotted line from weights to beam -->
-        <line x1="116" y1="73" x2="116" y2="120" stroke="#c42848" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
-        <line x1="394" y1="60" x2="394" y2="120" stroke="#0d7a6e" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
+        <line x1="116" y1="85" x2="116" y2="120" stroke="#c42848" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
+        <line x1="394" y1="55" x2="394" y2="120" stroke="#0d7a6e" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
       </svg>
     </div>
 
@@ -724,12 +722,13 @@ Shorthand: X ~ Bernoulli(0.58)</div>
     <div class="formula">$$E[X] = \sum_k k \cdot P(X = k)$$
 <div style="font-family:Consolas,monospace; font-size:11px; color:var(--text); margin-top:10px; text-align:center; line-height:2.2">
 $= 0 \cdot P(X=0) + 1 \cdot P(X=1)$<br>
-$= 0 \cdot 0.42 \;+\; 1 \cdot 0.58$<br>
-$= \mathbf{0.58}$ &nbsp;← balance point of the distribution
+$= 0 \cdot 0.35 \;+\; 1 \cdot 0.65$<br>
+$= \mathbf{0.65}$ &nbsp;← balance point of the distribution
 </div></div>
     <div class="callout">
-      The "for" side (value=1, weight=0.58) pulls harder than the "against" side (value=0, weight=0.42). The balance point lands at 0.58 — closer to 1 than to 0. If both sides were equal (p=0.5), it would balance exactly in the middle.
+      The "for" side (value=1, weight=0.65) pulls harder than the "against" side (value=0, weight=0.35). The balance point lands at 0.65 — closer to 1 than to 0. If both sides were equal (p=0.5), it would balance exactly in the middle.
     </div>
+    <p>Spread, for completeness: Var(X) = p(1−p) = 0.65 × 0.35 = <strong>0.2275</strong>, so SD(X) = <strong>0.476970</strong>. For a Bernoulli the variance is largest at p = 0.5 (0.25) and shrinks as p moves toward either end — at p = 0.65 the outcome is already slightly more predictable than a fair coin.</p>
   </section>
 
   <!-- ══ 9: The one-vote nuance ══ -->
@@ -744,7 +743,7 @@ $= \mathbf{0.58}$ &nbsp;← balance point of the distribution
         <text x="125" y="36" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">ONE VOTE</text>
         <text x="125" y="55" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">You observe: 👍 "for"</text>
         <text x="125" y="75" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">X = 1</text>
-        <text x="125" y="100" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848">E[X] = 0.58 is NOT</text>
+        <text x="125" y="100" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848">E[X] = 0.65 is NOT</text>
         <text x="125" y="115" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848">this observed value</text>
         <text x="125" y="135" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#6a5888">(realized value is 0 or 1)</text>
 
@@ -755,18 +754,18 @@ $= \mathbf{0.58}$ &nbsp;← balance point of the distribution
         <rect x="300" y="15" width="230" height="130" rx="4" fill="rgba(13,122,110,.07)" stroke="#0d7a6e" stroke-width="2"/>
         <text x="415" y="36" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">1,000 VOTES</text>
         <!-- mini bar chart -->
-        <rect x="340" y="80" width="50" height="42" fill="#c42848" opacity="0.6"/>
-        <text x="365" y="76" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">~420</text>
+        <rect x="340" y="87" width="50" height="35" fill="#c42848" opacity="0.6"/>
+        <text x="365" y="83" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#c42848">~350</text>
         <rect x="410" y="57" width="50" height="65" fill="#0d7a6e" opacity="0.6"/>
-        <text x="435" y="53" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">~580</text>
+        <text x="435" y="53" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">~650</text>
         <line x1="330" y1="122" x2="470" y2="122" stroke="#1c1a30" stroke-width="1.5"/>
         <text x="365" y="135" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">against</text>
         <text x="435" y="135" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#1c1a30">for</text>
-        <text x="415" y="55" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">avg ≈ 0.58 ← E[X]</text>
+        <text x="415" y="42" text-anchor="middle" font-family="Consolas,monospace" font-size="9" fill="#0d7a6e">avg ≈ 0.65 ← E[X]</text>
       </svg>
     </div>
 
-    <p>E[X] = 0.58 describes what happens <em>on average over many trials</em>. For one vote: the outcome is 0 or 1. Nothing in between.</p>
+    <p>E[X] = 0.65 describes what happens <em>on average over many trials</em>. For one vote: the outcome is 0 or 1. Nothing in between.</p>
 
     <div class="callout">
       Analogy: the average household has 2.4 children. You will never meet a family with exactly 2.4 children. But if you surveyed 10,000 families, the average would be close to 2.4. Expectation is a property of the <em>model</em>, not of any single observation.
@@ -782,7 +781,7 @@ $= \mathbf{0.58}$ &nbsp;← balance point of the distribution
     <div class="formula">PROBABILITY SPACE
   Ω = { "for", "against" }
   F = { ∅, {"for"}, {"against"}, Ω }   ← <span class="tip" data-tip-title="Power set" data-tip="The set of ALL subsets of Ω. If Ω = {a,b}, the power set is {∅,{a},{b},{a,b}} — 4 elements. For any finite Ω, F = power set is always a valid σ-algebra.">power set</span>; trivially <span class="tip" data-tip-title="σ-algebra (sigma-algebra)" data-tip="A collection of subsets of Ω closed under (1) complement and (2) countable union. In probability: the set of all events you're allowed to ask 'what's the probability of this?' The power set of a finite Ω always qualifies.">σ-algebra</span>
-  P({"for"}) = 0.58,  P({"against"}) = 0.42,  P(Ω) = 1
+  P({"for"}) = 0.65,  P({"against"}) = 0.35,  P(Ω) = 1
 
 RANDOM VARIABLE
   X = <span class="tip" data-tip-title="Indicator function 1_A" data-tip="$\mathbf{1}_A(\omega) = 1$ if $\omega \in A$, else $0$. Converts a yes/no event into a number. Here: $\mathbf{1}_{\{&quot;for&quot;\}}(\text{&quot;for&quot;}) = 1$ and $\mathbf{1}_{\{&quot;for&quot;\}}(\text{&quot;against&quot;}) = 0$.">1_{vote="for"}</span> : Ω → {0,1} ⊆ R
@@ -799,10 +798,14 @@ INTEGRABILITY
   → X is <span class="tip" data-tip-title="P-integrable" data-tip="$E[|X|] &lt; \infty$ — the expected absolute value is finite. Required for $E[X]$ to be well-defined. For Bernoulli, $|X| \leq 1$ everywhere, so $E[|X|] \leq 1 &lt; \infty$. Easy to verify.">P-integrable</span>.
 
 EXPECTATION
-  E[X] = 0·P(X=0) + 1·P(X=1) = 0·0.42 + 1·0.58 = 0.58</div>
+  E[X] = 0·P(X=0) + 1·P(X=1) = 0·0.35 + 1·0.65 = 0.65
+
+VARIANCE  (optional, one line)
+  Var(X) = E[X²] − (E[X])² = p − p² = p(1−p) = 0.65·0.35 = 0.2275
+  SD(X) = √0.2275 = 0.476970</div>
 
     <div class="callout">
-      One-sentence nuance to add: "Note that E[X] = 0.58 is a property of the distribution; a single observed vote takes values in {0,1}, not {0.58}."
+      One-sentence nuance to add: "Note that E[X] = 0.65 is a property of the distribution; a single observed vote takes values in {0,1}, not {0.65}."
     </div>
   </section>
 
@@ -818,14 +821,14 @@ EXPECTATION
         <line x1="70" y1="185" x2="430" y2="185" stroke="#1c1a30" stroke-width="2"/>
         <!-- y ticks -->
         <line x1="63" y1="185" x2="70" y2="185" stroke="#1c1a30" stroke-width="1.5"/><text x="58" y="189" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">0</text>
-        <line x1="63" y1="119" x2="70" y2="119" stroke="#1c1a30" stroke-width="1.5"/><text x="58" y="123" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">50</text>
+        <line x1="63" y1="103" x2="70" y2="103" stroke="#1c1a30" stroke-width="1.5"/><text x="58" y="107" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">50</text>
         <line x1="63" y1="20" x2="70" y2="20" stroke="#1c1a30" stroke-width="1.5"/><text x="58" y="24" text-anchor="end" font-family="Consolas,monospace" font-size="9" fill="#6a5888">100</text>
         <!-- gridlines -->
-        <line x1="70" y1="119" x2="430" y2="119" stroke="#ccc4e0" stroke-width="1" stroke-dasharray="4,3"/>
-        <!-- bar: against 0.42 -->
-        <rect x="110" y="128" width="100" height="57" fill="#c42848" opacity="0.78"/>
-        <!-- bar: for 0.58 -->
-        <rect x="290" y="107" width="100" height="78" fill="#0d7a6e" opacity="0.78"/>
+        <line x1="70" y1="103" x2="430" y2="103" stroke="#ccc4e0" stroke-width="1" stroke-dasharray="4,3"/>
+        <!-- bar: against 0.35 -->
+        <rect x="110" y="127" width="100" height="58" fill="#c42848" opacity="0.78"/>
+        <!-- bar: for 0.65 -->
+        <rect x="290" y="78" width="100" height="107" fill="#0d7a6e" opacity="0.78"/>
         <!-- x labels -->
         <text x="160" y="205" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">against</text>
         <text x="340" y="205" text-anchor="middle" font-family="Consolas,monospace" font-size="11" fill="#1c1a30">for</text>
@@ -836,14 +839,14 @@ EXPECTATION
 
         <!-- annotation callouts -->
         <!-- "annotate bars" callout -->
-        <text x="160" y="122" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">42.0% (p=0.42)</text>
-        <text x="340" y="101" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">58.0% (p=0.58)</text>
+        <text x="160" y="121" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#c42848" font-weight="bold">35.0% (p=0.35)</text>
+        <text x="340" y="72" text-anchor="middle" font-family="Consolas,monospace" font-size="10" fill="#0d7a6e" font-weight="bold">65.0% (p=0.65)</text>
 
         <!-- annotation arrows pointing to features -->
         <!-- y-axis label -->
-        <line x1="40" y1="103" x2="65" y2="103" stroke="#b86800" stroke-width="1.5" marker-end="url(#arrA)" stroke-dasharray="3,2"/>
-        <text x="5" y="90" font-family="Consolas,monospace" font-size="8" fill="#b86800">labeled</text>
-        <text x="5" y="101" font-family="Consolas,monospace" font-size="8" fill="#b86800">axis ✓</text>
+        <line x1="40" y1="130" x2="65" y2="130" stroke="#b86800" stroke-width="1.5" marker-end="url(#arrA)" stroke-dasharray="3,2"/>
+        <text x="5" y="117" font-family="Consolas,monospace" font-size="8" fill="#b86800">labeled</text>
+        <text x="5" y="128" font-family="Consolas,monospace" font-size="8" fill="#b86800">axis ✓</text>
 
         <!-- 0 baseline -->
         <line x1="340" y1="215" x2="340" y2="190" stroke="#b86800" stroke-width="1.5" marker-end="url(#arrA)" stroke-dasharray="3,2"/>
@@ -851,9 +854,9 @@ EXPECTATION
         <text x="310" y="241" font-family="Consolas,monospace" font-size="8" fill="#b86800">(not 40%) ✓</text>
 
         <!-- bar annotation -->
-        <line x1="430" y1="100" x2="398" y2="100" stroke="#b86800" stroke-width="1.5" marker-end="url(#arrA)" stroke-dasharray="3,2"/>
-        <text x="432" y="97" font-family="Consolas,monospace" font-size="8" fill="#b86800">values on</text>
-        <text x="432" y="108" font-family="Consolas,monospace" font-size="8" fill="#b86800">bars ✓</text>
+        <line x1="430" y1="71" x2="398" y2="71" stroke="#b86800" stroke-width="1.5" marker-end="url(#arrA)" stroke-dasharray="3,2"/>
+        <text x="432" y="68" font-family="Consolas,monospace" font-size="8" fill="#b86800">values on</text>
+        <text x="432" y="79" font-family="Consolas,monospace" font-size="8" fill="#b86800">bars ✓</text>
 
         <defs>
           <marker id="arrA" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
@@ -869,7 +872,7 @@ EXPECTATION
   <section class="slide" data-slide="12">
     <h1>Python Code Walkthrough</h1>
     <h2>Cell 1 — Model parameters</h2>
-    <div class="code-block"><span class="n">p_for</span> = <span class="n">0.58</span>             <span class="c"># ξ2 from assignment_values.txt</span>
+    <div class="code-block"><span class="n">p_for</span> = <span class="n">0.65</span>             <span class="c"># ξ2 from assignment_values.txt</span>
 <span class="n">p_against</span> = <span class="n">1</span> - <span class="n">p_for</span>     <span class="c"># complement: P(A^c) = 1 - P(A)</span>
 <span class="n">pct_for</span> = <span class="n">100</span> * <span class="n">p_for</span>
 <span class="n">pct_against</span> = <span class="n">100</span> * <span class="n">p_against</span>
@@ -901,13 +904,13 @@ EXPECTATION
   <section class="slide" data-slide="13">
     <h1>Common Pitfalls</h1>
     <h2>1. Skipping branch resolution</h2>
-    <div class="warn"><strong>Wrong:</strong> jumping to p = 0.58 without stating ξ1 = 0 applies.<br><strong>Right:</strong> "Since ξ1 = 0, the Bernoulli branch applies. Meteorite sub-tasks are not performed."</div>
+    <div class="warn"><strong>Wrong:</strong> jumping to p = 0.65 without stating ξ1 = 0 applies.<br><strong>Right:</strong> "Since ξ1 = 0, the Bernoulli branch applies. Meteorite sub-tasks are not performed."</div>
     <h2>2. E[X] = "most likely outcome"</h2>
-    <div class="warn"><strong>Wrong:</strong> "E[X] = 0.58 means the vote will probably be 'for'." (That's the mode, not expectation.)<br><strong>Right:</strong> E[X] = 0.58 is the long-run average. The most likely single outcome is also "for" (since p &gt; 0.5) — but that's a separate statement.</div>
+    <div class="warn"><strong>Wrong:</strong> "E[X] = 0.65 means the vote will probably be 'for'." (That's the mode, not expectation.)<br><strong>Right:</strong> E[X] = 0.65 is the long-run average. The most likely single outcome is also "for" (since p &gt; 0.5) — but that's a separate statement.</div>
     <h2>3. Y-axis not starting at 0</h2>
     <div class="warn"><strong>Wrong:</strong> y-axis from 40% to 65% — makes a 16-point gap look huge.<br><strong>Right:</strong> y-axis 0 to 100%. Honest representation of proportions.</div>
     <h2>4. Writing "density" for a discrete distribution</h2>
-    <div class="warn"><strong>Wrong:</strong> "The density at X=1 is 0.58."<br><strong>Right:</strong> "The probability mass at X=1 is P(X=1) = 0.58."</div>
+    <div class="warn"><strong>Wrong:</strong> "The density at X=1 is 0.65."<br><strong>Right:</strong> "The probability mass at X=1 is P(X=1) = 0.65."</div>
     <h2>5. Skipping the spot check</h2>
     <div class="warn"><strong>Wrong:</strong> showing the chart without verifying P(for) + P(against) = 1.<br><strong>Right:</strong> one print statement, five seconds, full marks for tool trust.</div>
   </section>
@@ -923,17 +926,17 @@ EXPECTATION
     </details>
 
     <h2>Q2</h2>
-    <p>Someone observes 10 votes and gets: for, for, against, for, against, for, for, against, for, for. The fraction "for" is 7/10 = 0.70. Does this contradict E[X] = 0.58?</p>
+    <p>Someone observes 10 votes and gets: for, for, against, for, for, for, for, against, for, for. The fraction "for" is 8/10 = 0.80. Does this contradict E[X] = 0.65?</p>
     <details>
       <summary>Reveal answer</summary>
-      <p>No — not at all. E[X] = 0.58 is the long-run average, not a guarantee for any 10 samples. Getting 70% "for" in 10 trials is entirely consistent with p = 0.58. With small samples, variance is high. You'd need thousands of votes for the sample fraction to converge reliably to 0.58 (by the <span class="tip" data-tip-title="Law of Large Numbers" data-tip="As $n \to \infty$, the sample mean $\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i$ converges to $E[X]$. That's why $E[X]$ is called the 'long-run average' — it's the limit you'd observe with infinite trials.">Law of Large Numbers</span>).</p>
+      <p>No — not at all. E[X] = 0.65 is the long-run average, not a guarantee for any 10 samples. Getting 80% "for" in 10 trials is entirely consistent with p = 0.65. With small samples, variance is high. You'd need thousands of votes for the sample fraction to converge reliably to 0.65 (by the <span class="tip" data-tip-title="Law of Large Numbers" data-tip="As $n \to \infty$, the sample mean $\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i$ converges to $E[X]$. That's why $E[X]$ is called the 'long-run average' — it's the limit you'd observe with infinite trials.">Law of Large Numbers</span>).</p>
     </details>
 
     <h2>Q3</h2>
-    <p>Why does the seesaw balance at 0.58 and not at 0.5 (the midpoint between 0 and 1)?</p>
+    <p>Why does the seesaw balance at 0.65 and not at 0.5 (the midpoint between 0 and 1)?</p>
     <details>
       <summary>Reveal answer</summary>
-      <p>Because the weights are unequal: 0.58 on the "1" side and 0.42 on the "0" side. The balance point is pulled toward the heavier side. If p = 0.5 (equal weights), it would balance at 0.5. With p = 0.58, the "for" side is heavier, so the balance point is 0.58 — closer to 1 than to 0. Mathematically: E[X] = 0×0.42 + 1×0.58 = 0.58.</p>
+      <p>Because the weights are unequal: 0.65 on the "1" side and 0.35 on the "0" side. The balance point is pulled toward the heavier side. If p = 0.5 (equal weights), it would balance at 0.5. With p = 0.65, the "for" side is heavier, so the balance point is 0.65 — closer to 1 than to 0. Mathematically: E[X] = 0×0.35 + 1×0.65 = 0.65.</p>
     </details>
   </section>
 

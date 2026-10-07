@@ -28,7 +28,8 @@
       "Plain-English parentheticals for jargon",
       "Use <details> for deeper math; keep main flow scannable",
       "Be concise and direct — no filler, no cheerleading",
-      "Work/manual cards: lead with the stakeholder ask in quotes, then plain-English 'what that means', then the concept — never concept jargon as the headline"
+      "Work/manual cards: lead with the stakeholder ask in quotes, then plain-English 'what that means', then the concept — never concept jargon as the headline",
+      "Agent instructions live in exactly one file: root AGENTS.md. CLAUDE.md only redirects to it. Never add instructions to CLAUDE.md or create a second agent-instruction file."
     ],
     "notes": "CONFIRMED 2026-06-24: visual learner — 'I'm a very visual person, an image and a comparison with something I can imagine helps me learning'. Intuition MUST precede formalism — 'X : Ω → R means almost nothing to me' when definition came first; label-gun analogy worked. Needs conceptual WHY before WHAT. Thinks in prerequisite chains — spontaneously requested intro deck before task deck. Always anchor abstract definitions with a concrete real-world example before notation. 2026-09-25: for z-scores, 'spread' and 'ruler' did not help; use average, variance, standard deviation, and a tiny numeric example. The phrase that unlocked standard deviation was 'an average distance from 0'. 2026-09-25 evening: the two-proportion explanation was too dense — bounce of the gap, both-arms denominator, hammer z/t rule, and OLS identity in one turn. Redo one mechanism at a time; park OLS until she asks."
   },
@@ -40,14 +41,14 @@
     ],
     "cursor_rule": ".cursor/rules/elena-learning.mdc",
     "cursor_skill": ".cursor/skills/elena-teaching/SKILL.md",
-    "personal_cursor_skill": "~/.cursor/skills/elena-teaching/SKILL.md",
-    "claude_bootstrap": "CLAUDE.md",
-    "codex_bootstrap": "AGENTS.md",
+    "personal_cursor_skill": "mirrored in the personal Cursor agent store under skills/elena-teaching/SKILL.md — keep byte-identical with the repo copy",
     "playbooks": [
       "docs/LEARNING_SYSTEM.md",
-      "docs/AGENTS.md",
+      "docs/EXAM_WORKFLOW.md",
       "docs/EXAM_WORKBOOK.md"
-    ]
+    ],
+    "agent_instructions": "AGENTS.md",
+    "agent_instructions_note": "Single instruction file for every agent. CLAUDE.md only redirects to it so the two cannot diverge."
   },
   "strengths": [
     "comfortable with Python and matplotlib",
@@ -101,7 +102,7 @@
       "belief": "2026-09-29 retest held: z when the population standard deviation is known, t when it is computed from the sample. Both ask whether the sample average is far from the stated average.",
       "clarification_needed": "Both test a mean. z uses a known population standard deviation. t uses a standard deviation computed from the sample. Task 4 numbers: z = 0.5833 or t = 0.2567 on 9 df; the conclusion agrees.",
       "last_seen": "2026-09-29",
-      "addressed_in": "slides/exam_tasks/task4-hypothesis-99d9e51.html; deliverables/workbook/src/04-task4.md",
+      "addressed_in": "slides/exam_tasks/task4-hypothesis.html; deliverables/workbook/src/04-task4.md",
       "status": "resolved"
     },
     {
@@ -134,7 +135,7 @@
       "question_asked": "(not yet asked live — flagged as a standing risk)",
       "clarification_needed": "Hogg, McKean and Craig write the gamma density with beta as a SCALE: f(x) = x^(a-1) e^(-x/beta) / (Gamma(a) beta^a). Scale multiplies, rate divides; mean = shape x scale = shape / rate. In Task 6 reading xi18 = 63 as a scale gives a Bayes estimate of 0.055508, as a rate 0.052073 — 6.19% apart. Always declare the convention before deriving.",
       "last_seen": "2026-08-22",
-      "addressed_in": "slides/exam_tasks/task6-bayes-99d9e51.html; deliverables/workbook/src/06-task6.md opening paragraph",
+      "addressed_in": "slides/exam_tasks/task6-bayes.html; deliverables/workbook/src/06-task6.md opening paragraph",
       "status": "addressed_not_tested"
     }
   ],
@@ -142,7 +143,7 @@
     "bernoulli-expectation": {
       "mastery": "developing",
       "last_assessed": "2026-09-29",
-      "notes": "2026-09-29 retest: 1-or-6 average held (3.5, long-run, no roll lands there). Lowercase x = 1 held. Capital X still given as the list [1, 0] rather than the fixed rule. Deck for parameter set 99d9e51e (p = 0.65): slides/exam_tasks/task1-bernoulli-99d9e51.html."
+      "notes": "2026-09-29 retest: 1-or-6 average held (3.5, long-run, no roll lands there). Lowercase x = 1 held. Capital X still given as the list [1, 0] rather than the fixed rule. Deck for parameter set 99d9e51e (p = 0.65): slides/exam_tasks/task1-bernoulli.html."
     },
     "stats-probability-foundations": {
       "mastery": "developing",
@@ -157,27 +158,27 @@
     "continuous-survival-pdf": {
       "mastery": "novice",
       "last_assessed": null,
-      "notes": "Deck REWRITTEN 2026-08-22: branch changed to xi4=1, a Weibull-2/Weibull-8 mixture with a bimodal density. slides/exam_tasks/task2-survival-99d9e51.html. Workbook section written. Diagnostic pending."
+      "notes": "Deck REWRITTEN 2026-08-22: branch changed to xi4=1, a Weibull-2/Weibull-8 mixture with a bimodal density. slides/exam_tasks/task2-survival.html. Workbook section written. Diagnostic pending."
     },
     "gamma-sum-mle": {
       "mastery": "novice",
       "last_assessed": null,
-      "notes": "Deck REWRITTEN 2026-08-22: branch changed to xi9=0, so this is now sum-of-exponentials rather than Gamma(7). slides/exam_tasks/task3-exponential-99d9e51.html. Workbook section written. Diagnostic pending."
+      "notes": "Deck REWRITTEN 2026-08-22: branch changed to xi9=0, so this is now sum-of-exponentials rather than Gamma(7). slides/exam_tasks/task3-exponential.html. Workbook section written. Diagnostic pending."
     },
     "hypothesis-test-mean": {
       "mastery": "developing",
       "last_assessed": "2026-09-29",
-      "notes": "2026-09-29: z vs t switch held (known standard deviation vs computed from the sample). Tail still over-read as H1 being likely. Campaign two-sample gap was blank. Parameter-set deck (fail to reject): slides/exam_tasks/task4-hypothesis-99d9e51.html."
+      "notes": "2026-09-29: z vs t switch held (known standard deviation vs computed from the sample). Tail still over-read as H1 being likely. Campaign two-sample gap was blank. Parameter-set deck (fail to reject): slides/exam_tasks/task4-hypothesis.html."
     },
     "ols-ridge": {
       "mastery": "novice",
       "last_assessed": "2026-09-25",
-      "notes": "OLS recognized only as 'some sort of regression'. Ridge unknown. Distinct from the applied regression she can already describe inside MMM. Refreshed deck: slides/exam_tasks/task5-ridge-99d9e51.html."
+      "notes": "OLS recognized only as 'some sort of regression'. Ridge unknown. Distinct from the applied regression she can already describe inside MMM. Refreshed deck: slides/exam_tasks/task5-ridge.html."
     },
     "gamma-conjugate-bayes": {
       "mastery": "novice",
       "last_assessed": "2026-09-25",
-      "notes": "Prior-as-refinement-beyond-frequency is present. MLE unknown. Conjugate Gamma update not assessed. Rate-vs-scale is written up in slides/exam_tasks/task6-bayes-99d9e51.html and not yet tested live."
+      "notes": "Prior-as-refinement-beyond-frequency is present. MLE unknown. Conjugate Gamma update not assessed. Rate-vs-scale is written up in slides/exam_tasks/task6-bayes.html and not yet tested live."
     },
     "marketing-mix-modeling": {
       "mastery": "solid",

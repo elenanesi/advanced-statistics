@@ -344,7 +344,7 @@
   <section class="slide" data-slide="2">
     <h1>Binomial — how many wins in n tries?</h1>
     <p><b>Concrete first.</b> You run an A/B test: 10 visitors see the new checkout button. Each visitor independently clicks (probability $p$) or doesn't. Question: <i>how many of the 10 click?</i> That count is a binomial random variable.</p>
-    <p>Each single visitor is a <span class="tip" data-tip-title="Bernoulli trial" data-tip="An experiment with exactly two outcomes — success/failure, heads/tails, click/no-click. One trial, probability p of success. This is Task 1's whole world (your p = 0.58 voter).">Bernoulli trial</span> — exactly the coin from your Task 1 deck. Binomial = <b>n independent Bernoulli trials, then count the successes</b>.</p>
+    <p>Each single visitor is a <span class="tip" data-tip-title="Bernoulli trial" data-tip="An experiment with exactly two outcomes — success/failure, heads/tails, click/no-click. One trial, probability p of success. This is Task 1's whole world (your p = 0.65 voter).">Bernoulli trial</span> — exactly the coin from your Task 1 deck. Binomial = <b>n independent Bernoulli trials, then count the successes</b>.</p>
     <figure>
       <svg viewBox="0 0 640 185" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Binomial PMFs for n=10 with p=0.1, 0.5, 0.9">
         <line x1="20" y1="150" x2="620" y2="150" stroke="#ccc4e0" stroke-width="2"/>
@@ -736,7 +736,7 @@
     <p>Practical recipe (book eq. 3.27–3.28): from your data's mean and variance, set $p = \mu/\sigma^2$ and $r = \mu^2/(\sigma^2-\mu)$. If $\sigma^2 = \mu$, just use Poisson.</p>
     <details>
       <summary>Where you'll meet the Gamma again (Tasks 3 &amp; 6)</summary>
-      <p>The Gamma density used here, $f_{\alpha,\beta}(x)=\frac{\beta^{\alpha}x^{\alpha-1}e^{-\beta x}}{\Gamma(\alpha)}$, is the star of your Task 3 (router traffic, Gamma(7, θ) — see <i>slides/exam_tasks/task3-gamma-mle.html</i>). And "Gamma is the <span class="tip" data-tip-title="Conjugate prior" data-tip="A prior chosen so that after updating with data, the posterior belongs to the same distribution family. Gamma prior + Poisson data → Gamma posterior. Makes Bayesian updating a closed-form formula instead of an integral fight. Chapter 4 / Task 6 territory.">conjugate prior</span> of the Poisson" is the exact machinery of Task 6. The mixture idea on this slide is Bayesian statistics quietly introducing itself.</p>
+      <p>The Gamma density used here, $f_{\alpha,\beta}(x)=\frac{\beta^{\alpha}x^{\alpha-1}e^{-\beta x}}{\Gamma(\alpha)}$, is the star of your Task 3 (router traffic: one router is Exp(θ), so two added together give Gamma(2, θ) — see <i>slides/exam_tasks/task3-exponential.html</i>). And "Gamma is the <span class="tip" data-tip-title="Conjugate prior" data-tip="A prior chosen so that after updating with data, the posterior belongs to the same distribution family. Gamma prior + Poisson data → Gamma posterior. Makes Bayesian updating a closed-form formula instead of an integral fight. Chapter 4 / Task 6 territory.">conjugate prior</span> of the Poisson" is the exact machinery of Task 6. The mixture idea on this slide is Bayesian statistics quietly introducing itself.</p>
     </details>
   </section>
 
@@ -922,9 +922,9 @@
     <h1>Chapter 3 → your exam tasks</h1>
     <p>Every section of this chapter is load-bearing for a specific exam task:</p>
     <ul>
-      <li><b>3.1 Bernoulli / Binomial → Task 1</b> (done ✅): your voter with $p = 0.58$ is one Bernoulli trial; the deck's $E[X] = p$ result is the $n=1$ case of $E[X] = np$.</li>
+      <li><b>3.1 Bernoulli / Binomial → Task 1</b> (done ✅): your voter with $p = 0.65$ is one Bernoulli trial; the deck's $E[X] = p$ result is the $n=1$ case of $E[X] = np$.</li>
       <li><b>3.3 Exponential-style decay + 3.5 Transformation theorem → Task 2</b>: the survival function $\bar F(y)$ is a $P(L>t)$-style object, and the chain-rule/Jacobian PDF step is section 3.5 verbatim.</li>
-      <li><b>3.3 Gamma density (eq. 3.14) → Task 3</b>: Gamma(7, θ) router traffic; the "sum of α waiting times" arrow on the family tree is why a 7-stage story gives $\alpha = 7$, and the transformation theorem powers the $T = S_1+S_2 \sim \Gamma(14,\theta)$ proof.</li>
+      <li><b>3.3 Gamma density (eq. 3.14) → Task 3</b>: one router's traffic is $\text{Exp}(\theta)$, which is Gamma with $\alpha = 1$; the "sum of α waiting times" arrow on the family tree is why adding two routers gives $T = S_1+S_2 \sim \Gamma(2,\theta)$.</li>
       <li><b>3.2 Normal + CLT + the σ ruler → Task 4</b>: hypothesis tests on means work because the CLT makes sample means normal; "significant" = "many σ from the null".</li>
       <li><b>3.3 Gamma-Poisson conjugacy → Task 6</b>: the mixture trick (let the parameter be random, integrate it out) is precisely how the Bayesian Gamma posterior task will work.</li>
       <li><b>3.4 Weibull</b>: not directly in a task, but a favorite for conceptual exam questions ("which k regime describes X?") — cheap points, know the three regimes.</li>

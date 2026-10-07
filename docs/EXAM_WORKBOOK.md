@@ -4,7 +4,7 @@ Official document: `exam_tasks/Task_Advanced_Workbook_DLMDSAS011.pdf` (IU DLMDSA
 
 **Rule from the PDF:** If a task says “If \(\xi_k\) is …”, **only perform that sub-task** when your personal value matches. Otherwise skip and state that the branch does not apply.
 
-**Implementation home:** `deliverables/workbook/` — `workbook_analysis.ipynb` produces every number and figure, `src/*.md` holds the prose, `build.sh` emits the .docx. `exam_tasks/bernoulli_vote_analysis.ipynb` predates this and is built on the superseded parameter set.
+**Implementation home:** `deliverables/workbook/` — `workbook_analysis.ipynb` produces every number and figure, `src/*.md` holds the prose, `build.sh` emits the .docx. `exam_tasks/user_notebook.ipynb` is Elena's own scratch notebook: Task 1 only, built on the superseded parameter set, and not a source for any result here.
 
 ---
 

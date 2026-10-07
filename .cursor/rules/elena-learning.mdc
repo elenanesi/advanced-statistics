@@ -5,9 +5,11 @@ alwaysApply: true
 
 # Elena learning preferences (always on)
 
+**Agent instructions:** root `AGENTS.md` — the single instruction file for every agent (`CLAUDE.md` only redirects there).
 **Source of truth:** `learning/profile.json` + last 10–20 lines of `learning/session_log.jsonl`.
-**Full playbook:** `docs/LEARNING_SYSTEM.md`. **Exam branches:** `docs/EXAM_WORKBOOK.md` + `exam_tasks/assignment_values.txt`.
-**Skill (deep teach/slides):** `.cursor/skills/elena-teaching/SKILL.md` (also mirrored under `~/.cursor/skills/elena-teaching/` for Cursor).
+**Full playbook:** `docs/LEARNING_SYSTEM.md`. **Exam workflow:** `docs/EXAM_WORKFLOW.md`.
+**Exam branches:** `docs/EXAM_WORKBOOK.md` + `exam_tasks/assignment_values_2.txt` (signature `99d9e51e…`; `assignment_values.txt` is the superseded run).
+**Skill (deep teach/slides):** `.cursor/skills/elena-teaching/SKILL.md`.
 
 ## How Elena learns (enforce in every teach/slides turn)
 

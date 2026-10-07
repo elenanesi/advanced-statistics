@@ -106,10 +106,9 @@
         "Unit 1 — 1.3"
       ],
       "buddy_id": "coin-sprite",
-      "slide_path": "slides/exam_tasks/task1-bernoulli-99d9e51.html",
+      "slide_path": "slides/exam_tasks/task1-bernoulli.html",
       "slide_status": "ready",
       "notes": "2026-08-22 refreshed for parameter set 99d9e51e: p = 0.65 (was 0.58), E[X] = 0.65, Var = 0.2275, sd = 0.47697. Pedagogy unchanged (label gun, why 'random', E[X] seesaw) since it was confirmed to work. Superseded deck kept for comparison.",
-      "superseded_slide_path": "slides/exam_tasks/task1-bernoulli.html",
       "parameter_set": "99d9e51e"
     },
     {
@@ -152,10 +151,9 @@
         "Unit 3 — 3.3"
       ],
       "buddy_id": "owl-sprite",
-      "slide_path": "slides/exam_tasks/task2-survival-99d9e51.html",
+      "slide_path": "slides/exam_tasks/task2-survival.html",
       "slide_status": "ready",
       "notes": "2026-08-22 REWRITTEN: branch changed xi4 3 -> 1, so F̄(y) = (2/3)e^(-8y²) + (1/3)e^(-5y⁸) — a mixture of Weibull shape 2 (Rayleigh) and shape 8, hence BIMODAL (peaks ~15.0 and ~47.9 min). Generator gave 0.66+0.33 = 0.99; renormalised to exactly 2/3 and 1/3 and documented. E[Y] = 27.94 min, Var = 0.068605 h², Q1/med/Q3 = 14.54/24.90/42.79 min, P(2<Y<4) = 8.44e-15. Key trick taught: E[Y] = ∫F̄ for Y ≥ 0.",
-      "superseded_slide_path": "slides/exam_tasks/task2-survival.html",
       "parameter_set": "99d9e51e"
     },
     {
@@ -174,10 +172,9 @@
         "Unit 6 — 6.1"
       ],
       "buddy_id": "router-sprite",
-      "slide_path": "slides/exam_tasks/task3-exponential-99d9e51.html",
+      "slide_path": "slides/exam_tasks/task3-exponential.html",
       "slide_status": "ready",
       "notes": "2026-08-22 REWRITTEN: branch changed xi9 2 -> 0, so S ~ Exponential(θ) and T = S1+S2 ~ Gamma(2,θ) by convolution. The 120-vs-720 typo warning NO LONGER APPLIES (it was specific to the xi9=2 line) and was dropped. Sample (33,29,6,37,1), n=5, θ̂ = T̄/2 = 10.6 TB, E[T] = 21.2 TB. se 3.352, so the 95% interval [4.03, 17.17] is very wide at n=5.",
-      "superseded_slide_path": "slides/exam_tasks/task3-gamma-mle.html",
       "parameter_set": "99d9e51e"
     },
     {
@@ -197,10 +194,9 @@
         "Unit 7 — 7.2"
       ],
       "buddy_id": "hammer-sprite",
-      "slide_path": "slides/exam_tasks/task4-hypothesis-99d9e51.html",
+      "slide_path": "slides/exam_tasks/task4-hypothesis.html",
       "slide_status": "ready",
       "notes": "2026-08-22 CONCLUSION FLIPPED. New data: μ0 = 842, σ0 = 55.3, n = 10, x̄ = 852.2, z = 0.5833, p = 0.2799 -> FAIL TO REJECT (the old deck concluded reject and is wrong for this data). z-vs-t still open: t = 0.2567 on 9 df, p = 0.4016, same conclusion. Power at the observed effect is only 14.4%; the minimum detectable difference at 80% power is 43.5 g vs an observed 10.2 g. Red flag: s = 125.65 vs σ0 = 55.3 is a variance ratio of 5.16.",
-      "superseded_slide_path": "slides/exam_tasks/task4-hypothesis.html",
       "parameter_set": "99d9e51e"
     },
     {
@@ -216,10 +212,9 @@
         "Unit 6 — 6.4"
       ],
       "buddy_id": "ridge-sprite",
-      "slide_path": "slides/exam_tasks/task5-ridge-99d9e51.html",
+      "slide_path": "slides/exam_tasks/task5-ridge.html",
       "slide_status": "ready",
       "notes": "2026-08-22 refreshed: new 22-point dataset, degree 10. Headline lesson is CONDITIONING — raw Vandermonde cond 1.02e13, after rescaling x to [-1,1] 3.74e3. Solve by SVD, never by inverting X'X. λ* = 4.5e-4 by leave-one-out CV; coefficient norm 6.63 -> 1.007 (-84.8%). Quality answer: least squares is dominated by |y| ~ 6e13 at the edges, so for |x| <= 7 both fits are worthless (fitted intercept 1.90e11 OLS vs observed y(0) = -0.98).",
-      "superseded_slide_path": "slides/exam_tasks/task5-ridge.html",
       "parameter_set": "99d9e51e"
     },
     {
@@ -236,10 +231,9 @@
         "Unit 4 — 4.3"
       ],
       "buddy_id": "prior-sprite",
-      "slide_path": "slides/exam_tasks/task6-bayes-99d9e51.html",
+      "slide_path": "slides/exam_tasks/task6-bayes.html",
       "slide_status": "ready",
       "notes": "2026-08-22 refreshed + rate-vs-scale addressed head-on. Hogg writes β as a SCALE, so prior Gamma(23,63) has rate 1/63. Posterior Gamma(53, rate 954.8159); Bayes estimate (squared-error) = 0.0555081; mode = 0.0544608. Alternative reading of ξ18 as a rate gives 0.0520731 / 0.0510906, a 6.19% difference. Strong prior-influence illustration: the MLE α/x̄ = 0.03142 lies OUTSIDE the 95% credible interval [0.0416, 0.0714].",
-      "superseded_slide_path": "slides/exam_tasks/task6-bayes.html",
       "parameter_set": "99d9e51e"
     },
     {
